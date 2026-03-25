@@ -438,53 +438,71 @@ def generate_default_card() -> bytes:
     return buf.getvalue()
 
 
-# ── GA OG Card — NEON GLOW style (full GA image + floating score badge) ──
+# ── GA OG Card — TV NEWS BANNER style (V3) ──────────────────────────
 
 import json as _json
 
 
-# Impact font for score display (heavy, gaming feel)
+# Impact / Arial Black font candidates for bold score display
 _FONT_IMPACT_CANDIDATES = [
     "C:/Windows/Fonts/impact.ttf",
+    "C:/Windows/Fonts/ariblk.ttf",
     "C:/Windows/Fonts/arialbd.ttf",
     # Linux fallbacks
     "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
     "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
 ]
 
+_FONT_ITALIC_CANDIDATES = [
+    "C:/Windows/Fonts/ariali.ttf",
+    "C:/Windows/Fonts/Inter-Regular.ttf",
+    # Linux fallbacks
+    "/usr/share/fonts/truetype/dejavu/DejaVuSans-Oblique.ttf",
+    "/usr/share/fonts/truetype/liberation/LiberationSans-Italic.ttf",
+]
+
 
 @lru_cache(maxsize=8)
 def _get_impact_font(size: int) -> ImageFont.FreeTypeFont:
-    """Load Impact font (or bold fallback) for score display."""
+    """Load Impact/Arial Black font (or bold fallback) for score display."""
     for path in _FONT_IMPACT_CANDIDATES:
         if os.path.exists(path):
             return ImageFont.truetype(path, size)
     return ImageFont.load_default()
 
 
-def _neon_verdict(score_pct: int) -> tuple[str, tuple[int, int, int]]:
-    """Return (verdict_label, neon_color_rgb) for the score badge.
+@lru_cache(maxsize=8)
+def _get_italic_font(size: int) -> ImageFont.FreeTypeFont:
+    """Load italic font for paper title display."""
+    for path in _FONT_ITALIC_CANDIDATES:
+        if os.path.exists(path):
+            return ImageFont.truetype(path, size)
+    return ImageFont.load_default()
 
-    Thresholds with NEON-saturated colors:
-        >=80  LIMPIDE     neon green
-        60-79 FLUIDE      neon teal
-        40-59 ACCESSIBLE  neon yellow
-        20-39 BRUMEUX     neon orange
-        10-19 OPAQUE      neon red
-        <10   ILLISIBLE   deep red
+
+def _banner_verdict(score_pct: int) -> tuple[str, tuple[int, int, int]]:
+    """Return (verdict_label, banner_bg_color_rgb) for the score tier.
+
+    Bold solid colors — TV news authority, not neon subtlety:
+        >=80  LIMPIDE     solid green   #059669
+        60-79 FLUIDE      solid teal    #0D9488
+        40-59 ACCESSIBLE  solid amber   #D97706
+        20-39 BRUMEUX     solid orange  #EA580C
+        10-19 OPAQUE      solid red     #DC2626
+        <10   ILLISIBLE   solid dark-red #991B1B
     """
     if score_pct >= 80:
-        return "LIMPIDE", (0, 255, 136)        # #00FF88
+        return "LIMPIDE", (5, 150, 105)       # #059669
     elif score_pct >= 60:
-        return "FLUIDE", (0, 255, 212)          # #00FFD4
+        return "FLUIDE", (13, 148, 136)        # #0D9488
     elif score_pct >= 40:
-        return "ACCESSIBLE", (255, 214, 0)      # #FFD600
+        return "ACCESSIBLE", (217, 119, 6)     # #D97706
     elif score_pct >= 20:
-        return "BRUMEUX", (255, 136, 0)          # #FF8800
+        return "BRUMEUX", (234, 88, 12)        # #EA580C
     elif score_pct >= 10:
-        return "OPAQUE", (255, 51, 68)           # #FF3344
+        return "OPAQUE", (220, 38, 38)         # #DC2626
     else:
-        return "ILLISIBLE", (255, 0, 51)         # #FF0033
+        return "ILLISIBLE", (153, 27, 27)      # #991B1B
 
 
 def _resolve_score(image: dict, avg_glance: float | None,
@@ -527,61 +545,17 @@ def _resolve_score(image: dict, avg_glance: float | None,
     return None, ""
 
 
-def _draw_neon_text(canvas: Image.Image, position: tuple[int, int],
-                    text: str, color: tuple[int, int, int],
-                    font: ImageFont.FreeTypeFont,
-                    glow_radius: int = 20, glow_passes: int = 3,
-                    text_color: tuple[int, int, int] | None = None) -> Image.Image:
-    """Draw text with multi-pass neon glow effect.
-
-    Each pass creates a blurred halo at decreasing radius for depth.
-    Sharp white (or custom) text is drawn on top.
-
-    Args:
-        canvas: RGBA image to draw on (modified in place via composite).
-        position: (x, y) for text placement.
-        text: string to render.
-        color: RGB tuple for the glow color.
-        font: PIL font object.
-        glow_radius: base blur radius for outermost pass.
-        glow_passes: number of blur passes (more = richer glow).
-        text_color: RGB for the sharp text on top. Defaults to white.
-
-    Returns:
-        Modified canvas (new Image object due to alpha_composite).
-    """
-    x, y = position
-    final_text_color = text_color or (255, 255, 255)
-
-    for i in range(glow_passes):
-        glow = Image.new("RGBA", canvas.size, (0, 0, 0, 0))
-        gd = ImageDraw.Draw(glow)
-        r = max(glow_radius - (i * 5), 2)
-        alpha = min(160 - (i * 35), 255)
-        if alpha < 20:
-            alpha = 20
-        gd.text((x, y), text, fill=(*color, alpha), font=font)
-        glow = glow.filter(ImageFilter.GaussianBlur(radius=r))
-        canvas = Image.alpha_composite(canvas, glow)
-
-    # Sharp text on top
-    sharp = Image.new("RGBA", canvas.size, (0, 0, 0, 0))
-    sd = ImageDraw.Draw(sharp)
-    sd.text((x, y), text, fill=(*final_text_color, 255), font=font)
-    canvas = Image.alpha_composite(canvas, sharp)
-
-    return canvas
-
-
 def generate_ga_og_card(image: dict, avg_glance: float | None,
                         n_tests: int, domain_label: str = "") -> bytes:
-    """Generate a 1200x630 OG card — NEON GLOW cyberpunk design.
+    """Generate a 1200x630 OG card — TV NEWS BANNER design (V3).
 
     Layout:
-        Full-card GA image (contain-fit, dark padded, centered)
-        Floating score badge (top-left, semi-transparent, neon-bordered)
-        Thin bottom strip (title + domain + GLANCE branding)
-        Background dot-grid texture behind everything
+        Top ~490px: GA image (contain-fit, dark background, dot-grid texture)
+        Bottom 140px: Unified opaque banner (bold tier color) with:
+            Row 1: SCORE GLANCE label | score% | verdict | domain pill
+            Row 2: Standard subtitle line
+            Row 3: Paper title (italic, truncated)
+        Left accent: 6px white stripe on banner left edge
 
     Score sources (priority): real tests > sidecar predicted_score > "?"
 
@@ -594,33 +568,31 @@ def generate_ga_og_card(image: dict, avg_glance: float | None,
     Returns:
         PNG bytes.
     """
-    BG = (10, 10, 10)  # #0A0A0A — near-black
-    STRIP_H = 45
+    BG = (15, 23, 42)  # #0F172A — dark slate
+    BANNER_H = 140
+    ACCENT_W = 6       # left white accent stripe
 
-    canvas = Image.new("RGBA", (CARD_W, CARD_H), (*BG, 255))
-    draw = ImageDraw.Draw(canvas)
+    img = Image.new("RGB", (CARD_W, CARD_H), BG)
+    draw = ImageDraw.Draw(img)
 
-    # ── Background dot-grid texture ──
-    for gx in range(0, CARD_W, 20):
-        for gy in range(0, CARD_H, 20):
-            draw.ellipse([gx - 1, gy - 1, gx + 1, gy + 1],
-                         fill=(255, 255, 255, 8))
+    # Image zone height (no decorative texture — every pixel must communicate)
+    image_zone_h = CARD_H - BANNER_H  # 490px
 
-    # ── Resolve score early (need color for accents) ──
+    # ── Resolve score ──
     score_pct, score_source = _resolve_score(image, avg_glance, n_tests)
     has_score = score_pct is not None
 
     if has_score:
-        verdict_label, neon_color = _neon_verdict(score_pct)
+        verdict_label, banner_color = _banner_verdict(score_pct)
     else:
-        verdict_label, neon_color = "", (100, 116, 139)
+        verdict_label = "PAS ENCORE EVALUE"
+        banner_color = (55, 65, 81)  # #374151 — dark gray
 
     # ── Load and fit GA image — CONTAIN (full image, no crop) ──
-    image_zone_h = CARD_H - STRIP_H  # 585px for the image
     ga_path = os.path.join(BASE, "ga_library", image.get("filename", ""))
     if os.path.exists(ga_path):
         try:
-            ga_img = Image.open(ga_path).convert("RGBA")
+            ga_img = Image.open(ga_path).convert("RGB")
             src_w, src_h = ga_img.size
 
             # Contain-fit: scale to fit within card width x image_zone_h
@@ -632,222 +604,145 @@ def generate_ga_og_card(image: dict, avg_glance: float | None,
             # Center the image in the available zone
             paste_x = (CARD_W - new_w) // 2
             paste_y = (image_zone_h - new_h) // 2
-            canvas.paste(ga_img, (paste_x, paste_y), ga_img)
+            img.paste(ga_img, (paste_x, paste_y))
         except Exception:
             pass
 
-    # ── Floating score badge (top-left corner) ──
-    BADGE_X = 24
-    BADGE_Y = 24
-    BADGE_W = 200
-    BADGE_H = 140
-    BADGE_R = 12  # corner radius
+    # ── UNIFIED BANNER — opaque, bold color, bottom 140px ──
+    banner_y = CARD_H - BANNER_H  # 490
 
+    # Solid opaque banner background
+    draw.rectangle(
+        [(0, banner_y), (CARD_W, CARD_H)],
+        fill=banner_color,
+    )
+
+    # Left accent stripe — 6px solid white, full banner height
+    draw.rectangle(
+        [(0, banner_y), (ACCENT_W, CARD_H)],
+        fill=(255, 255, 255),
+    )
+
+    # ── Row 1 (main line) — SCORE GLANCE | score% | verdict | domain pill ──
+    row1_y = banner_y + 14
+    text_x = ACCENT_W + 20  # after the white stripe + padding
+
+    # "SCORE GLANCE" — small caps authority label
+    font_label = _get_font(18, bold=True)
+    draw.text((text_x, row1_y + 6), "SCORE GLANCE", fill=(255, 255, 255), font=font_label)
+
+    # Measure "SCORE GLANCE" width
+    label_bbox = draw.textbbox((text_x, row1_y + 6), "SCORE GLANCE", font=font_label)
+    label_right = label_bbox[2]
+
+    # Score percentage — giant Impact font
+    font_score_big = _get_impact_font(72)
     if has_score:
-        # Badge background: very dark, semi-transparent
-        badge_bg = Image.new("RGBA", (CARD_W, CARD_H), (0, 0, 0, 0))
-        badge_draw = ImageDraw.Draw(badge_bg)
-
-        # Fill
-        badge_draw.rounded_rectangle(
-            (BADGE_X, BADGE_Y, BADGE_X + BADGE_W, BADGE_Y + BADGE_H),
-            radius=BADGE_R,
-            fill=(10, 10, 10, 216),  # 85% opacity
-        )
-        # Neon border (2px)
-        badge_draw.rounded_rectangle(
-            (BADGE_X, BADGE_Y, BADGE_X + BADGE_W, BADGE_Y + BADGE_H),
-            radius=BADGE_R,
-            outline=(*neon_color, 255),
-            width=2,
-        )
-        canvas = Image.alpha_composite(canvas, badge_bg)
-
-        # Border glow effect — draw the border blurred on a separate layer
-        border_glow = Image.new("RGBA", (CARD_W, CARD_H), (0, 0, 0, 0))
-        bg_draw = ImageDraw.Draw(border_glow)
-        for thickness in range(6, 0, -2):
-            alpha = 40 + (6 - thickness) * 15
-            bg_draw.rounded_rectangle(
-                (BADGE_X - thickness, BADGE_Y - thickness,
-                 BADGE_X + BADGE_W + thickness, BADGE_Y + BADGE_H + thickness),
-                radius=BADGE_R + thickness,
-                outline=(*neon_color, alpha),
-                width=2,
-            )
-        border_glow = border_glow.filter(ImageFilter.GaussianBlur(radius=8))
-        canvas = Image.alpha_composite(canvas, border_glow)
-
-        # Score number — big Impact font
-        font_score = _get_impact_font(80)
-        score_text = f"{score_pct}%"
-        # Measure to center horizontally in badge
-        tmp_draw = ImageDraw.Draw(Image.new("RGBA", (1, 1)))
-        s_bbox = tmp_draw.textbbox((0, 0), score_text, font=font_score)
-        s_w = s_bbox[2] - s_bbox[0]
-        score_x = BADGE_X + (BADGE_W - s_w) // 2
-        score_y = BADGE_Y + 8
-
-        # Draw score with neon glow
-        canvas = _draw_neon_text(
-            canvas, (score_x, score_y), score_text, neon_color,
-            font_score, glow_radius=18, glow_passes=3,
-            text_color=(255, 255, 255),
-        )
-
-        # Verdict label — neon colored, centered
-        font_verdict = _get_font(24, bold=True)
-        v_bbox = tmp_draw.textbbox((0, 0), verdict_label, font=font_verdict)
-        v_w = v_bbox[2] - v_bbox[0]
-        verdict_x = BADGE_X + (BADGE_W - v_w) // 2
-        verdict_y = BADGE_Y + 88
-
-        canvas = _draw_neon_text(
-            canvas, (verdict_x, verdict_y), verdict_label, neon_color,
-            font_verdict, glow_radius=12, glow_passes=2,
-            text_color=neon_color,
-        )
-
-        # Progress bar under verdict
-        bar_x = BADGE_X + 20
-        bar_y = BADGE_Y + BADGE_H - 18
-        bar_w = BADGE_W - 40
-        bar_h = 6
-        fill_w = int(bar_w * score_pct / 100)
-
-        bar_layer = Image.new("RGBA", (CARD_W, CARD_H), (0, 0, 0, 0))
-        bar_draw = ImageDraw.Draw(bar_layer)
-        # Track (dark)
-        bar_draw.rounded_rectangle(
-            (bar_x, bar_y, bar_x + bar_w, bar_y + bar_h),
-            radius=3, fill=(255, 255, 255, 25),
-        )
-        # Fill (neon colored)
-        if fill_w > 4:
-            bar_draw.rounded_rectangle(
-                (bar_x, bar_y, bar_x + fill_w, bar_y + bar_h),
-                radius=3, fill=(*neon_color, 200),
-            )
-        canvas = Image.alpha_composite(canvas, bar_layer)
-
+        score_text = f"{score_pct}%:"
     else:
-        # No score: "?" badge
-        badge_bg = Image.new("RGBA", (CARD_W, CARD_H), (0, 0, 0, 0))
-        badge_draw = ImageDraw.Draw(badge_bg)
-        badge_draw.rounded_rectangle(
-            (BADGE_X, BADGE_Y, BADGE_X + BADGE_W, BADGE_Y + BADGE_H),
-            radius=BADGE_R,
-            fill=(10, 10, 10, 216),
-            outline=(100, 116, 139, 150),
+        score_text = "?:"
+    score_x = label_right + 24
+    draw.text((score_x, row1_y - 16), score_text,
+              fill=(255, 255, 255), font=font_score_big)
+
+    # Measure score text width
+    score_bbox = draw.textbbox((score_x, row1_y - 16), score_text, font=font_score_big)
+    score_right = score_bbox[2]
+
+    # Verdict — the judgment DROPS after the colon
+    font_verdict_big = _get_impact_font(48)
+    verdict_x = score_right + 16
+    draw.text((verdict_x, row1_y + 4), verdict_label,
+              fill=(255, 255, 255), font=font_verdict_big)
+
+    # Domain pill badge (right side of row 1)
+    domain_text = domain_label.upper() if domain_label else ""
+    if domain_text:
+        font_domain = _get_font(14, bold=True)
+        d_bbox = draw.textbbox((0, 0), domain_text, font=font_domain)
+        d_text_w = d_bbox[2] - d_bbox[0]
+        d_text_h = d_bbox[3] - d_bbox[1]
+        pill_pad_x = 14
+        pill_pad_y = 6
+        pill_w = d_text_w + pill_pad_x * 2
+        pill_h = d_text_h + pill_pad_y * 2
+        pill_x = CARD_W - 24 - pill_w
+        pill_y = row1_y + 12
+        # White outline pill
+        _draw_rounded_rect(
+            draw,
+            (pill_x, pill_y, pill_x + pill_w, pill_y + pill_h),
+            radius=pill_h // 2,
+            outline=(255, 255, 255),
             width=2,
         )
-        canvas = Image.alpha_composite(canvas, badge_bg)
+        draw.text((pill_x + pill_pad_x, pill_y + pill_pad_y),
+                  domain_text, fill=(255, 255, 255), font=font_domain)
 
-        font_q = _get_impact_font(72)
-        q_bbox = ImageDraw.Draw(Image.new("RGBA", (1, 1))).textbbox(
-            (0, 0), "?", font=font_q)
-        q_w = q_bbox[2] - q_bbox[0]
-        q_x = BADGE_X + (BADGE_W - q_w) // 2
-        q_y = BADGE_Y + 12
+    # ── Archetype icon (between verdict and domain pill) ──
+    if has_score:
+        # Resolve archetype from sidecar
+        sidecar_path = os.path.join(BASE, "ga_library",
+            os.path.splitext(image.get("filename", ""))[0] + ".json")
+        archetype_key = None
+        if os.path.exists(sidecar_path):
+            try:
+                import json
+                with open(sidecar_path) as sf:
+                    sidecar = json.load(sf)
+                archetype_key = sidecar.get("glance_archetype", sidecar.get("archetype"))
+            except Exception:
+                pass
+        if archetype_key:
+            icon_path = os.path.join(BASE, "static", "icons", f"archetype_{archetype_key}.png")
+            if os.path.exists(icon_path):
+                try:
+                    arch_icon = Image.open(icon_path).convert("RGBA")
+                    arch_icon = arch_icon.resize((32, 32), Image.LANCZOS)
+                    # Place after verdict
+                    verdict_bbox = draw.textbbox((verdict_x, row1_y + 4), verdict_label, font=font_verdict_big)
+                    icon_x = verdict_bbox[2] + 16
+                    icon_y = row1_y + 12
+                    img.paste(arch_icon, (icon_x, icon_y), arch_icon)
+                except Exception:
+                    pass
 
-        sharp = Image.new("RGBA", (CARD_W, CARD_H), (0, 0, 0, 0))
-        sd = ImageDraw.Draw(sharp)
-        sd.text((q_x, q_y), "?", fill=(100, 116, 139, 200), font=font_q)
-        canvas = Image.alpha_composite(canvas, sharp)
+    # ── Row 2 (subtitle) — standard description ──
+    row2_y = row1_y + 62
+    font_subtitle = _get_font(16)
+    subtitle = "\u25c9 Standard de comprehension visuelle en 5 secondes"
+    draw.text((text_x, row2_y), subtitle,
+              fill=(255, 255, 255, 200), font=font_subtitle)
 
-        font_no = _get_font(14, bold=True)
-        no_text = "PAS ENCORE TESTE"
-        n_bbox = ImageDraw.Draw(Image.new("RGBA", (1, 1))).textbbox(
-            (0, 0), no_text, font=font_no)
-        n_w = n_bbox[2] - n_bbox[0]
-        no_x = BADGE_X + (BADGE_W - n_w) // 2
-
-        no_layer = Image.new("RGBA", (CARD_W, CARD_H), (0, 0, 0, 0))
-        nd = ImageDraw.Draw(no_layer)
-        nd.text((no_x, BADGE_Y + 95), no_text,
-                fill=(100, 116, 139, 200), font=font_no)
-        canvas = Image.alpha_composite(canvas, no_layer)
-
-    # ── Thin bottom strip ──
-    strip_y = CARD_H - STRIP_H
-
-    strip_layer = Image.new("RGBA", (CARD_W, CARD_H), (0, 0, 0, 0))
-    strip_draw = ImageDraw.Draw(strip_layer)
-
-    # Strip background
-    strip_draw.rectangle(
-        (0, strip_y, CARD_W, CARD_H),
-        fill=(10, 10, 10, 204),  # 80% opacity
-    )
-
-    # Top border of strip — thin neon accent at 30% opacity
-    strip_draw.line(
-        [(0, strip_y), (CARD_W, strip_y)],
-        fill=(*neon_color, 77),  # 30% opacity
-        width=1,
-    )
-
-    canvas = Image.alpha_composite(canvas, strip_layer)
-
-    # Strip content
-    text_layer = Image.new("RGBA", (CARD_W, CARD_H), (0, 0, 0, 0))
-    text_draw = ImageDraw.Draw(text_layer)
-
-    # Left: title (truncated)
+    # ── Row 3 (paper title) — italic, lighter, truncated ──
+    row3_y = row2_y + 26
     title = image.get("title", "") or image.get("filename", "")
-    font_strip_title = _get_font(16)
+    font_title = _get_italic_font(14)
     if title:
-        max_title_w = CARD_W - 300  # leave room for right side
-        display_title = title
+        # Truncate to fit within banner width minus margins
+        max_title_w = CARD_W - text_x - 30
+        display_title = f'"{title}"'
         while True:
-            t_bbox = text_draw.textbbox((0, 0), display_title, font=font_strip_title)
-            if t_bbox[2] - t_bbox[0] <= max_title_w or len(display_title) <= 5:
+            t_bbox = draw.textbbox((0, 0), display_title, font=font_title)
+            if t_bbox[2] - t_bbox[0] <= max_title_w or len(display_title) <= 10:
                 break
-            display_title = display_title[:-4] + "..."
-        text_draw.text((20, strip_y + 14), display_title,
-                       fill=(226, 232, 240, 220), font=font_strip_title)
+            # Chop from the inner text, keep closing quote
+            display_title = display_title[:len(display_title) - 4] + '..."'
+        draw.text((text_x, row3_y), display_title,
+                  fill=(220, 220, 220), font=font_title)
 
-    # Right side: domain pill + GLANCE
-    right_x = CARD_W - 20
-    font_brand = _get_font(18, bold=True)
-    brand_text = "GLANCE"
-    brand_bbox = text_draw.textbbox((0, 0), brand_text, font=font_brand)
-    brand_w = brand_bbox[2] - brand_bbox[0]
-    right_x -= brand_w
-    text_draw.text((right_x, strip_y + 13), brand_text,
-                   fill=(*neon_color, 230), font=font_brand)
+    # DOI / source (right side of row 3, if available)
+    doi = image.get("doi", "")
+    if doi and has_score:
+        font_doi = _get_font(12)
+        doi_display = doi if len(doi) <= 40 else doi[:37] + "..."
+        doi_bbox = draw.textbbox((0, 0), doi_display, font=font_doi)
+        doi_w = doi_bbox[2] - doi_bbox[0]
+        draw.text((CARD_W - 24 - doi_w, row3_y + 2), doi_display,
+                  fill=(200, 200, 200), font=font_doi)
 
-    # Domain pill badge (if present)
-    if domain_label:
-        font_domain = _get_font(12, bold=True)
-        d_text = domain_label.upper()
-        d_bbox = text_draw.textbbox((0, 0), d_text, font=font_domain)
-        d_w = d_bbox[2] - d_bbox[0] + 16
-        d_h = d_bbox[3] - d_bbox[1] + 8
-        pill_x = right_x - d_w - 16
-        pill_y = strip_y + 13
-        text_draw.rounded_rectangle(
-            (pill_x, pill_y, pill_x + d_w, pill_y + d_h),
-            radius=d_h // 2,
-            fill=(255, 255, 255, 20),
-            outline=(*neon_color, 80),
-            width=1,
-        )
-        text_draw.text((pill_x + 8, pill_y + 2), d_text,
-                       fill=(226, 232, 240, 200), font=font_domain)
-
-        # Dot separator
-        dot_x = pill_x - 10
-        text_draw.text((dot_x, strip_y + 12), "\u00b7",
-                       fill=(226, 232, 240, 120), font=font_strip_title)
-
-    canvas = Image.alpha_composite(canvas, text_layer)
-
-    # ── Convert to RGB for PNG output ──
-    output = Image.new("RGB", (CARD_W, CARD_H), BG)
-    output.paste(canvas, (0, 0), canvas)
-
+    # ── Export to PNG bytes ──
     buf = io.BytesIO()
-    output.save(buf, format="PNG", optimize=True)
+    img.save(buf, format="PNG", optimize=True)
     buf.seek(0)
     return buf.getvalue()

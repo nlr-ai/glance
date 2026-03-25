@@ -133,9 +133,14 @@ def format_channel_batch(channels):
 def _resilient_yaml_parse(raw_text):
     """Parse YAML with progressive degradation strategies."""
     text = raw_text.strip()
-    text = re.sub(r"^```ya?ml\s*\n", "", text, flags=re.IGNORECASE)
-    text = re.sub(r"^```\s*\n", "", text, flags=re.IGNORECASE)
-    text = re.sub(r"\n```\s*$", "", text)
+    # Extract YAML from mixed text+YAML response
+    yaml_match = re.search(r"```ya?ml\s*\n(.+?)```", text, re.DOTALL | re.IGNORECASE)
+    if yaml_match:
+        text = yaml_match.group(1).strip()
+    else:
+        text = re.sub(r"^```ya?ml\s*\n", "", text, flags=re.IGNORECASE)
+        text = re.sub(r"^```\s*\n", "", text, flags=re.IGNORECASE)
+        text = re.sub(r"\n```\s*$", "", text)
 
     # Strategy 1: direct parse
     try:
@@ -525,12 +530,201 @@ def analyze_ga_channels(image_path, graph_path, output_path=None):
     return enriched
 
 
+COMPARE_CHANNELS_PROMPT = """You are comparing the visual channel usage of {n} Graphical Abstracts (GAs).
+
+Below are the channel analysis results for each GA.
+
+{per_image_sections}
+
+Generate a DELTA report comparing how these GAs use visual channels differently.
+
+Return ONLY valid YAML:
+
+delta:
+  a_vs_b:
+    channels_only_in_a:
+      - channel: "channel_id"
+        effectiveness: 0.0-1.0
+        significance: "why this matters"
+    channels_only_in_b:
+      - channel: "channel_id"
+        effectiveness: 0.0-1.0
+        significance: "why this matters"
+    a_more_effective:
+      - channel: "channel_id"
+        a_effectiveness: 0.0-1.0
+        b_effectiveness: 0.0-1.0
+        why: "explanation"
+    b_more_effective:
+      - channel: "channel_id"
+        a_effectiveness: 0.0-1.0
+        b_effectiveness: 0.0-1.0
+        why: "explanation"
+    anti_patterns_only_in_a:
+      - pattern: "description"
+        severity: "HIGH/MEDIUM/LOW"
+    anti_patterns_only_in_b:
+      - pattern: "description"
+        severity: "HIGH/MEDIUM/LOW"
+{extra_pairs}
+  overall_winner: "A or B{or_c}"
+  winner_rationale: "why this GA uses visual channels most effectively"
+  key_insight: "the most important difference between these GAs' channel strategies"
+"""
+
+
+def compare_channels(image_paths: list, graph_paths: list, output_path=None) -> dict:
+    """Run channel analysis on each image independently, then generate a DELTA report.
+
+    Args:
+        image_paths: list of 2 or 3 image file paths
+        graph_paths: list of 2 or 3 corresponding graph YAML paths
+
+    Returns:
+        dict with keys: per_image (list of enriched graphs), delta (comparison dict)
+    """
+    import google.generativeai as genai
+
+    n = len(image_paths)
+    if n < 2 or n > 3:
+        raise ValueError(f"compare_channels requires 2 or 3 image/graph pairs, got {n}")
+    if len(graph_paths) != n:
+        raise ValueError(f"Number of images ({n}) must match number of graphs ({len(graph_paths)})")
+
+    for i, (ip, gp) in enumerate(zip(image_paths, graph_paths)):
+        if not os.path.exists(ip):
+            raise FileNotFoundError(f"Image file not found: {ip}")
+        if not os.path.exists(gp):
+            raise FileNotFoundError(f"Graph file not found: {gp}")
+
+    # Step 1: Run channel analysis on each image independently
+    per_image = []
+    for i, (img_path, grp_path) in enumerate(zip(image_paths, graph_paths)):
+        label = chr(65 + i)
+        logger.info(f"Analyzing channels for image {label}: {img_path}")
+        enriched = analyze_ga_channels(img_path, grp_path)
+        per_image.append(enriched)
+        if i < n - 1:
+            time.sleep(2)
+
+    # Step 2: Build per-image summaries for the delta prompt
+    genai.configure(api_key=os.environ["GEMINI_API_KEY"])
+    model = genai.GenerativeModel(os.environ.get("GEMINI_MODEL", "gemini-2.5-pro"))
+
+    sections = []
+    for i, enriched in enumerate(per_image):
+        label = chr(65 + i)
+        fname = os.path.basename(image_paths[i])
+        ch_analysis = enriched.get("metadata", {}).get("channel_analysis", {})
+        ch_details = enriched.get("metadata", {}).get("channel_details", [])
+        anti_patterns = enriched.get("metadata", {}).get("anti_patterns", [])
+
+        used_channels = [c for c in ch_details if c.get("used")]
+        used_summary = yaml.dump(used_channels[:30], default_flow_style=False, allow_unicode=True)
+        anti_summary = yaml.dump(anti_patterns, default_flow_style=False, allow_unicode=True) if anti_patterns else "none"
+
+        sections.append(
+            f"--- Image {label} ({fname}) ---\n"
+            f"Channels used: {ch_analysis.get('channels_used', 0)}/{ch_analysis.get('total_channels_analyzed', 0)}\n"
+            f"Avg effectiveness: {ch_analysis.get('avg_effectiveness', 0)}\n"
+            f"Used channels:\n{used_summary}\n"
+            f"Anti-patterns:\n{anti_summary}\n"
+        )
+
+    or_c = " or C" if n == 3 else ""
+    extra_pairs = ""
+    if n == 3:
+        extra_pairs = (
+            "  a_vs_c:\n"
+            "    channels_only_in_a: [...]\n    channels_only_in_c: [...]\n"
+            "    a_more_effective: [...]\n    c_more_effective: [...]\n"
+            "    anti_patterns_only_in_a: [...]\n    anti_patterns_only_in_c: [...]\n"
+            "  b_vs_c:\n"
+            "    channels_only_in_b: [...]\n    channels_only_in_c: [...]\n"
+            "    b_more_effective: [...]\n    c_more_effective: [...]\n"
+            "    anti_patterns_only_in_b: [...]\n    anti_patterns_only_in_c: [...]\n"
+        )
+
+    prompt = COMPARE_CHANNELS_PROMPT.format(
+        n=n,
+        per_image_sections="\n".join(sections),
+        extra_pairs=extra_pairs,
+        or_c=or_c,
+    )
+
+    logger.info("Generating delta report...")
+    try:
+        response = model.generate_content(
+            [prompt],
+            generation_config={"temperature": 0.2, "max_output_tokens": 8192},
+        )
+        raw = response.text
+    except Exception as e:
+        logger.error(f"Gemini API error generating delta: {e}")
+        return {"per_image": per_image, "delta": {"error": str(e)}}
+
+    delta_parsed = _resilient_yaml_parse(raw)
+    if delta_parsed is None:
+        logger.error(
+            "Failed to parse delta report from Gemini. "
+            f"Response was {len(raw)} chars. "
+            "This usually means the channel summaries were too large for structured output."
+        )
+        delta_parsed = {"error": "YAML parse failed — see logs for raw response details"}
+
+    delta = delta_parsed.get("delta", delta_parsed)
+
+    # Save comparison
+    if output_path is None:
+        base_names = "_vs_".join(
+            os.path.splitext(os.path.basename(p))[0][:15] for p in image_paths
+        )
+        output_path = os.path.join(_HERE, "data", f"channel_compare_{base_names}.yaml")
+
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    save_data = {"per_image_summaries": [], "delta": delta}
+    for i, enriched in enumerate(per_image):
+        label = chr(65 + i)
+        save_data["per_image_summaries"].append({
+            "label": label,
+            "image": os.path.basename(image_paths[i]),
+            "channel_analysis": enriched.get("metadata", {}).get("channel_analysis", {}),
+        })
+
+    with open(output_path, "w", encoding="utf-8") as f:
+        yaml.dump(save_data, f, default_flow_style=False, allow_unicode=True)
+    logger.info(f"Channel comparison saved: {output_path}")
+
+    return {"per_image": per_image, "delta": delta}
+
+
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description="Analyze GA visual channels")
-    parser.add_argument("image", help="Path to GA image")
-    parser.add_argument("graph", help="Path to L3 graph YAML")
-    parser.add_argument("--output", "-o", help="Output enriched YAML path")
+    parser.add_argument("--compare", nargs="+", metavar="PATH",
+                        help="Compare 2-3 GAs: --compare img_a.png graph_a.yaml img_b.png graph_b.yaml [img_c.png graph_c.yaml]")
+    parser.add_argument("image", nargs="?", help="Path to GA image (single mode)")
+    parser.add_argument("graph", nargs="?", help="Path to L3 graph YAML (single mode)")
+    parser.add_argument("--output", "-o", help="Output path")
     args = parser.parse_args()
 
-    analyze_ga_channels(args.image, args.graph, args.output)
+    if args.compare:
+        paths = args.compare
+        if len(paths) not in (4, 6):
+            parser.error(
+                "--compare requires pairs of (image, graph): "
+                "4 paths for A/B comparison, 6 paths for A/B/C. "
+                f"Got {len(paths)} paths."
+            )
+        n = len(paths) // 2
+        image_paths = [paths[i * 2] for i in range(n)]
+        graph_paths = [paths[i * 2 + 1] for i in range(n)]
+        result = compare_channels(image_paths, graph_paths, args.output)
+        delta = result.get("delta", {})
+        print(f"\nOverall winner: {delta.get('overall_winner', 'N/A')}")
+        print(f"Rationale: {delta.get('winner_rationale', 'N/A')}")
+        print(f"Key insight: {delta.get('key_insight', 'N/A')}")
+    elif args.image and args.graph:
+        analyze_ga_channels(args.image, args.graph, args.output)
+    else:
+        parser.print_help()
