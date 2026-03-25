@@ -904,7 +904,11 @@
 <!-- Tool panel -->
 {% if true %}
 <div style="margin-top:2rem;padding:1.5rem;border:1px solid var(--gd-border);border-radius:var(--gd-radius);background:var(--gd-card);box-shadow:var(--gd-shadow-sm);">
-    <h3 style="margin:0 0 1rem;font-size:1rem;font-weight:700;color:var(--gd-navy);">Outils d'analyse</h3>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+        <h3 style="margin:0;font-size:1rem;font-weight:700;color:var(--gd-navy);">Outils d'analyse</h3>
+        <span id="callBadge" style="font-size:0.75rem;color:var(--gd-text-dim);"></span>
+    </div>
+    <script>updateCallBadge(getCallCount());</script>
 
     <!-- Tool buttons -->
     <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:1rem;">
@@ -961,8 +965,30 @@
 
 <script>
 const SLUG = '{{ image.slug or image.id }}';
+const GA_ID = '{{ ga_id }}';
 const PWD = new URLSearchParams(window.location.search).get('pwd') || '';
+const FREE_TOOLS = new Set(['health', 'reader_sim']);
+const FREE_LIMIT = 3;
 let pendingTextTool = null;
+
+function getCallCount() {
+    const v = document.cookie.split('; ').find(c => c.startsWith(`glance_calls_${GA_ID}=`));
+    return v ? parseInt(v.split('=')[1]) || 0 : 0;
+}
+function incCallCount() {
+    const n = getCallCount() + 1;
+    document.cookie = `glance_calls_${GA_ID}=${n};max-age=${86400*30};path=/`;
+    updateCallBadge(n);
+    return n;
+}
+function updateCallBadge(n) {
+    const badge = document.getElementById('callBadge');
+    if (badge) {
+        const remaining = Math.max(0, FREE_LIMIT - n);
+        badge.textContent = remaining > 0 ? `${remaining} appels gratuits restants` : 'Limite atteinte';
+        badge.style.color = remaining > 0 ? 'var(--gd-text-dim)' : 'var(--gd-fail)';
+    }
+}
 
 function showTextTool(toolName) {
     pendingTextTool = toolName;
@@ -998,11 +1024,27 @@ async function runTool(toolName, textInput) {
         }
 
         const resp = await fetch(`/analyze/tool/${toolName}/${SLUG}?pwd=${PWD}`, fetchOpts);
-        if (!resp.ok) {
-            const err = await resp.json();
-            throw new Error(err.detail || 'Erreur');
-        }
         const data = await resp.json();
+
+        if (resp.status === 402 || data.error === 'free_limit') {
+            const limitHtml = `<div style="border:1px solid var(--gd-amber);border-radius:var(--gd-radius-sm);padding:1.25rem;margin-bottom:0.75rem;background:var(--gd-amber-light);text-align:center;">
+                <p style="font-size:0.9rem;font-weight:600;color:var(--gd-amber);margin:0 0 0.5rem;">Limite gratuite atteinte</p>
+                <p style="font-size:0.8rem;color:var(--gd-text-dim);margin:0 0 1rem;">${data.message || 'Vos 3 analyses gratuites sont épuisées.'}</p>
+                <a href="/ga-detail/${SLUG}" style="padding:0.5rem 1.5rem;background:var(--gd-teal);color:white;border-radius:var(--gd-radius-sm);text-decoration:none;font-size:0.85rem;">Débloquer l'analyse complète</a>
+            </div>`;
+            resultsDiv.innerHTML = limitHtml + resultsDiv.innerHTML;
+            resultsDiv.style.display = 'block';
+            return;
+        }
+
+        if (!resp.ok) {
+            throw new Error(data.detail || 'Erreur');
+        }
+
+        // Increment call counter for paid tools
+        if (!FREE_TOOLS.has(toolName)) {
+            incCallCount();
+        }
 
         const html = renderToolResult(toolName, data);
         resultsDiv.innerHTML = html + resultsDiv.innerHTML;

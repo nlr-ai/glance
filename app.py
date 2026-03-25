@@ -1808,10 +1808,13 @@ async def analyze_improve(ga_slug: str, pwd: str = ""):
 
 @app.post("/analyze/tool/{tool_name}/{ga_slug}")
 async def analyze_tool(tool_name: str, ga_slug: str, request: Request, pwd: str = ""):
-    """Run a specific analysis tool on a GA. Returns JSON."""
-    # admin_pwd = os.environ.get("GLANCE_ADMIN_PWD", "gL4NC3")
-    # if pwd != admin_pwd:
-    #     raise HTTPException(status_code=403, detail="Admin password required")
+    """Run a specific analysis tool on a GA. Returns JSON.
+
+    Freemium: 3 free tool calls per GA. After that, payment or email required.
+    Free tools (no Gemini cost): health, reader_sim — always free.
+    """
+    FREE_TOOLS = {"health", "reader_sim"}  # pure math, no API cost
+    FREE_CALLS_PER_GA = 3
 
     image = get_image_by_slug(ga_slug)
     if not image:
@@ -1820,6 +1823,24 @@ async def analyze_tool(tool_name: str, ga_slug: str, request: Request, pwd: str 
     ga_id = image["id"]
     filename = image["filename"]
     image_path = os.path.join(BASE, "ga_library", filename)
+
+    # ── Freemium gate: 3 free Gemini calls per GA, unlimited for free tools ──
+    if tool_name not in FREE_TOOLS:
+        cookie_key = f"glance_calls_{ga_id}"
+        calls_used = int(request.cookies.get(cookie_key, "0"))
+        # Admin bypass
+        admin_pwd = os.environ.get("GLANCE_ADMIN_PWD", "gL4NC3")
+        is_admin = (pwd == admin_pwd)
+        # Unlock cookie (paid users)
+        is_unlocked = bool(request.cookies.get(f"glance_unlock_{ga_id}"))
+
+        if calls_used >= FREE_CALLS_PER_GA and not is_admin and not is_unlocked:
+            return JSONResponse({
+                "error": "free_limit",
+                "message": f"Vous avez utilisé vos {FREE_CALLS_PER_GA} analyses gratuites pour ce GA.",
+                "calls_used": calls_used,
+                "limit": FREE_CALLS_PER_GA,
+            }, status_code=402)
 
     # Get optional text input from request body
     body = {}
@@ -1969,6 +1990,10 @@ async def analyze_tool(tool_name: str, ga_slug: str, request: Request, pwd: str 
                 os.remove(graph_path_tmp)
             except OSError:
                 pass
+
+    # Should not reach here — all branches return above.
+    # But if we do reach here somehow, return a generic success.
+    return JSONResponse({"tool": tool_name, "status": "ok"})
 
 
 @app.post("/analyze/unlock/{ga_id}")
