@@ -701,9 +701,12 @@
     </div>
 
     <!-- Status -->
-    <div id="toolSpinner" style="display:none;padding:0.75rem;color:var(--gd-text-dim);font-size:0.85rem;">
-        Analyse en cours...
+    <div id="toolSpinner" style="display:none;padding:1.5rem;text-align:center;border:1px solid var(--gd-border);border-radius:var(--gd-radius);background:var(--gd-card);margin-bottom:1rem;">
+        <div style="display:inline-block;width:28px;height:28px;border:3px solid var(--gd-border);border-top-color:var(--gd-teal);border-radius:50%;animation:spin 0.8s linear infinite;margin-bottom:0.75rem;"></div>
+        <div id="toolSpinnerTitle" style="font-size:1rem;font-weight:600;color:var(--gd-navy);margin-bottom:0.25rem;"></div>
+        <div id="toolSpinnerDesc" style="font-size:0.8rem;color:var(--gd-text-dim);line-height:1.5;max-width:400px;margin:0 auto;"></div>
     </div>
+    <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
 
     <!-- Results stack -->
     <div id="toolResults"></div>
@@ -763,7 +766,20 @@ async function runTool(toolName, textInput) {
     // Disable all buttons
     document.querySelectorAll('.tool-btn').forEach(b => b.disabled = true);
     spinner.style.display = 'block';
-    spinner.textContent = `${toolName} en cours...`;
+
+    // Tool-specific loading messages
+    const toolInfo = {
+        vision: {title: '👁 Analyse visuelle', desc: 'Gemini identifie chaque element visuel et construit le graphe de transmission (zones, elements, messages)'},
+        channels: {title: '📡 Analyse des canaux', desc: '70 canaux visuels evalues independamment — couleur, forme, taille, position, groupement, contraste, texture'},
+        advise: {title: '💡 Generation de recommandations', desc: "L'IA analyse le diagnostic et propose des modifications concretes sur le graphe"},
+        rubber_duck: {title: '🦆 Exploration libre', desc: "L'IA repond a votre question en analysant le GA dans son contexte"},
+        health: {title: '🔗 Verification des routes', desc: 'Verifie que chaque message scientifique est porte par un element visuel concret'},
+        reader_sim: {title: '👀 Simulation de lecture (5s)', desc: 'Un lecteur virtuel scanne votre figure — montre ce qui est vu, ce qui est rate, et pourquoi'},
+        reader_sim_s2: {title: '🔍 Lecture approfondie (90s)', desc: 'Le lecteur prend son temps, explore chaque zone deliberement — attention renforcee'},
+    };
+    const info = toolInfo[toolName] || {title: toolName, desc: ''};
+    document.getElementById('toolSpinnerTitle').textContent = info.title;
+    document.getElementById('toolSpinnerDesc').textContent = info.desc;
 
     try {
         const fetchOpts = { method: 'POST', headers: {'Content-Type': 'application/json'} };
@@ -829,12 +845,18 @@ async function runImprove() {
 
 function renderToolResult(tool, data) {
     const ts = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
-    const toolColors = {
-        vision: 'var(--gd-navy)', channels: '#6366f1', advise: 'var(--gd-teal)',
-        rubber_duck: 'var(--gd-amber)', health: '#06b6d4', reader_sim: '#a855f7',
-        reader_sim_s2: '#a855f7', improve: 'var(--gd-pass)',
+    const toolMeta = {
+        vision: {color: 'var(--gd-navy)', label: '👁 Analyse visuelle'},
+        channels: {color: '#6366f1', label: '📡 Canaux visuels'},
+        advise: {color: 'var(--gd-teal)', label: '💡 Recommandations'},
+        rubber_duck: {color: 'var(--gd-amber)', label: '🦆 Exploration'},
+        health: {color: '#06b6d4', label: '🔗 Routes de transmission'},
+        reader_sim: {color: '#a855f7', label: '👀 Lecture 5s'},
+        reader_sim_s2: {color: '#a855f7', label: '🔍 Lecture 90s'},
+        improve: {color: 'var(--gd-pass)', label: '⚡ Auto-fix'},
     };
-    const color = toolColors[tool] || 'var(--gd-text)';
+    const meta = toolMeta[tool] || {color: 'var(--gd-text)', label: tool};
+    const color = meta.color;
 
     let inner = '';
 
@@ -845,17 +867,28 @@ function renderToolResult(tool, data) {
             ${data.summary ? '<em>' + data.summary + '</em>' : ''}
         </div>`;
     } else if (tool === 'channels') {
-        inner = `<div style="font-size:0.8rem;color:var(--gd-text);">
-            ${data.channels_used}/${data.channels_total} canaux utilisés — avg eff ${(data.avg_effectiveness * 100).toFixed(0)}%<br>
-            ${data.anti_pattern_count} anti-patterns`;
+        const effPct = Math.round((data.avg_effectiveness || 0) * 100);
+        const effColor = effPct >= 80 ? 'var(--gd-pass)' : effPct >= 50 ? 'var(--gd-amber)' : 'var(--gd-fail)';
+        inner = `<div style="display:flex;gap:1.5rem;margin-bottom:0.75rem;">
+            <div style="text-align:center;"><div style="font-size:1.5rem;font-weight:700;color:${effColor};">${effPct}%</div><div style="font-size:0.7rem;color:var(--gd-text-dim);">efficacite moy.</div></div>
+            <div style="text-align:center;"><div style="font-size:1.5rem;font-weight:700;color:var(--gd-text);">${data.channels_used}/${data.channels_total}</div><div style="font-size:0.7rem;color:var(--gd-text-dim);">canaux utilises</div></div>
+            <div style="text-align:center;"><div style="font-size:1.5rem;font-weight:700;color:${data.anti_pattern_count > 0 ? 'var(--gd-fail)' : 'var(--gd-pass)'};">${data.anti_pattern_count}</div><div style="font-size:0.7rem;color:var(--gd-text-dim);">anti-patterns</div></div>
+        </div>`;
         if (data.anti_patterns && data.anti_patterns.length > 0) {
-            inner += '<ul style="margin:0.5rem 0;padding-left:1.25rem;">';
-            for (const ap of data.anti_patterns.slice(0, 5)) {
-                inner += `<li><strong>${ap.type}</strong>: ${ap.node} — ${ap.issue}</li>`;
+            for (const ap of data.anti_patterns.slice(0, 6)) {
+                const apColors = {fragile: '#f97316', incongruent: '#ef4444', inverse: '#dc2626', missing_category: '#7c3aed'};
+                const apEmojis = {fragile: '⚠️', incongruent: '⚡', inverse: '🔄', missing_category: '❌'};
+                const apLabels = {fragile: 'Fragile', incongruent: 'Incoherent', inverse: 'Inverse', missing_category: 'Categorie manquante'};
+                const c = apColors[ap.type] || '#ef4444';
+                const e = apEmojis[ap.type] || '⚠️';
+                const l = apLabels[ap.type] || ap.type;
+                inner += `<div style="display:flex;align-items:flex-start;gap:0.5rem;padding:0.5rem;margin-bottom:0.4rem;border-left:3px solid ${c};background:${c}08;border-radius:0 6px 6px 0;">
+                    <span style="font-size:0.9rem;">${e}</span>
+                    <div><span style="font-size:0.75rem;font-weight:600;color:${c};">${l}</span> <span style="font-size:0.75rem;color:var(--gd-text-dim);">— ${ap.node}</span>
+                    <div style="font-size:0.75rem;color:var(--gd-text);margin-top:0.15rem;">${ap.issue}</div></div>
+                </div>`;
             }
-            inner += '</ul>';
         }
-        inner += '</div>';
     } else if (tool === 'advise') {
         inner = `<div style="font-size:0.8rem;color:var(--gd-text);">
             Intent: <em>${data.intent || ''}</em><br>
@@ -957,7 +990,7 @@ function renderToolResult(tool, data) {
 
     return `<div style="border:1px solid var(--gd-border);border-radius:var(--gd-radius-sm);padding:1rem;margin-bottom:0.75rem;background:var(--gd-card);">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
-            <span style="font-size:0.75rem;font-weight:600;color:${color};text-transform:uppercase;letter-spacing:0.05em;">${tool}</span>
+            <span style="font-size:0.75rem;font-weight:600;color:${color};letter-spacing:0.02em;">${meta.label}</span>
             <span style="font-size:0.65rem;color:var(--gd-text-dim);">${ts}</span>
         </div>
         ${inner}
