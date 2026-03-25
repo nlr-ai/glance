@@ -63,15 +63,33 @@ GLANCE measures whether a GA communicates its key message in 5 seconds of scroll
 Analyze this image thoroughly and return a YAML document with the following structure.
 
 nodes:
+  # SPACE nodes = the MESSAGES the GA should communicate (2-4 per GA)
+  - id: "space:{message_id}"
+    name: "{the message in one sentence}"
+    node_type: "space"
+    synthesis: "{what this message means for the reader}"
+    weight: 1.0  # primary message = 1.0, secondary = 0.6-0.8
+    stability: 1.0
+    energy: 0.0  # a clear message has zero energy (resolved)
+
+  # THING nodes = the visual elements that CARRY the messages (5-12 per GA)
   - id: "thing:{short_id}"
     name: "{element name}"
     node_type: "thing"
-    synthesis: "{what this element communicates}"
+    synthesis: "{what this element communicates visually}"
     weight: 0.0-1.0
     stability: 0.0-1.0
     energy: 0.0-1.0
 
 links:
+  # thing → space links = "this element CARRIES this message"
+  # weight = how well the element transmits the message (1.0 = perfectly)
+  - source: "thing:{source_id}"
+    target: "space:{message_id}"
+    link_type: "link"
+    weight: 0.0-1.0
+
+  # thing → thing links = visual relationships (arrows, proximity, color)
   - source: "thing:{source_id}"
     target: "thing:{target_id}"
     link_type: "link"
@@ -92,14 +110,31 @@ metadata:
   has_legend: true|false
   figure_text_ratio: <0.0-1.0 where 1.0 = all figure, 0.0 = all text>
 
-Instructions:
-- weight = visual prominence (1.0 = most prominent element)
+Instructions — follow this order strictly:
+
+STEP 1: Identify the MESSAGES (space nodes)
+- What are the 2-4 key messages this GA is trying to communicate?
+- The primary message (weight=1.0) is THE takeaway a reader should get in 5 seconds
+- Secondary messages (weight=0.6-0.8) support or contextualize the primary
+- A space node has energy=0.0 (the message itself is resolved — it's the elements that may not be)
+
+STEP 2: Identify the VISUAL ELEMENTS (thing nodes)
+- What visual elements exist on the GA? (bars, icons, text, shapes, arrows, images...)
+- weight = visual prominence (1.0 = most prominent)
 - stability = how clearly/unambiguously encoded (1.0 = crystal clear)
-- energy = attention-grabbing power / visual salience (1.0 = maximum)
-- For links, weight = strength of visual connection between elements
-- Create 5-15 nodes capturing ALL information elements visible
-- Create links for visual relationships (arrows, proximity, shared color, etc.)
-- Be specific in synthesis: describe WHAT information each element conveys
+- energy = unresolved visual tension (1.0 = element grabs attention but confuses)
+- Create 5-12 thing nodes
+
+STEP 3: Link things to spaces
+- Which visual element CARRIES which message?
+- link weight = how well the element transmits that message (1.0 = perfectly)
+- A thing with no link to any space = visual noise (carries no message)
+- A space with no link from any thing = invisible message (not encoded)
+
+STEP 4: Link things to things
+- Visual relationships: arrows, proximity, shared color, containment, flow
+
+STEP 5: Metadata
 - executive_summary_fr must be in French
 - hierarchy_clear: can you tell which result is most important in <5 seconds?
 
