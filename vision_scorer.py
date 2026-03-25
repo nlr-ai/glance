@@ -3,7 +3,7 @@
 Sends a GA image to Gemini Vision, receives structured YAML analysis,
 validates it, and saves the resulting L3 graph.
 
-Model: Gemini Pro (default: gemini-2.5-pro-preview-06-05) via GEMINI_MODEL env var.
+Model: Gemini Pro (default: gemini-2.5-pro) via GEMINI_MODEL env var.
 Pro is preferred over Flash for this use case — more accurate structured output
 and better vision analysis on complex charts.
 """
@@ -200,7 +200,7 @@ def analyze_ga_image(image_bytes: bytes, filename: str = "") -> dict:
         raise RuntimeError("GEMINI_API_KEY not set. Add it to .env file.")
 
     genai.configure(api_key=api_key)
-    model_name = os.environ.get("GEMINI_MODEL", "gemini-2.5-pro-preview-06-05")
+    model_name = os.environ.get("GEMINI_MODEL", "gemini-2.5-pro")
     model = genai.GenerativeModel(model_name)
 
     # Determine MIME type from filename
