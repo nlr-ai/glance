@@ -658,6 +658,27 @@
         </div>
     </div>
 
+    {# ── Invite CTA card ── #}
+    <a href="/invite" style="
+        display: flex;
+        align-items: center;
+        gap: var(--sp-4, 1rem);
+        background: linear-gradient(135deg, rgba(13,148,136,0.08), rgba(14,165,233,0.06));
+        border: 1px solid rgba(13,148,136,0.25);
+        border-radius: var(--radius-lg, 12px);
+        padding: var(--sp-4, 1rem) var(--sp-6, 1.5rem);
+        margin-bottom: var(--sp-6, 1.5rem);
+        text-decoration: none;
+        transition: border-color 0.2s, background 0.2s;
+    " onmouseover="this.style.borderColor='rgba(13,148,136,0.5)';this.style.background='linear-gradient(135deg, rgba(13,148,136,0.12), rgba(14,165,233,0.1))'" onmouseout="this.style.borderColor='rgba(13,148,136,0.25)';this.style.background='linear-gradient(135deg, rgba(13,148,136,0.08), rgba(14,165,233,0.06))'">
+        <span style="font-size: 1.3rem; flex-shrink: 0;">&#x1F4E8;</span>
+        <div style="flex: 1;">
+            <div style="font-size: var(--text-sm); font-weight: 600; color: #14b8a6;">Invitez vos coll&egrave;gues</div>
+            <div style="font-size: var(--text-xs); color: var(--text-muted);">Chaque test renforce le benchmark &mdash; partagez par email, LinkedIn ou WhatsApp</div>
+        </div>
+        <span style="color: #14b8a6; font-size: var(--text-sm);">&rarr;</span>
+    </a>
+
     {# ════════════════════════════════════════════════
        SECTION 1 — Core Scores (S9a, S9b, S9c, GLANCE)
        ════════════════════════════════════════════════ #}

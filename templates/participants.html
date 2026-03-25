@@ -423,6 +423,7 @@
     <div class="pl-tabs">
         <button class="pl-tab active" data-tab="comprehension">Meilleure compr&eacute;hension</button>
         <button class="pl-tab" data-tab="contribution">Plus grande contribution</button>
+        <button class="pl-tab" data-tab="ambassadors">Ambassadeurs</button>
     </div>
 
     {# ════════════════════════════════════════════════════════════════
@@ -592,6 +593,69 @@
             <div class="pl-empty">
                 <p>Aucun participant pour l'instant.</p>
                 <p><a href="/onboard" style="color: var(--primary);">Passez le test</a> pour appara&icirc;tre ici.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {# ════════════════════════════════════════════════════════════════
+       TAB 3: Ambassadeurs (top referrers)
+       ════════════════════════════════════════════════════════════════ #}
+    <div class="pl-tab-content" id="tab-ambassadors">
+        <div class="pl-section">
+            <div class="pl-section-header">
+                <h2>Ambassadeurs GLANCE</h2>
+                <span class="pl-section-badge">Class&eacute;s par nombre d'invitations accept&eacute;es</span>
+            </div>
+
+            {% if top_referrers %}
+            <div class="pl-list">
+                {% for r in top_referrers %}
+                {% set rank = loop.index %}
+
+                {% if rank == 1 %}{% set card_class = "pl-card-gold" %}
+                {% elif rank == 2 %}{% set card_class = "pl-card-silver" %}
+                {% elif rank == 3 %}{% set card_class = "pl-card-bronze" %}
+                {% else %}{% set card_class = "" %}{% endif %}
+
+                <div class="pl-card {{ card_class }}">
+                    <div class="pl-rank">
+                        {% if rank == 1 %}
+                            <span class="pl-rank-medal" title="#1">&#x1F947;</span>
+                        {% elif rank == 2 %}
+                            <span class="pl-rank-medal" title="#2">&#x1F948;</span>
+                        {% elif rank == 3 %}
+                            <span class="pl-rank-medal" title="#3">&#x1F949;</span>
+                        {% else %}
+                            <span class="pl-rank-number">#{{ rank }}</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="pl-info">
+                        <div class="pl-info-top">
+                            <span class="pl-profile" title="{{ r.referrer_domain or 'Anonyme' }}">{{ r.referrer_domain or 'Anonyme' }}</span>
+                            {% if r.n_referrals >= 5 %}
+                                <span class="pl-badge pl-badge-top">&#x1F3C6; Ambassadeur</span>
+                            {% endif %}
+                        </div>
+                        <div class="pl-meta">
+                            <div class="pl-meta-item">
+                                code <span class="pl-meta-val" style="font-family: var(--font-mono); font-size: 0.7rem;">{{ r.referral_code }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pl-score">
+                        <div class="pl-score-big">{{ r.n_referrals }}</div>
+                        <div class="pl-score-label">invit&eacute;(e)s</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="pl-empty">
+                <p>Aucun ambassadeur pour l'instant.</p>
+                <p><a href="/invite" style="color: var(--primary);">Invitez vos coll&egrave;gues</a> pour appara&icirc;tre ici.</p>
             </div>
             {% endif %}
         </div>

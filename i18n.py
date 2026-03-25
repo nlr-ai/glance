@@ -159,6 +159,9 @@ STRINGS = {
         "see_dashboard": "Voir le dashboard",
         "link_copied": "Lien copié !",
 
+        # Invite
+        "invite_colleagues": "Invitez vos collegues",
+
         # Complete
         "complete_title": "Merci !",
         "complete_text": "Vous avez complété tous les tests disponibles.",
@@ -322,6 +325,9 @@ STRINGS = {
         "all_done": "You've seen them all!",
         "see_dashboard": "See the dashboard",
         "link_copied": "Link copied!",
+
+        # Invite
+        "invite_colleagues": "Invite your colleagues",
 
         # Complete
         "complete_title": "Thank you!",
