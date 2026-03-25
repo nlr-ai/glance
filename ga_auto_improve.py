@@ -88,28 +88,30 @@ def _build_intent_from_diagnosis(turn_data):
             if n_ch == 0:
                 prompts.append(
                     f"'{name}' (w={w:.2f}) n'a aucun encodage visuel au-delà du texte. "
+                    f"En thumbnail ou scan rapide, ce concept disparaît complètement. "
                     f"Quels canaux indépendants l'encoderaient sans ajouter de mots ?")
             else:
                 prompts.append(
                     f"'{name}' (w={w:.2f}) n'est encodé que par un seul canal. "
+                    f"Si ce canal échoue (daltonisme, compression, scroll rapide), le message est perdu. "
                     f"Quel second canal créerait de la redondance sans surcharger ?")
         elif ap_type == "incongruent":
             prompts.append(
-                f"'{name}' envoie des signaux visuels contradictoires. "
-                f"{ap.get('issue', '')} "
-                f"Lequel des signaux reflète le vrai rôle de ce node ?")
+                f"'{name}' envoie des signaux visuels contradictoires : {ap.get('issue', '')}. "
+                f"Le cerveau reçoit deux messages opposés et hésite — ça ralentit la compréhension. "
+                f"Lequel des signaux reflète le vrai rôle de ce node dans le message ?")
         elif ap_type == "inverse":
             avg_eff = ap.get("avg_effectiveness", 0)
             prompts.append(
-                f"'{name}' est important (w={w:.2f}) mais visuellement démoté "
-                f"(effectiveness {avg_eff:.2f}). "
+                f"'{name}' est important (w={w:.2f}) mais visuellement démoté (effectiveness {avg_eff:.2f}). "
+                f"Le lecteur ne le verra pas en 5 secondes — il passera inaperçu. "
                 f"Quels canaux permettraient de le stabiliser sans écraser les autres ?")
         elif ap_type == "missing_category":
             cat = ap.get("category", "")
             prompts.append(
                 f"Aucune variation de {cat} dans ce GA. "
-                f"Quel mapping {cat}→catégorie différencierait les types d'éléments "
-                f"sans dépendre des autres canaux ?")
+                f"Toutes les catégories se ressemblent sur ce canal — impossible de les distinguer pré-attentivement. "
+                f"Quel mapping {cat}→catégorie différencierait les types d'éléments sans dépendre des autres canaux ?")
 
     # Low-effectiveness channels
     for ch in turn_data.get("low_channels", []):
@@ -117,6 +119,7 @@ def _build_intent_from_diagnosis(turn_data):
         channel = ch.get("channel", "")
         prompts.append(
             f"Le canal '{channel}' a une effectiveness de {eff:.1f}. "
+            f"L'information encodée par ce canal n'atteint pas le lecteur efficacement. "
             f"Quelle modification concrète le ferait passer au-dessus de 0.7 ?")
 
     # Archetype-specific
