@@ -468,10 +468,15 @@ def render_overlay_svg(graph, sim_result, width, height):
     parts.append('      <feBlend in="SourceGraphic" in2="zmono" mode="overlay" result="ztextured"/>')
     parts.append('      <feComposite in="ztextured" in2="SourceGraphic" operator="in"/>')
     parts.append('    </filter>')
+    # Subtle gradient background for standalone SVG viewing
+    parts.append('    <radialGradient id="bg-grad" cx="50%" cy="40%" r="70%">')
+    parts.append('      <stop offset="0%" stop-color="#1e293b" stop-opacity="0.03"/>')
+    parts.append('      <stop offset="100%" stop-color="#0f172a" stop-opacity="0.08"/>')
+    parts.append('    </radialGradient>')
     parts.append('  </defs>')
 
-    # Layer 1: Dim overlay
-    # No dim overlay — nodes have their own dark halo for contrast
+    # Layer 1: Subtle gradient background (barely visible on image, nice standalone)
+    parts.append(f'  <rect width="{width}" height="{height}" fill="url(#bg-grad)" rx="8"/>')
 
     # ── Layer group: Attention (default ON) ──
     parts.append('  <g class="layer-attention">')
@@ -567,7 +572,23 @@ def render_overlay_svg(graph, sim_result, width, height):
 
     parts.append('  </g>')
 
-    # ── Scanpath: no static layer — animation JS handles everything ──
+    # ── Static scanpath trail (always visible, animation plays on top) ──
+    if data["scanpath"]:
+        points_str = " ".join(
+            f'{sp["x"]:.1f},{sp["y"]:.1f}' for sp in data["scanpath"]
+        )
+        parts.append(
+            f'  <polyline points="{points_str}" '
+            f'stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4 3" '
+            f'fill="none" opacity="0.35" class="static-trail"/>'
+        )
+        # Entry point dot
+        if data["entry_point"]:
+            ep = data["entry_point"]
+            parts.append(
+                f'  <circle cx="{ep["x"]:.1f}" cy="{ep["y"]:.1f}" r="5" '
+                f'fill="none" stroke="#10b981" stroke-width="1.5" opacity="0.5"/>'
+            )
 
     # ── Layer group: Problems (default OFF) ──
     parts.append('  <g class="layer-problems" style="display:none;">')
