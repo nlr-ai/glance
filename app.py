@@ -1743,7 +1743,9 @@ async def analyze_improve(ga_slug: str, pwd: str = ""):
     # 3. Build intent from latest sim + graph data
     graph = latest["graph"]
     graph_id = latest["id"]
-    graph_path_tmp = os.path.join(BASE, "data", f"improve_{ga_slug}_{int(time.time())}.yaml")
+    _tmp_dir = os.path.join(BASE, "data")
+    os.makedirs(_tmp_dir, exist_ok=True)
+    graph_path_tmp = os.path.join(_tmp_dir, f"improve_{ga_slug}_{int(time.time())}.yaml")
 
     # Save graph to temp file for advisor
     with open(graph_path_tmp, "w", encoding="utf-8") as f:
@@ -1905,7 +1907,9 @@ async def analyze_tool(tool_name: str, ga_slug: str, request: Request, pwd: str 
     # Save graph to temp file if needed
     graph_path_tmp = None
     if graph:
-        graph_path_tmp = os.path.join(BASE, "data", f"tool_{ga_slug}_{int(time.time())}.yaml")
+        _tmp_dir = os.path.join(BASE, "data")
+        os.makedirs(_tmp_dir, exist_ok=True)
+        graph_path_tmp = os.path.join(_tmp_dir, f"tool_{ga_slug}_{int(time.time())}.yaml")
         with open(graph_path_tmp, "w", encoding="utf-8") as f:
             yaml.dump(graph, f, default_flow_style=False, allow_unicode=True)
 
