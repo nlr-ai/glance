@@ -1,0 +1,262 @@
+{% extends "base.html" %}
+{% block title %}Résultat — GLANCE{% endblock %}
+
+{% block content %}
+{# Dark overlay #}
+<div class="reveal-overlay" id="revealOverlay">
+    <div class="reveal-card" id="revealCard">
+
+        {# Auto-dismiss countdown in top-right corner #}
+        <div class="reveal-countdown" id="revealCountdown">5</div>
+
+        {% if s10_hit == false %}
+        {# ── MODE A: S10 Miss — Rejection Autopsy ── #}
+        <div class="reveal-body reveal-miss">
+            <p class="reveal-headline">Cette image etait dans le feed.</p>
+
+            <div class="reveal-thumb-wrap">
+                <img src="/ga/{{ test.filename }}" alt="GA" class="reveal-thumb" style="width:300px">
+            </div>
+
+            <p class="reveal-miss-text">Vous ne l'avez pas remarquee.</p>
+
+            <p class="reveal-miss-why">Pourquoi, a votre avis ?</p>
+            <div class="rejection-choices rejection-grid" id="rejection-choices">
+                <button class="btn rejection-btn" data-reason="didnt_see">
+                    👻 Pas vue du tout
+                </button>
+                <button class="btn rejection-btn" data-reason="scrolled_too_fast">
+                    💨 Trop rapide
+                </button>
+                <button class="btn rejection-btn" data-reason="too_dense">
+                    🤯 Trop chargee
+                </button>
+                <button class="btn rejection-btn" data-reason="too_small">
+                    🔍 Trop petit
+                </button>
+                <button class="btn rejection-btn" data-reason="looks_amateur">
+                    🎨 Fait amateur
+                </button>
+                <button class="btn rejection-btn" data-reason="text_heavy">
+                    📝 Trop de texte
+                </button>
+                <button class="btn rejection-btn" data-reason="boring">
+                    😴 Pas interessant
+                </button>
+                <button class="btn rejection-btn" data-reason="confusing">
+                    🤔 Incomprehensible
+                </button>
+                <button class="btn rejection-btn" data-reason="no_context">
+                    ❓ Pas de contexte
+                </button>
+                <button class="btn rejection-btn" data-reason="other">
+                    ✏️ Autre raison
+                </button>
+            </div>
+            <div class="rejection-other hidden" id="rejection-other-input">
+                <textarea id="rejection-other-text" rows="2" placeholder="Decrivez..."></textarea>
+                <button class="btn btn-primary rejection-btn-submit" id="rejection-other-submit">Envoyer</button>
+            </div>
+
+            <div class="rejection-thanks hidden" id="rejection-thanks">
+                <p>Merci — cette donnee aide a ameliorer le design scientifique.</p>
+                <a href="/test" class="btn btn-primary btn-large reveal-btn-continue">Continuer</a>
+            </div>
+        </div>
+
+        {% else %}
+        {# ── MODE B: S10 Hit (or spotlight mode) — show compact score ── #}
+        <div class="reveal-body reveal-hit">
+            <p class="reveal-headline">Votre score</p>
+
+            {# Single horizontal score bar #}
+            <div class="reveal-score-bar-wrap">
+                <div class="reveal-score-bar">
+                    <div class="reveal-score-fill {{ 'pass' if glance_score >= 0.70 else 'fail' }}"
+                         style="width: {{ (glance_score * 100) | round(0) }}%"></div>
+                </div>
+                <span class="reveal-score-pct {{ 'pass' if glance_score >= 0.70 else 'fail' }}">
+                    {{ (glance_score * 100) | round(0) }}%
+                </span>
+            </div>
+
+            {# Compact score checklist #}
+            <ul class="reveal-checklist">
+                <li class="{{ 'pass' if test.s9a_pass else 'fail' }}">
+                    <span class="reveal-check-icon">{{ '&#10003;' if test.s9a_pass else '&#10007;' }}</span>
+                    Sujet identifié
+                </li>
+                <li class="{{ 'pass' if test.s9b_pass else 'fail' }}">
+                    <span class="reveal-check-icon">{{ '&#10003;' if test.s9b_pass else '&#10007;' }}</span>
+                    Hiérarchie des preuves
+                </li>
+                <li class="{{ 'pass' if test.s9c_pass else 'fail' }}">
+                    <span class="reveal-check-icon">{{ '&#10003;' if test.s9c_pass else '&#10007;' }}</span>
+                    Impact sur la pratique
+                </li>
+            </ul>
+
+            {# Fluency score — shown only when S9b passed #}
+            {% if test.s9b_pass and fluency_score %}
+            <p class="reveal-fluency" style="font-size:0.85rem; color:#94a3b8; margin-top:0.5rem;">
+                Fluency : {{ (fluency_score * 1000) | round(1) }} <span style="font-size:0.7rem;">(S9b/log(RT2) x1000)</span>
+            </p>
+            {% endif %}
+
+            {# Small thumbnail + correct answer #}
+            <div class="reveal-thumb-wrap">
+                <img src="/ga/{{ test.filename }}" alt="GA" class="reveal-thumb">
+            </div>
+            {% if test.correct_product %}
+            <p class="reveal-correct-answer">Réponse correcte : {{ test.correct_product }}</p>
+            {% endif %}
+
+            {# ── System 2 Deep Analysis results ── #}
+            {% if s2_has_data %}
+            <div class="reveal-s2-section" style="margin-top:1.25rem; padding-top:1rem; border-top:1px solid rgba(255,255,255,0.1);">
+                <p style="font-size:0.85rem; color:#94a3b8; margin-bottom:0.5rem; font-weight:600;">
+                    Analyse approfondie (System 2)
+                </p>
+
+                {# S2 coverage bar #}
+                <div class="reveal-score-bar-wrap" style="margin-bottom:0.5rem;">
+                    <div class="reveal-score-bar">
+                        <div class="reveal-score-fill {{ 'pass' if s2_coverage_score >= 0.50 else 'fail' }}"
+                             style="width: {{ (s2_coverage_score * 100) | round(0) }}%"></div>
+                    </div>
+                    <span class="reveal-score-pct {{ 'pass' if s2_coverage_score >= 0.50 else 'fail' }}" style="font-size:0.85rem;">
+                        {{ (s2_coverage_score * 100) | round(0) }}% couverture
+                    </span>
+                </div>
+
+                {# Node-by-node coverage: received vs missed #}
+                <ul class="reveal-checklist" style="font-size:0.8rem;">
+                    {% for node_id, score in s2_node_coverage.items() %}
+                    <li class="{{ 'pass' if score >= 0.40 else 'fail' }}" style="padding:0.25rem 0;">
+                        <span class="reveal-check-icon">{{ '&#10003;' if score >= 0.40 else '&#10007;' }}</span>
+                        <span title="{{ s2_node_labels.get(node_id, node_id) }}" style="cursor:help;">
+                            {{ s2_node_labels.get(node_id, node_id)|truncate(60) }}
+                        </span>
+                        <span style="color:#64748b; font-size:0.7rem; margin-left:0.25rem;">
+                            ({{ (score * 100)|round(0) }}%)
+                        </span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {# CTA — only for hits; misses have CTA inside rejection-thanks #}
+        {% if s10_hit != false %}
+        <div class="reveal-cta">
+            {% if has_more %}
+            <a href="/test" class="btn btn-primary reveal-btn-continue">Continuer à explorer</a>
+            {% else %}
+            <p class="reveal-all-done">Vous avez tout vu !</p>
+            <a href="/dashboard" class="btn btn-primary reveal-btn-continue">Voir le dashboard</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+    const overlay = document.getElementById('revealOverlay');
+    const card = document.getElementById('revealCard');
+    const countdownEl = document.getElementById('revealCountdown');
+    const hasMore = {{ 'true' if has_more else 'false' }};
+    const isS10Miss = {{ 'true' if s10_hit == false else 'false' }};
+    let seconds = 5;
+    let timer;
+
+    function autoContinue() {
+        if (hasMore) {
+            window.location.href = '/test';
+        }
+        // If no more images, don't auto-navigate — let them click
+    }
+
+    // Countdown timer — disabled for S10 misses (we need their rejection answer)
+    if (!isS10Miss) {
+        timer = setInterval(function() {
+            seconds--;
+            if (seconds <= 0) {
+                clearInterval(timer);
+                countdownEl.textContent = '';
+                autoContinue();
+            } else {
+                countdownEl.textContent = seconds;
+            }
+        }, 1000);
+    } else {
+        countdownEl.textContent = '';
+    }
+
+    // Click overlay (outside card) to continue — disabled for S10 misses
+    overlay.addEventListener('click', function(e) {
+        if (e.target === overlay && !isS10Miss) {
+            clearInterval(timer);
+            autoContinue();
+        }
+    });
+
+    // Any click on card stops the countdown (user is reading)
+    card.addEventListener('click', function(e) {
+        // Don't stop countdown if they clicked the CTA link
+        if (e.target.closest('.reveal-btn-continue')) return;
+        if (timer) {
+            clearInterval(timer);
+            countdownEl.textContent = '';
+        }
+    });
+
+    // ── Rejection Autopsy (S10 miss) ──
+    if (isS10Miss) {
+        var testId = {{ test.id }};
+        var choicesDiv = document.getElementById('rejection-choices');
+        var thanksDiv = document.getElementById('rejection-thanks');
+        var buttons = choicesDiv.querySelectorAll('.rejection-btn');
+
+        var otherDiv = document.getElementById('rejection-other-input');
+
+        buttons.forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                var reason = btn.getAttribute('data-reason');
+
+                if (reason === 'other') {
+                    // Show free-text input
+                    choicesDiv.classList.add('hidden');
+                    otherDiv.classList.remove('hidden');
+                } else {
+                    // POST rejection reason to server
+                    fetch('/reject/' + testId + '?reason=' + encodeURIComponent(reason))
+                        .catch(function() {});
+                    choicesDiv.classList.add('hidden');
+                    thanksDiv.classList.remove('hidden');
+                }
+            });
+        });
+
+        // Free-text "Autre raison" submit
+        document.getElementById('rejection-other-submit').addEventListener('click', function() {
+            var text = document.getElementById('rejection-other-text').value;
+            var reason = 'other:' + text;
+            fetch('/reject/' + testId + '?reason=' + encodeURIComponent(reason))
+                .catch(function() {});
+            otherDiv.classList.add('hidden');
+            thanksDiv.classList.remove('hidden');
+        });
+    }
+
+    // Trigger slide-up animation
+    requestAnimationFrame(function() {
+        card.classList.add('reveal-card-visible');
+    });
+})();
+</script>
+{% endblock %}

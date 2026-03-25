@@ -1,0 +1,33 @@
+{
+    "domain": "psychology",
+    "version": "Cuijpers2020-pie-control",
+    "correct_product": "Combined therapy",
+    "products": [
+        "Combined therapy",
+        "CBT",
+        "SSRIs",
+        "Placebo"
+    ],
+    "title": "CBT vs Medications for Depression — Pie chart (contrôle)",
+    "semantic_references": {
+        "L1_broad": [
+            "clinical psychology",
+            "depression treatment",
+            "psychotherapy",
+            "psychologie clinique",
+            "traitement de la dépression"
+        ],
+        "L2_specific": [
+            "CBT versus medication effect sizes for depression treatment",
+            "comparaison thérapie cognitive-comportementale et antidépresseurs",
+            "combined therapy superiority over monotherapy for depression",
+            "la thérapie combinée surpasse la monothérapie contre la dépression"
+        ],
+        "L3_detailed": [
+            "combined CBT + SSRI therapy shows the largest effect size (g=0.82)",
+            "la thérapie combinée TCC + ISRS montre le plus grand effet (g=0.82)",
+            "CBT alone outperforms SSRIs alone for depression in meta-analysis"
+        ]
+    },
+    "is_control": true
+}

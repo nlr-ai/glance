@@ -1,0 +1,45 @@
+# Pattern Registry — maps encoding channels to diagnostic questions
+# Used by the adaptive Q4/Q5 system to generate post-test questions
+
+channels:
+  area:
+    risk: "Stevens power law (beta~0.7) compresses perceived differences"
+    pattern: "P21"
+    question_fr: "Les surfaces des elements vous ont-elles semble proportionnelles aux donnees ?"
+    question_en: "Did the element sizes seem proportional to the data?"
+    choices: ["Oui, clairement", "A peu pres", "Non, c'etait trompeur", "Je n'ai pas fait attention"]
+
+  length:
+    risk: "Low risk — length is decoded most accurately (Cleveland & McGill beta~1.0)"
+    pattern: "P32"
+    question_fr: "Les longueurs des barres vous ont-elles semble faciles a comparer ?"
+    question_en: "Did the bar lengths seem easy to compare?"
+    choices: ["Oui, immediat", "Ca demandait un effort", "C'etait confus", "Je n'ai pas fait attention"]
+
+  color_saturation:
+    risk: "Saturation is NOT intuitive for encoding magnitude (MacEachren 2012)"
+    pattern: "P34"
+    question_fr: "Les differences de couleur etaient-elles faciles a interpreter ?"
+    question_en: "Were the color differences easy to interpret?"
+    choices: ["Oui", "Non", "Je n'ai pas remarque les couleurs", "Je n'ai pas fait attention"]
+
+  color_pair_close:
+    risk: "Close color pairs may fuse for ~8% of male viewers (V14)"
+    pattern: "V14"
+    question_fr: "Avez-vous pu distinguer tous les elements par leur couleur ?"
+    question_en: "Could you distinguish all elements by their color?"
+    choices: ["Oui, facilement", "Certains se confondaient", "Non", "Je n'ai pas fait attention"]
+
+  text_density:
+    risk: "Exceeding 30-word budget triggers System 2 reading (V3)"
+    pattern: "V3"
+    question_fr: "Y avait-il trop de texte dans l'image ?"
+    question_en: "Was there too much text in the image?"
+    choices: ["Non, c'etait equilibre", "Un peu trop", "Beaucoup trop", "Je n'ai pas lu le texte"]
+
+  small_details:
+    risk: "Details below 50% readability at mobile scale (V7)"
+    pattern: "V7"
+    question_fr: "Tous les elements etaient-ils lisibles ?"
+    question_en: "Were all elements readable?"
+    choices: ["Oui", "Certains etaient trop petits", "Beaucoup de choses illisibles", "Je n'ai pas fait attention"]

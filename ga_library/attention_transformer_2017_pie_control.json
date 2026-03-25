@@ -1,0 +1,28 @@
+{
+    "domain": "tech",
+    "version": "Vaswani2017-pie-control",
+    "is_control": true,
+    "correct_product": "Transformer (Big)",
+    "products": ["Transformer (Big)", "Transformer (Base)", "ConvS2S", "GNMT+RL"],
+    "title": "Machine Translation — Pie chart (contr\u00f4le)",
+    "semantic_references": {
+        "L1_broad": [
+            "machine learning",
+            "traduction automatique",
+            "intelligence artificielle",
+            "deep learning",
+            "architecture neuronale"
+        ],
+        "L2_specific": [
+            "comparaison d'architectures de traduction neuronale",
+            "attention mechanism vs recurrent neural networks",
+            "transformer architecture for sequence to sequence translation",
+            "self-attention replaces recurrence for machine translation"
+        ],
+        "L3_detailed": [
+            "the Transformer architecture achieves the highest BLEU score on WMT 2014 EN-DE translation",
+            "le Transformer surpasse les r\u00e9seaux r\u00e9currents et convolutifs gr\u00e2ce au m\u00e9canisme d'attention",
+            "self-attention alone outperforms LSTM and CNN on translation benchmarks"
+        ]
+    }
+}

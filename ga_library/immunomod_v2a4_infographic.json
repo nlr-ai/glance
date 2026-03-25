@@ -1,0 +1,29 @@
+{
+    "domain": "med",
+    "version": "V2A.4",
+    "is_control": false,
+    "correct_product": "OM-85",
+    "products": ["OM-85", "PMBL", "MV130", "CRL1505"],
+    "title": "Immunomodulateurs RTIs — Infographie IA V2A.4",
+    "description": "Briser le cercle vicieux respiratoire — infographie générée par IA, calibration reference",
+    "semantic_references": {
+        "L1_broad": [
+            "immunologie",
+            "infections respiratoires",
+            "systeme immunitaire des enfants",
+            "cercle vicieux respiratoire",
+            "maladies respiratoires pediatriques"
+        ],
+        "L2_specific": [
+            "immunomodulateurs pour les infections respiratoires recurrentes pediatriques",
+            "briser le cercle vicieux des infections respiratoires repetees chez les enfants",
+            "comparaison de traitements immunomodulateurs pour les RTIs chez les enfants",
+            "prevention des infections respiratoires recurrentes par immunomodulation"
+        ],
+        "L3_detailed": [
+            "OM-85 possede le plus haut niveau de preuve parmi les immunomodulateurs pour les infections respiratoires recurrentes pediatriques",
+            "le lysat bacterien OM-85 est le mieux documente pour reduire les episodes de RTI chez les enfants",
+            "hierarchie de preuves cliniques entre OM-85, PMBL, MV130 et CRL1505 pour les RTIs pediatriques"
+        ]
+    }
+}

@@ -1,0 +1,438 @@
+{% extends "base.html" %}
+{% block title %}Test — GLANCE{% endblock %}
+
+{% block head %}
+<style>
+    .q-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+    .q-progress {
+        flex: 1;
+        height: 8px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 4px;
+        overflow: hidden;
+    }
+    .q-progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #3b82f6, #60a5fa);
+        border-radius: 4px;
+        transition: width 0.5s ease;
+        box-shadow: 0 0 8px rgba(59,130,246,0.3);
+    }
+    .q-step {
+        font-size: 0.8rem;
+        color: #94a3b8;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="arena" id="arena">
+
+    <!-- BRIEFING -->
+    <div class="state-panel" id="panel-briefing">
+        <h1>Prêt ?</h1>
+        <div class="card">
+            <p>Une image scientifique va s'afficher pendant <strong>exactement 5 secondes</strong>.</p>
+            <p>Elle disparaîtra définitivement. Vous répondrez ensuite à 3 questions de mémoire.</p>
+            <p>Concentrez-vous. Pas de retour possible.</p>
+        </div>
+        <label class="checkbox-label">
+            <input type="checkbox" id="confirm-checkbox">
+            <span>J'ai compris, l'image disparaîtra après 5 secondes</span>
+        </label>
+        <button class="btn btn-primary" id="btn-start" disabled>Démarrer</button>
+    </div>
+
+    <!-- COUNTDOWN -->
+    <div class="state-panel hidden" id="panel-countdown">
+        <div class="countdown-number" id="countdown-display">3</div>
+    </div>
+
+    <!-- EXPOSURE -->
+    <div class="state-panel hidden" id="panel-exposure">
+        <div class="exposure-frame">
+            <img id="ga-image" src="/ga/{{ image.filename }}" alt="GA">
+            <div class="timer-bar" id="timer-bar"></div>
+        </div>
+    </div>
+
+    <!-- Q1: Free recall -->
+    <div class="state-panel hidden" id="panel-q1">
+        <div class="q-header">
+            <div class="q-progress"><div class="q-progress-fill" style="width:25%"></div></div>
+            <span class="q-step">1/4</span>
+        </div>
+        <p class="question-text">{{ questions.q1 }}</p>
+        {% if input_mode == 'voice' %}
+        <div id="voice-panel">
+            <div id="voice-unsupported" class="voice-unsupported hidden">
+                <p>Votre navigateur ne supporte pas la reconnaissance vocale. Utilisez Chrome ou Edge.</p>
+                <textarea id="q1-input" rows="3" placeholder="Decrivez ce que vous avez vu..." autofocus></textarea>
+                <button class="btn btn-primary" id="btn-q1">Suivant</button>
+            </div>
+            <div id="voice-supported">
+                <button class="btn btn-primary" id="btn-record">Parler</button>
+                <div id="voice-status" class="voice-status hidden">
+                    <div class="voice-pulse"></div>
+                    <span>Ecoute en cours...</span>
+                </div>
+                <div id="voice-transcript" class="voice-transcript hidden">
+                    <p id="transcript-text" class="transcript-text"></p>
+                    <textarea id="q1-input-voice" rows="3" placeholder="Transcript — corrigez si necessaire"></textarea>
+                    <div class="voice-actions">
+                        <button class="btn btn-secondary" id="btn-re-record">Recommencer</button>
+                        <button class="btn btn-primary" id="btn-q1">Valider</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <textarea id="q1-input" rows="3" placeholder="Décrivez ce que vous avez vu..." autofocus></textarea>
+        <button class="btn btn-primary" id="btn-q1">Suivant</button>
+        {% endif %}
+    </div>
+
+    <!-- Q2: Product hierarchy -->
+    <div class="state-panel hidden" id="panel-q2">
+        <div class="q-header">
+            <div class="q-progress"><div class="q-progress-fill" style="width:50%"></div></div>
+            <span class="q-step">2/4</span>
+        </div>
+        <p class="question-text">{{ questions.q2 }}</p>
+        <div class="product-choices" id="q2-choices">
+            {% for p in products %}
+            <button class="btn btn-choice" data-value="{{ p }}">{{ p }}</button>
+            {% endfor %}
+            <button class="btn btn-choice btn-muted" data-value="Je ne sais pas">Je ne sais pas</button>
+        </div>
+    </div>
+
+    <!-- Q3: Actionability -->
+    <div class="state-panel hidden" id="panel-q3">
+        <div class="q-header">
+            <div class="q-progress"><div class="q-progress-fill" style="width:75%"></div></div>
+            <span class="q-step">3/4</span>
+        </div>
+        <p class="question-text">{{ questions.q3 }}</p>
+        <div class="product-choices" id="q3-choices">
+            {% for c in questions.q3_choices %}
+            <button class="btn btn-choice" data-value="{{ c }}">{{ c }}</button>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Q4: Free comment -->
+    <div class="state-panel hidden" id="panel-q4">
+        <div class="q-header">
+            <div class="q-progress"><div class="q-progress-fill" style="width:100%"></div></div>
+            <span class="q-step">4/4</span>
+        </div>
+        <p class="question-text">Remarques, impressions, ce qui vous a frappé ou manqué ?</p>
+        <textarea id="q4-input" rows="3" placeholder="Optionnel..."></textarea>
+        <button class="btn btn-primary" id="btn-q4">Terminer</button>
+        <button class="btn btn-secondary" id="btn-q4-skip">Passer</button>
+    </div>
+
+    <!-- SUBMITTING -->
+    <div class="state-panel hidden" id="panel-submitting">
+        <div class="spinner"></div>
+        <p>Enregistrement...</p>
+    </div>
+
+    <!-- Hidden form for submission -->
+    <form id="submit-form" method="post" action="/submit" style="display:none">
+        <input type="hidden" name="ga_image_id" value="{{ image.id }}">
+        <input type="hidden" name="q1_text" id="f-q1-text">
+        <input type="hidden" name="q1_time_ms" id="f-q1-time">
+        <input type="hidden" name="q2_choice" id="f-q2-choice">
+        <input type="hidden" name="q2_time_ms" id="f-q2-time">
+        <input type="hidden" name="q3_choice" id="f-q3-choice">
+        <input type="hidden" name="q3_time_ms" id="f-q3-time">
+        <input type="hidden" name="q4_text" id="f-q4-text">
+        <input type="hidden" name="tab_switched" id="f-tab-switched" value="0">
+        <input type="hidden" name="exposure_actual_ms" id="f-exposure-actual" value="0">
+        <input type="hidden" name="q1_first_keystroke_ms" id="f-q1-first-ks" value="0">
+        <input type="hidden" name="q1_last_keystroke_ms" id="f-q1-last-ks" value="0">
+        <input type="hidden" name="q1_input_mode" id="f-q1-input-mode" value="text">
+        <input type="hidden" name="q1_raw_transcript" id="f-q1-raw-transcript" value="">
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const TIMER_MS = {{ timer_ms }};
+    const COUNTDOWN_S = {{ countdown_s }};
+    const INPUT_MODE = "{{ input_mode }}";
+
+    const panels = {
+        briefing: document.getElementById('panel-briefing'),
+        countdown: document.getElementById('panel-countdown'),
+        exposure: document.getElementById('panel-exposure'),
+        q1: document.getElementById('panel-q1'),
+        q2: document.getElementById('panel-q2'),
+        q3: document.getElementById('panel-q3'),
+        q4: document.getElementById('panel-q4'),
+        submitting: document.getElementById('panel-submitting'),
+    };
+
+    let questionStart = 0;
+    let currentState = 'briefing';
+    let exposureStart = 0;
+    let q1Start = 0;
+    const responses = {
+        q1_text: '', q1_time: 0, q2_choice: '', q2_time: 0, q3_choice: '', q3_time: 0,
+        tab_switched: false, exposure_actual_ms: 0,
+        q1_first_keystroke_ms: 0, q1_last_keystroke_ms: 0,
+        q1_input_mode: 'text', q1_raw_transcript: '',
+    };
+
+    // Tab switch detection — silent flag per S2b_Mathematics.md
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden && currentState === 'exposure') {
+            responses.tab_switched = true;
+            responses.exposure_actual_ms = Math.round(performance.now() - exposureStart);
+        }
+    });
+
+    function showPanel(name) {
+        Object.values(panels).forEach(p => p.classList.add('hidden'));
+        panels[name].classList.remove('hidden');
+        currentState = name;
+    }
+
+    // Preload image
+    const img = new Image();
+    img.src = '/ga/{{ image.filename }}';
+
+    // Briefing: checkbox enables start button
+    const checkbox = document.getElementById('confirm-checkbox');
+    const btnStart = document.getElementById('btn-start');
+    checkbox.addEventListener('change', () => {
+        btnStart.disabled = !checkbox.checked;
+    });
+
+    // Start → Countdown
+    btnStart.addEventListener('click', () => {
+        showPanel('countdown');
+        startCountdown();
+    });
+
+    function startCountdown() {
+        let count = COUNTDOWN_S;
+        const display = document.getElementById('countdown-display');
+        display.textContent = count;
+
+        const interval = setInterval(() => {
+            count--;
+            if (count <= 0) {
+                clearInterval(interval);
+                showPanel('exposure');
+                startExposure();
+            } else {
+                display.textContent = count;
+            }
+        }, 1000);
+    }
+
+    function startExposure() {
+        exposureStart = performance.now();
+        const bar = document.getElementById('timer-bar');
+        bar.style.transition = `width ${TIMER_MS}ms linear`;
+        // Force reflow then animate
+        bar.offsetWidth;
+        bar.style.width = '0%';
+
+        setTimeout(() => {
+            // If no tab switch occurred, exposure_actual_ms = full duration
+            if (!responses.tab_switched) {
+                responses.exposure_actual_ms = TIMER_MS;
+            }
+            showPanel('q1');
+            q1Start = performance.now();
+            questionStart = performance.now();
+            // Focus the appropriate input
+            const textInput = document.getElementById('q1-input');
+            if (textInput) textInput.focus();
+        }, TIMER_MS);
+    }
+
+    // ── Voice mode setup ──
+    if (INPUT_MODE === 'voice') {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            // Browser doesn't support Web Speech API — show fallback
+            document.getElementById('voice-unsupported').classList.remove('hidden');
+            document.getElementById('voice-supported').classList.add('hidden');
+        } else {
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'fr-FR';
+            recognition.continuous = true;
+            recognition.interimResults = true;
+
+            let rawTranscript = '';
+            let isRecording = false;
+
+            const btnRecord = document.getElementById('btn-record');
+            const voiceStatus = document.getElementById('voice-status');
+            const voiceTranscript = document.getElementById('voice-transcript');
+            const transcriptText = document.getElementById('transcript-text');
+            const q1InputVoice = document.getElementById('q1-input-voice');
+            const btnReRecord = document.getElementById('btn-re-record');
+
+            btnRecord.addEventListener('click', () => {
+                recognition.start();
+                isRecording = true;
+                btnRecord.classList.add('hidden');
+                voiceStatus.classList.remove('hidden');
+                voiceTranscript.classList.add('hidden');
+            });
+
+            recognition.onresult = (event) => {
+                let transcript = '';
+                for (let i = 0; i < event.results.length; i++) {
+                    transcript += event.results[i][0].transcript;
+                }
+                rawTranscript = transcript;
+                transcriptText.textContent = transcript;
+                q1InputVoice.value = transcript;
+                // Show transcript div live as speech is recognized
+                voiceTranscript.classList.remove('hidden');
+                // Record first speech result as first "keystroke" equivalent
+                const elapsed = Math.round(performance.now() - q1Start);
+                if (!responses.q1_first_keystroke_ms) {
+                    responses.q1_first_keystroke_ms = elapsed;
+                }
+                responses.q1_last_keystroke_ms = elapsed;
+            };
+
+            recognition.onend = () => {
+                isRecording = false;
+                voiceStatus.classList.add('hidden');
+                voiceTranscript.classList.remove('hidden');
+            };
+
+            recognition.onerror = (event) => {
+                isRecording = false;
+                voiceStatus.classList.add('hidden');
+                if (event.error === 'not-allowed') {
+                    transcriptText.textContent = 'Acces au microphone refuse. Tapez votre reponse.';
+                }
+                voiceTranscript.classList.remove('hidden');
+            };
+
+            // Re-record button
+            btnReRecord.addEventListener('click', () => {
+                rawTranscript = '';
+                transcriptText.textContent = '';
+                q1InputVoice.value = '';
+                responses.q1_first_keystroke_ms = 0;
+                responses.q1_last_keystroke_ms = 0;
+                voiceTranscript.classList.add('hidden');
+                recognition.start();
+                isRecording = true;
+                voiceStatus.classList.remove('hidden');
+            });
+
+            // Track edits on transcript textarea
+            q1InputVoice.addEventListener('keydown', () => {
+                const elapsed = Math.round(performance.now() - q1Start);
+                if (!responses.q1_first_keystroke_ms) {
+                    responses.q1_first_keystroke_ms = elapsed;
+                }
+                responses.q1_last_keystroke_ms = elapsed;
+            });
+
+            // Override Q1 button to capture voice data
+            document.getElementById('btn-q1').addEventListener('click', () => {
+                // Stop recognition if still running
+                if (isRecording) {
+                    recognition.stop();
+                }
+                responses.q1_text = q1InputVoice.value;
+                responses.q1_time = Math.round(performance.now() - questionStart);
+                responses.q1_input_mode = 'voice';
+                responses.q1_raw_transcript = rawTranscript;
+                showPanel('q2');
+                questionStart = performance.now();
+            });
+        }
+    }
+
+    // ── Text mode: keystroke timing + Q1 handler ──
+    if (INPUT_MODE === 'text' || !window.SpeechRecognition && !window.webkitSpeechRecognition) {
+        const q1Input = document.getElementById('q1-input');
+        if (q1Input) {
+            q1Input.addEventListener('keydown', () => {
+                const elapsed = Math.round(performance.now() - q1Start);
+                if (!responses.q1_first_keystroke_ms) {
+                    responses.q1_first_keystroke_ms = elapsed;
+                }
+                responses.q1_last_keystroke_ms = elapsed;
+            });
+
+            document.getElementById('btn-q1').addEventListener('click', () => {
+                responses.q1_text = q1Input.value;
+                responses.q1_time = Math.round(performance.now() - questionStart);
+                responses.q1_input_mode = 'text';
+                showPanel('q2');
+                questionStart = performance.now();
+            });
+        }
+    }
+
+    // Q2: product choice buttons
+    document.querySelectorAll('#q2-choices .btn-choice').forEach(btn => {
+        btn.addEventListener('click', () => {
+            responses.q2_choice = btn.dataset.value;
+            responses.q2_time = Math.round(performance.now() - questionStart);
+            showPanel('q3');
+            questionStart = performance.now();
+        });
+    });
+
+    // Q3: actionability choice buttons
+    document.querySelectorAll('#q3-choices .btn-choice').forEach(btn => {
+        btn.addEventListener('click', () => {
+            responses.q3_choice = btn.dataset.value;
+            responses.q3_time = Math.round(performance.now() - questionStart);
+            showPanel('q4');
+        });
+    });
+
+    // Q4: free comment (optional)
+    document.getElementById('btn-q4').addEventListener('click', () => {
+        responses.q4_text = document.getElementById('q4-input').value;
+        submitTest();
+    });
+    document.getElementById('btn-q4-skip').addEventListener('click', () => {
+        responses.q4_text = '';
+        submitTest();
+    });
+
+    function submitTest() {
+        showPanel('submitting');
+        document.getElementById('f-q1-text').value = responses.q1_text;
+        document.getElementById('f-q1-time').value = responses.q1_time;
+        document.getElementById('f-q2-choice').value = responses.q2_choice;
+        document.getElementById('f-q2-time').value = responses.q2_time;
+        document.getElementById('f-q3-choice').value = responses.q3_choice;
+        document.getElementById('f-q3-time').value = responses.q3_time;
+        document.getElementById('f-q4-text').value = responses.q4_text || '';
+        document.getElementById('f-tab-switched').value = responses.tab_switched ? 1 : 0;
+        document.getElementById('f-exposure-actual').value = responses.exposure_actual_ms;
+        document.getElementById('f-q1-first-ks').value = responses.q1_first_keystroke_ms;
+        document.getElementById('f-q1-last-ks').value = responses.q1_last_keystroke_ms;
+        document.getElementById('f-q1-input-mode').value = responses.q1_input_mode;
+        document.getElementById('f-q1-raw-transcript').value = responses.q1_raw_transcript;
+        document.getElementById('submit-form').submit();
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,34 @@
+{
+    "domain": "neuroscience",
+    "version": "Walker2009",
+    "correct_product": "Full night sleep",
+    "products": [
+        "Full night sleep",
+        "Nap",
+        "Fragmented sleep",
+        "Sleep deprived"
+    ],
+    "title": "Sleep Stages and Memory Consolidation (Walker, 2009)",
+    "semantic_references": {
+        "L1_broad": [
+            "neuroscience",
+            "sleep",
+            "memory",
+            "neurosciences",
+            "sommeil",
+            "mémoire"
+        ],
+        "L2_specific": [
+            "sleep stages and memory consolidation comparison",
+            "consolidation mnésique selon les conditions de sommeil",
+            "full night sleep vs deprivation effect on retention",
+            "effet de la privation de sommeil sur la rétention mnésique"
+        ],
+        "L3_detailed": [
+            "full night sleep achieves 94% memory retention vs 60% when sleep deprived",
+            "une nuit complète permet 94% de rétention vs 60% en privation de sommeil",
+            "even napping (85%) significantly outperforms sleep deprivation for memory"
+        ]
+    },
+    "description": "Memory retention (%) by sleep condition. Full night sleep achieves 94% retention, while sleep deprivation drops to 60%, demonstrating sleep's critical role in memory consolidation."
+}

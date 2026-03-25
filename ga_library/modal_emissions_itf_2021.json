@@ -1,0 +1,34 @@
+{
+    "domain": "transport",
+    "version": "ITF2021",
+    "correct_product": "Bicycle",
+    "products": [
+        "Car",
+        "Bus",
+        "Train",
+        "Bicycle"
+    ],
+    "title": "CO₂ Emissions per Passenger-km by Transport Mode (ITF, 2021)",
+    "semantic_references": {
+        "L1_broad": [
+            "transport",
+            "climate",
+            "emissions",
+            "transport",
+            "climat",
+            "émissions"
+        ],
+        "L2_specific": [
+            "CO2 emissions per passenger kilometer by transport mode",
+            "émissions de CO2 par passager-km selon le mode de transport",
+            "modal shift carbon footprint comparison car bus train bicycle",
+            "comparaison empreinte carbone voiture bus train vélo"
+        ],
+        "L3_detailed": [
+            "bicycle produces zero direct CO2 emissions per passenger-km",
+            "le vélo ne produit aucune émission directe de CO2 par passager-km",
+            "cars emit 170g CO2/pkm, 12x more than trains at 14g"
+        ]
+    },
+    "description": "CO₂ emissions (g/passenger-km) by transport mode. Bicycle produces zero direct emissions, while cars emit 170g/pkm — 12x more than trains (14g)."
+}

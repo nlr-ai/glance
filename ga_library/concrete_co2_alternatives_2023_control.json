@@ -1,0 +1,34 @@
+{
+    "domain": "materials",
+    "version": "ConcreteCO2_2023-pie-control",
+    "correct_product": "Geopolymer",
+    "products": [
+        "Geopolymer",
+        "LC3",
+        "Fly ash blend",
+        "Standard Portland"
+    ],
+    "title": "Concrete Alternatives — Pie chart (contrôle)",
+    "semantic_references": {
+        "L1_broad": [
+            "materials science",
+            "concrete",
+            "decarbonization",
+            "science des matériaux",
+            "béton",
+            "décarbonation"
+        ],
+        "L2_specific": [
+            "low-carbon concrete alternatives CO2 reduction comparison",
+            "alternatives au béton portland réduction de CO2",
+            "geopolymer cement environmental impact assessment",
+            "évaluation de l'impact environnemental du ciment géopolymère"
+        ],
+        "L3_detailed": [
+            "geopolymer concrete reduces CO2 emissions by 80% compared to Portland cement",
+            "le béton géopolymère réduit les émissions de CO2 de 80% vs le ciment Portland",
+            "LC3 achieves 40% reduction offering a practical near-term alternative"
+        ]
+    },
+    "is_control": true
+}

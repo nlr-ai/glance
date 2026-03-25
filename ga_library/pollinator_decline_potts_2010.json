@@ -1,0 +1,34 @@
+{
+    "domain": "ecology",
+    "version": "Potts2010",
+    "correct_product": "Habitat loss",
+    "products": [
+        "Habitat loss",
+        "Pesticides",
+        "Climate change",
+        "Invasive species"
+    ],
+    "title": "Pollinator Decline Drivers — Relative Impact (Potts et al., 2010)",
+    "semantic_references": {
+        "L1_broad": [
+            "ecology",
+            "biodiversity",
+            "pollinators",
+            "écologie",
+            "biodiversité",
+            "pollinisateurs"
+        ],
+        "L2_specific": [
+            "pollinator decline drivers relative contribution analysis",
+            "facteurs du déclin des pollinisateurs analyse comparative",
+            "habitat loss versus pesticides as pollinator threat",
+            "perte d'habitat vs pesticides comme menace pour les pollinisateurs"
+        ],
+        "L3_detailed": [
+            "habitat loss contributes 45% of global pollinator decline",
+            "la perte d'habitat contribue à 45% du déclin mondial des pollinisateurs",
+            "pesticides account for 25% of decline while climate change contributes 15%"
+        ]
+    },
+    "description": "Relative contribution (%) of each driver to global pollinator decline. Habitat loss is the dominant driver at 45%, nearly double the impact of pesticides (25%)."
+}

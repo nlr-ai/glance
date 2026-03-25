@@ -1,0 +1,33 @@
+{
+    "domain": "economics",
+    "version": "Banerjee2015",
+    "correct_product": "India",
+    "products": [
+        "India",
+        "Mexico",
+        "Mongolia",
+        "Ethiopia"
+    ],
+    "title": "Microfinance Impact on Business Profits — 6-Country RCT (Banerjee et al., 2015)",
+    "semantic_references": {
+        "L1_broad": [
+            "development economics",
+            "microfinance",
+            "poverty",
+            "économie du développement",
+            "microfinance"
+        ],
+        "L2_specific": [
+            "microfinance RCT business profits by country",
+            "impact du microcrédit sur les profits des entreprises par pays",
+            "randomized evaluation of microfinance in developing countries",
+            "évaluation randomisée du microcrédit dans les pays en développement"
+        ],
+        "L3_detailed": [
+            "India shows the largest microfinance business profit increase at 27%",
+            "l'Inde montre la plus grande augmentation de profits par microcrédit à 27%",
+            "six-country RCT shows heterogeneous microfinance effects across contexts"
+        ]
+    },
+    "description": "Business profit increase (%) from microfinance across 6-country RCT. India shows the largest impact (+27%), while Ethiopia shows minimal effects (+5%)."
+}

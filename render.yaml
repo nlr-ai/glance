@@ -1,0 +1,16 @@
+services:
+  - type: web
+    runtime: python
+    name: glance
+    plan: starter
+    buildCommand: pip install -r deploy/requirements.txt
+    startCommand: bash start.sh
+    envVars:
+      - key: GLANCE_DB_PATH
+        value: /var/data/glance.db
+      - key: PYTHON_VERSION
+        value: "3.11.7"
+    disk:
+      name: glance-data
+      mountPath: /var/data
+      sizeGB: 1

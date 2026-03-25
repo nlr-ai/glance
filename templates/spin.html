@@ -1,0 +1,366 @@
+{% extends "base.html" %}
+{% block title %}Cette image va vous mentir — GLANCE{% endblock %}
+
+{% block head %}
+<style>
+    /* ── Spin page: state machine ── */
+    .spin-arena {
+        min-height: 85vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .spin-panel {
+        width: 100%;
+        max-width: 600px;
+        margin: 0 auto;
+        text-align: center;
+    }
+    .spin-hidden { display: none !important; }
+
+    /* ── State 1: Hook ── */
+    .spin-hook h1 {
+        font-size: var(--text-3xl);
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        line-height: 1.15;
+        margin-bottom: var(--sp-6);
+        color: var(--text);
+    }
+    .spin-hook p {
+        font-size: var(--text-md);
+        color: var(--text-muted);
+        line-height: 1.6;
+        margin-bottom: var(--sp-8);
+    }
+
+    /* ── State 2: Exposure ── */
+    .spin-exposure-frame {
+        position: relative;
+        max-width: 550px;
+        margin: 0 auto;
+    }
+    .spin-exposure-frame img {
+        width: 100%;
+        height: auto;
+        border-radius: var(--radius-lg);
+        display: block;
+    }
+    .spin-timer-bar {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 6px;
+        background: linear-gradient(90deg, var(--primary), rgba(59,130,246,0.6));
+        border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+        box-shadow: 0 0 12px rgba(59,130,246,0.5),
+                    0 -2px 8px rgba(59,130,246,0.2);
+        transition: width 5000ms linear;
+    }
+
+    /* ── State 3: Question ── */
+    .spin-question p {
+        font-size: var(--text-lg);
+        color: var(--text);
+        font-weight: 500;
+        margin-bottom: var(--sp-6);
+    }
+    .spin-choices {
+        max-width: 440px;
+        margin: 0 auto;
+    }
+
+    /* ── State 4: Reveal ── */
+    .spin-reveal h1 {
+        font-size: var(--text-2xl);
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        line-height: 1.2;
+        margin-bottom: var(--sp-6);
+    }
+    .spin-reveal h1.spin-wrong {
+        color: var(--fail);
+    }
+    .spin-reveal h1.spin-right {
+        color: var(--pass);
+    }
+    .spin-big {
+        font-size: var(--text-md);
+        color: var(--text);
+        margin-bottom: var(--sp-3);
+    }
+    .spin-big strong {
+        color: var(--text);
+    }
+    .spin-explanation {
+        background: var(--surface);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-lg);
+        padding: var(--sp-6);
+        margin: var(--sp-8) 0;
+        text-align: left;
+    }
+    .spin-explanation p {
+        font-size: var(--text-base);
+        color: var(--text-muted);
+        line-height: 1.65;
+        margin-bottom: var(--sp-3);
+    }
+    .spin-explanation p:last-child {
+        margin-bottom: 0;
+    }
+    .spin-comparison {
+        display: flex;
+        gap: var(--sp-6);
+        align-items: flex-start;
+        justify-content: center;
+        margin: var(--sp-8) 0;
+    }
+    .spin-comparison-col {
+        flex: 0 0 auto;
+        text-align: center;
+    }
+    .spin-comparison img {
+        width: 250px;
+        height: auto;
+        border-radius: var(--radius);
+        display: block;
+        margin-bottom: var(--sp-2);
+    }
+    .spin-comparison-label {
+        font-size: var(--text-xs);
+        color: var(--text-dim);
+        font-weight: 600;
+    }
+    .spin-cta {
+        margin-top: var(--sp-8);
+    }
+    .spin-cta .btn-primary {
+        display: block;
+        width: 100%;
+        max-width: 400px;
+        margin: 0 auto;
+        padding: var(--sp-5) var(--sp-8);
+        font-size: var(--text-lg);
+        font-weight: 700;
+    }
+    .spin-cta-sub {
+        font-size: var(--text-sm);
+        color: var(--text-dim);
+        margin-top: var(--sp-4);
+    }
+
+    /* ── Transitions ── */
+    .spin-panel {
+        opacity: 0;
+        transform: translateY(16px);
+        transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+    .spin-panel.spin-active {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 560px) {
+        .spin-hook h1 {
+            font-size: var(--text-2xl);
+        }
+        .spin-comparison {
+            flex-direction: column;
+            align-items: center;
+            gap: var(--sp-4);
+        }
+        .spin-comparison img {
+            width: 220px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="spin-arena" id="spin-arena">
+
+    <!-- STATE 1: HOOK -->
+    <div class="spin-panel spin-active" id="panel-hook">
+        <div class="spin-hook">
+            <h1>Cette image scientifique va vous mentir.</h1>
+            <p>Vous avez 5 secondes pour la voir.<br>Une seule question apres.</p>
+            <button class="btn btn-primary btn-large" id="btn-voir">Voir l'image</button>
+        </div>
+    </div>
+
+    <!-- STATE 2: EXPOSURE -->
+    <div class="spin-panel spin-hidden" id="panel-exposure">
+        <div class="spin-exposure-frame">
+            <img id="spin-image" src="/ga/{{ control.filename }}" alt="GA">
+            <div class="spin-timer-bar" id="spin-timer-bar"></div>
+        </div>
+    </div>
+
+    <!-- STATE 3: QUESTION -->
+    <div class="spin-panel spin-hidden" id="panel-question">
+        <div class="spin-question">
+            <p>{{ q2_text }}</p>
+            <div class="spin-choices" id="spin-choices">
+                {% for p in products %}
+                <button class="btn btn-choice" data-value="{{ p }}">{{ p }}</button>
+                {% endfor %}
+                <button class="btn btn-choice btn-muted" data-value="Je ne sais pas">Je ne sais pas</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- STATE 4: REVEAL (built dynamically by JS) -->
+    <div class="spin-panel spin-hidden" id="panel-reveal">
+        <!-- populated by showReveal() -->
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const CORRECT = "{{ control.correct_product }}";
+    const CONTROL_IMG = "/ga/{{ control.filename }}";
+    {% if vec %}
+    const VEC_IMG = "/ga/{{ vec.filename }}";
+    {% else %}
+    const VEC_IMG = null;
+    {% endif %}
+    const EXPOSURE_MS = 5000;
+
+    const panels = {
+        hook: document.getElementById('panel-hook'),
+        exposure: document.getElementById('panel-exposure'),
+        question: document.getElementById('panel-question'),
+        reveal: document.getElementById('panel-reveal'),
+    };
+
+    // Preload images
+    const imgPreload = new Image();
+    imgPreload.src = CONTROL_IMG;
+    if (VEC_IMG) {
+        const vecPreload = new Image();
+        vecPreload.src = VEC_IMG;
+    }
+
+    function showPanel(name) {
+        Object.entries(panels).forEach(([key, el]) => {
+            if (key === name) {
+                el.classList.remove('spin-hidden');
+                // Trigger reflow then add active class for transition
+                el.offsetWidth;
+                el.classList.add('spin-active');
+            } else {
+                el.classList.remove('spin-active');
+                el.classList.add('spin-hidden');
+            }
+        });
+    }
+
+    // STATE 1 -> STATE 2
+    document.getElementById('btn-voir').addEventListener('click', () => {
+        showPanel('exposure');
+        startExposure();
+    });
+
+    function startExposure() {
+        const bar = document.getElementById('spin-timer-bar');
+        // Force reflow then animate to 0
+        bar.offsetWidth;
+        bar.style.width = '0%';
+
+        setTimeout(() => {
+            showPanel('question');
+        }, EXPOSURE_MS);
+    }
+
+    // STATE 3: choice buttons
+    document.querySelectorAll('#spin-choices .btn-choice').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const answer = btn.dataset.value;
+            showReveal(answer);
+        });
+    });
+
+    function showReveal(answer) {
+        const isCorrect = answer === CORRECT;
+        const revealEl = document.getElementById('panel-reveal');
+        let html = '';
+
+        if (!isCorrect) {
+            html = `
+                <div class="spin-reveal">
+                    <h1 class="spin-wrong">Votre cerveau a ete piege.</h1>
+                    <p class="spin-big">Vous avez repondu <strong>${escHtml(answer)}</strong>.</p>
+                    <p class="spin-big">La bonne reponse est <strong>${escHtml(CORRECT)}</strong>.</p>
+
+                    <div class="spin-explanation">
+                        <p>Cette image encode les donnees par la <strong>surface</strong> (cercles, secteurs).</p>
+                        <p>Votre cerveau compresse les surfaces : une donnee 10x plus forte
+                           parait seulement 5x plus grande (loi de Stevens, &beta; &asymp; 0.7).</p>
+                        <p>C'est du <strong>spin visuel</strong> — pas intentionnel, mais mesurable.</p>
+                    </div>
+
+                    ${buildComparison()}
+
+                    <div class="spin-cta">
+                        <a href="/onboard" class="btn btn-primary">
+                            Faites le test complet — decouvrez votre score
+                        </a>
+                        <p class="spin-cta-sub">Gratuit · 2 minutes · Aucune inscription</p>
+                    </div>
+                </div>
+            `;
+        } else {
+            html = `
+                <div class="spin-reveal">
+                    <h1 class="spin-right">Bien joue — vous avez resiste au spin.</h1>
+                    <p class="spin-big">La plupart des gens se font pieger par cette image.</p>
+                    <p class="spin-big">Decouvrez si vous pouvez faire pareil sur 10 images d'affilee.</p>
+
+                    ${buildComparison()}
+
+                    <div class="spin-cta">
+                        <a href="/onboard" class="btn btn-primary">
+                            Faites le test complet
+                        </a>
+                        <p class="spin-cta-sub">Gratuit · 2 minutes · Aucune inscription</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        revealEl.innerHTML = html;
+
+        // Store result in cookie for lightweight tracking
+        document.cookie = `spin_result=${isCorrect ? 'correct' : 'wrong'}; path=/; max-age=2592000; SameSite=Lax`;
+
+        showPanel('reveal');
+    }
+
+    function buildComparison() {
+        if (!VEC_IMG) return '';
+        return `
+            <div class="spin-comparison">
+                <div class="spin-comparison-col">
+                    <img src="${CONTROL_IMG}" alt="Version spin (surface)">
+                    <span class="spin-comparison-label">Spin (surface)</span>
+                </div>
+                <div class="spin-comparison-col">
+                    <img src="${VEC_IMG}" alt="Version sans spin (longueur)">
+                    <span class="spin-comparison-label">Sans spin (longueur)</span>
+                </div>
+            </div>
+        `;
+    }
+
+    function escHtml(str) {
+        const div = document.createElement('div');
+        div.appendChild(document.createTextNode(str));
+        return div.innerHTML;
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,216 @@
+timer:
+  exposure_ms: 5000
+  countdown_seconds: 3
+
+# ── Flux Mode ───────────────────────────────────────────────────────────
+# Ambient attention protocol: target GA is embedded in a feed of N items.
+# Participant scrolls through naturally. Questions are about one random item.
+# Rationale: real-world GA consumption happens during passive browsing,
+# not focused 5-second exposure with countdown priming (System 2 bias).
+flux:
+  enabled: true
+  n_items: 6                # total items in feed (including target) — keep it short, not boring
+  item_duration_ms: 4000    # each item visible for 4s
+  target_position: random   # "random" or fixed int (1-indexed)
+  scroll_transition_ms: 300 # transition between items
+  show_title: true          # false = "stream nude" — hides post titles to isolate GA-only saliency (Δ_spoiler isolation)
+
+phone_emulation:
+  device: "iPhone 14"
+  css_width: 390
+  css_height: 844
+  dpr: 3
+  aspect_ratio: "19.5:9"
+  corner_radius: 47
+  justification: "6.9% global, ~15-20% EU clinicians. Mid-band of 360-414px. StatCounter Feb 2026."
+
+profile:
+  clinical_domains:
+    - "Pédiatre"
+    - "Médecin Généraliste"
+    - "Chercheur Bio/Médical"
+    - "Professionnel Tech/Data"
+    - "Grand Public"
+  data_literacy:
+    - "Auteur publié (peer-review)"
+    - "Profil Tech/Data"
+    - "Grand public"
+  experience_ranges:
+    - "<5 ans"
+    - "5-15 ans"
+    - ">15 ans"
+  colorblind_options:
+    - "Vision normale"
+    - "Daltonien (deutéranopie)"
+    - "Daltonien (protanopie)"
+    - "Je ne sais pas"
+
+domains:
+  med:
+    label: "Médical"
+    q1: "De quoi parlait ce post ?"
+    q2: "Dans cette image, quel produit semblait le mieux documenté ?"
+    q3: "Si vous étiez concerné, ça changerait quelque chose pour vous ?"
+    q3_choices: ["Oui", "Non", "Pas assez d'info"]
+  tech:
+    label: "Tech / IA"
+    q1: "De quoi parlait ce post ?"
+    q2: "Dans cette image, quel modèle avait le meilleur résultat ?"
+    q3: "Vous l'utiliseriez dans votre travail ?"
+    q3_choices: ["Oui", "Non", "Faudrait creuser"]
+  policy:
+    label: "Politique de santé publique"
+    q1: "De quoi parlait ce post ?"
+    q2: "Dans cette étude, quel résultat de santé était le plus impacté ?"
+    q3: "Ça changerait votre avis sur le sujet ?"
+    q3_choices: ["Oui", "Non", "Pas assez d'info"]
+  education:
+    label: "Éducation"
+    q1: "De quoi parlait ce post ?"
+    q2: "Dans cette image, quelle approche semblait la plus efficace ?"
+    q3: "Vous changeriez quelque chose dans votre façon d'enseigner ou d'apprendre ?"
+    q3_choices: ["Oui", "Non", "Pas assez d'info"]
+  climate:
+    label: "Climat / Environnement"
+    q1: "De quoi parlait ce post ?"
+    q2: "Dans cette image, quelle solution avait le plus grand impact ?"
+    q3: "Ça changerait vos habitudes ?"
+    q3_choices: ["Oui", "Non", "Pas assez d'info"]
+  psychology:
+    label: "Psychologie"
+    q1: "De quoi parlait ce post ?"
+    q2: "Dans cette étude, quelle condition avait le plus grand effet ?"
+    q3: "Ça change votre compréhension du sujet ?"
+    q3_choices: ["Oui", "Non", "Pas assez d'info"]
+  economics:
+    label: "Économie"
+    q1: "De quoi parlait ce post ?"
+    q2: "Dans cette image, quel résultat était le plus marquant ?"
+    q3: "Ça changerait votre avis sur cette politique ?"
+    q3_choices: ["Oui", "Non", "Pas assez d'info"]
+  neuroscience:
+    label: "Neurosciences"
+    q1: "De quoi parlait ce post ?"
+    q2: "Dans cette étude, quelle condition avait le meilleur résultat ?"
+    q3: "Vous changeriez vos habitudes (sommeil, sport...) ?"
+    q3_choices: ["Oui", "Non", "Pas assez d'info"]
+  nutrition:
+    label: "Nutrition / Santé publique"
+    q1: "De quoi parlait ce post ?"
+    q2: "Dans cette image, quelle intervention semblait la plus efficace ?"
+    q3: "Ça changerait ce que vous mangez ou recommandez ?"
+    q3_choices: ["Oui", "Non", "Pas assez d'info"]
+  energy:
+    label: "Énergie / Ingénierie"
+    q1: "De quoi parlait ce post ?"
+    q2: "Dans cette image, quelle techno semblait la plus performante ?"
+    q3: "Ça change votre vision du sujet ?"
+    q3_choices: ["Oui", "Non", "Pas assez d'info"]
+  epidemiology:
+    label: "Épidémiologie"
+    q1: "De quoi parlait ce post ?"
+    q2: "Dans cette étude, quel groupe ou intervention avait le meilleur résultat ?"
+    q3: "Ça changerait vos pratiques de prévention ?"
+    q3_choices: ["Oui", "Non", "Pas assez d'info"]
+  ecology:
+    label: "Écologie / Biologie"
+    q1: "De quoi parlait ce post ?"
+    q2: "Dans cette image, quel facteur semblait le plus déterminant ?"
+    q3: "Ça change votre compréhension des priorités ?"
+    q3_choices: ["Oui", "Non", "Pas assez d'info"]
+  transport:
+    label: "Transport / Urbanisme"
+    q1: "De quoi parlait ce post ?"
+    q2: "Dans cette image, quel mode de transport était le plus performant ?"
+    q3: "Ça changerait vos choix de mobilité ?"
+    q3_choices: ["Oui", "Non", "Pas assez d'info"]
+  agriculture:
+    label: "Agriculture"
+    q1: "De quoi parlait ce post ?"
+    q2: "Dans cette image, quelle méthode semblait la plus productive ?"
+    q3: "Ça change votre vision du sujet ?"
+    q3_choices: ["Oui", "Non", "Pas assez d'info"]
+  materials:
+    label: "Science des matériaux"
+    q1: "De quoi parlait ce post ?"
+    q2: "Dans cette image, quelle alternative semblait la plus prometteuse ?"
+    q3: "Vous recommanderiez ce matériau ?"
+    q3_choices: ["Oui", "Non", "Pas assez d'info"]
+  generic:
+    label: "Générique"
+    q1: "De quoi parlait ce post ?"
+    q2: "Dans cette image, quel élément semblait le mieux démontré ?"
+    q3: "Ça changerait quelque chose pour vous ?"
+    q3_choices: ["Oui", "Non", "Pas assez d'info"]
+
+scoring:
+  keywords:
+    med:
+      - "immunomodulat"
+      - "immunolog"
+      - "infection"
+      - "respiratoire"
+      - "RTI"
+      - "bronch"
+      - "enfant"
+      - "pédiat"
+      - "OM-85"
+      - "poumon"
+      - "immunit"
+
+# ── Constants ──────────────────────────────────────────────────────────
+# Classification: PHENOMENON = justified by science/cognition
+#                 CALIBRATED = derived from empirical data (overridable here)
+#                 ARBITRARY  = no justification (must be externalized here)
+#
+# See docs/SEMANTIC_SCORING.md "Constant Audit" section for full rationale.
+
+constants:
+  # -- Semantic scoring (semantic.py) --
+  # CALIBRATED: model benchmarked in docs/SEMANTIC_SCORING.md section 1.
+  # Sample: 9 French test phrases, 2 GA images.
+  semantic_model_name: "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+  # CALIBRATED: threshold derived from calibration gap [0.37, 0.52].
+  # 0.40 sits in the clean middle. See docs/SEMANTIC_SCORING.md section 3.
+  # Sample: 9 calibration phrases.
+  s9a_pass_threshold: 0.40
+
+  # -- Speed-accuracy (scoring.py) --
+  # CALIBRATED: RT2 fast/slow boundary. S2b_Mathematics.md section 3.
+  # Based on cognitive reaction time literature: pre-attentive processing
+  # completes in <250ms (Treisman), full decision in 1-3s.
+  # 3000ms chosen as upper bound of fluent decision-making.
+  rt2_fast_slow_ms: 3000
+  # CALIBRATED: RT2 hesitant/lost boundary. S2b_Mathematics.md section 3.
+  # Beyond 8000ms the participant is not guided by the design.
+  rt2_hesitant_lost_ms: 8000
+
+  # -- Composite score (scoring.py, app.py) --
+  # CALIBRATED: GLANCE pass/fail display threshold. S2b_Mathematics.md section 7.
+  # Interpretation boundary for dashboard label.
+  glance_pass_threshold: 0.70
+
+  # -- McNemar test (analytics.py) --
+  # CALIBRATED: minimum number of paired observations for McNemar.
+  # Statistical convention — below 10 pairs the chi2 approximation is unreliable.
+  mcnemar_min_pairs: 10
+
+  # -- System 2 Deep Analysis (scoring.py) --
+  # CALIBRATED: cosine similarity threshold for a reference node to count
+  # as "received" during deliberate free recall. Uses same threshold as S9a
+  # (S2b_Mathematics.md) — the reasoning is identical: below 0.40 the
+  # participant's language is too far from the reference to count as a match.
+  s2_coverage_threshold: 0.40
+
+  # -- System 2 timing --
+  # PHENOMENON: 90-second cap for System 2 free recall.
+  # Cognitive justification: 60-120s is standard for free-recall tasks in
+  # experimental psychology. 90s balances completeness with participant fatigue.
+  s2_max_duration_ms: 90000
+  # PHENOMENON: 5-second silence auto-stop.
+  # Speech pauses > 5s indicate the participant has finished their recall.
+  s2_silence_timeout_ms: 5000
+
+  # -- Session (app.py) --
+  # ARBITRARY: participant cookie lifetime in seconds (30 days).
+  cookie_max_age_seconds: 2592000

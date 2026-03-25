@@ -1,0 +1,468 @@
+{% extends "base.html" %}
+{% block title %}Analyse approfondie — GLANCE{% endblock %}
+
+{% block head %}
+<style>
+    .s2-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 1.5rem;
+        min-height: 90vh;
+    }
+    .s2-prompt {
+        font-size: 1.15rem;
+        color: #e2e8f0;
+        text-align: center;
+        margin-bottom: 1.5rem;
+        font-weight: 500;
+        line-height: 1.5;
+        max-width: 600px;
+    }
+    .s2-image-wrap {
+        width: 100%;
+        max-width: 800px;
+        margin-bottom: 1.5rem;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+    }
+    .s2-image-wrap img {
+        width: 100%;
+        height: auto;
+        display: block;
+    }
+
+    /* Timer ring */
+    .s2-timer-wrap {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    .s2-timer-ring {
+        width: 64px;
+        height: 64px;
+        position: relative;
+    }
+    .s2-timer-ring svg {
+        transform: rotate(-90deg);
+        width: 64px;
+        height: 64px;
+    }
+    .s2-timer-ring .ring-bg {
+        fill: none;
+        stroke: #1e293b;
+        stroke-width: 4;
+    }
+    .s2-timer-ring .ring-fg {
+        fill: none;
+        stroke: #3b82f6;
+        stroke-width: 4;
+        stroke-linecap: round;
+        transition: stroke-dashoffset 1s linear;
+    }
+    .s2-timer-text {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 1rem;
+        font-weight: 700;
+        color: #e2e8f0;
+        font-variant-numeric: tabular-nums;
+    }
+    .s2-timer-label {
+        font-size: 0.85rem;
+        color: #94a3b8;
+    }
+
+    /* Mic status */
+    .s2-mic-status {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+        font-size: 0.95rem;
+        color: #94a3b8;
+    }
+    .s2-mic-status.recording {
+        color: #ef4444;
+    }
+    .s2-mic-pulse {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #ef4444;
+        animation: s2pulse 1.2s ease-in-out infinite;
+    }
+    @keyframes s2pulse {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.4); opacity: 0.6; }
+    }
+    .s2-mic-pulse.idle {
+        background: #64748b;
+        animation: none;
+    }
+
+    /* Transcript display */
+    .s2-transcript {
+        width: 100%;
+        max-width: 700px;
+        min-height: 80px;
+        max-height: 200px;
+        overflow-y: auto;
+        background: rgba(30, 41, 59, 0.6);
+        border: 1px solid #334155;
+        border-radius: 8px;
+        padding: 1rem;
+        font-size: 0.95rem;
+        color: #cbd5e1;
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+        white-space: pre-wrap;
+    }
+    .s2-transcript:empty::before {
+        content: 'Votre transcription apparaitra ici...';
+        color: #475569;
+        font-style: italic;
+    }
+    .s2-transcript .interim {
+        color: #64748b;
+        font-style: italic;
+    }
+
+    /* Buttons */
+    .s2-actions {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+    .btn-finish {
+        padding: 0.75rem 2rem;
+        font-size: 1rem;
+        font-weight: 600;
+        background: #3b82f6;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    .btn-finish:hover {
+        background: #2563eb;
+    }
+    .btn-finish:disabled {
+        background: #475569;
+        cursor: not-allowed;
+    }
+
+    /* Fallback textarea (no Web Speech API) */
+    .s2-fallback-textarea {
+        width: 100%;
+        max-width: 700px;
+        min-height: 120px;
+        background: rgba(30, 41, 59, 0.6);
+        border: 1px solid #334155;
+        border-radius: 8px;
+        padding: 1rem;
+        font-size: 0.95rem;
+        color: #cbd5e1;
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+        resize: vertical;
+        font-family: inherit;
+    }
+
+    /* Submitting state */
+    .s2-submitting {
+        text-align: center;
+        padding: 3rem;
+    }
+    .s2-submitting .spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid #334155;
+        border-top-color: #3b82f6;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        margin: 0 auto 1rem;
+    }
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+    .hidden { display: none !important; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="s2-container" id="s2-main">
+    <p class="s2-prompt">Dis-nous tout ce que tu comprends de cette image.</p>
+
+    <div class="s2-image-wrap">
+        <img src="{{ ga_image_path }}" alt="{{ ga_title }}">
+    </div>
+
+    <div class="s2-timer-wrap">
+        <div class="s2-timer-ring">
+            <svg viewBox="0 0 64 64">
+                <circle class="ring-bg" cx="32" cy="32" r="28"></circle>
+                <circle class="ring-fg" id="timerRing" cx="32" cy="32" r="28"
+                        stroke-dasharray="175.93"
+                        stroke-dashoffset="0"></circle>
+            </svg>
+            <span class="s2-timer-text" id="timerText">1:30</span>
+        </div>
+        <span class="s2-timer-label" id="timerLabel">Temps restant</span>
+    </div>
+
+    <div class="s2-mic-status" id="micStatus">
+        <div class="s2-mic-pulse idle" id="micPulse"></div>
+        <span id="micLabel">Cliquez sur Commencer pour parler</span>
+    </div>
+
+    <!-- Voice mode (default) -->
+    <div id="s2-voice-panel">
+        <div id="s2-voice-unsupported" class="hidden">
+            <textarea class="s2-fallback-textarea" id="s2-fallback-input"
+                      placeholder="Decrivez tout ce que vous comprenez de cette image..."></textarea>
+        </div>
+        <div class="s2-transcript" id="s2-transcript"></div>
+    </div>
+
+    <div class="s2-actions">
+        <button class="btn-finish" id="btn-s2-start">Commencer</button>
+        <button class="btn-finish hidden" id="btn-s2-finish" disabled>Terminer</button>
+    </div>
+</div>
+
+<div class="s2-container hidden" id="s2-submitting">
+    <div class="s2-submitting">
+        <div class="spinner"></div>
+        <p>Analyse en cours...</p>
+    </div>
+</div>
+
+<form id="s2-form" method="post" action="/submit_system2/{{ test_id }}" style="display:none">
+    <input type="hidden" name="s2_transcript" id="f-s2-transcript" value="">
+    <input type="hidden" name="s2_duration_ms" id="f-s2-duration" value="0">
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+    const S2_MAX_MS = {{ s2_max_ms }};
+    const S2_SILENCE_MS = {{ s2_silence_ms }};
+    const CIRCUMFERENCE = 2 * Math.PI * 28; // ring radius = 28
+
+    const timerRing = document.getElementById('timerRing');
+    const timerText = document.getElementById('timerText');
+    const timerLabel = document.getElementById('timerLabel');
+    const micPulse = document.getElementById('micPulse');
+    const micLabel = document.getElementById('micLabel');
+    const transcriptDiv = document.getElementById('s2-transcript');
+    const btnStart = document.getElementById('btn-s2-start');
+    const btnFinish = document.getElementById('btn-s2-finish');
+    const mainPanel = document.getElementById('s2-main');
+    const submittingPanel = document.getElementById('s2-submitting');
+
+    let recognition = null;
+    let isRecording = false;
+    let startTime = 0;
+    let silenceTimer = null;
+    let countdownInterval = null;
+    let finalTranscript = '';
+    let interimTranscript = '';
+    let hasSpeechSupport = false;
+
+    // Check for Web Speech API
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+        hasSpeechSupport = true;
+        recognition = new SpeechRecognition();
+        recognition.lang = 'fr-FR';
+        recognition.continuous = true;
+        recognition.interimResults = true;
+    } else {
+        // Show fallback textarea
+        document.getElementById('s2-voice-unsupported').classList.remove('hidden');
+        transcriptDiv.classList.add('hidden');
+        micPulse.classList.add('hidden');
+        micLabel.textContent = 'Tapez votre reponse ci-dessous';
+    }
+
+    function formatTime(ms) {
+        const totalSec = Math.max(0, Math.ceil(ms / 1000));
+        const min = Math.floor(totalSec / 60);
+        const sec = totalSec % 60;
+        return min + ':' + sec.toString().padStart(2, '0');
+    }
+
+    function updateTimer(elapsedMs) {
+        const remainMs = Math.max(0, S2_MAX_MS - elapsedMs);
+        timerText.textContent = formatTime(remainMs);
+
+        // Update ring: offset goes from 0 (full) to CIRCUMFERENCE (empty)
+        const fraction = elapsedMs / S2_MAX_MS;
+        const offset = fraction * CIRCUMFERENCE;
+        timerRing.style.strokeDashoffset = offset;
+
+        // Color shift in last 15s
+        if (remainMs <= 15000) {
+            timerRing.style.stroke = '#f59e0b';
+        }
+        if (remainMs <= 5000) {
+            timerRing.style.stroke = '#ef4444';
+        }
+    }
+
+    function resetSilenceTimer() {
+        if (silenceTimer) clearTimeout(silenceTimer);
+        silenceTimer = setTimeout(() => {
+            // 5s of silence — auto-stop
+            finishRecording();
+        }, S2_SILENCE_MS);
+    }
+
+    function startRecording() {
+        startTime = performance.now();
+        btnStart.classList.add('hidden');
+        btnFinish.classList.remove('hidden');
+        btnFinish.disabled = false;
+
+        // Start countdown
+        countdownInterval = setInterval(() => {
+            const elapsed = performance.now() - startTime;
+            updateTimer(elapsed);
+            if (elapsed >= S2_MAX_MS) {
+                finishRecording();
+            }
+        }, 250);
+
+        if (hasSpeechSupport) {
+            micPulse.classList.remove('idle');
+            micLabel.textContent = 'Ecoute en cours...';
+            document.querySelector('.s2-mic-status').classList.add('recording');
+
+            recognition.start();
+            isRecording = true;
+
+            // Start silence timer
+            resetSilenceTimer();
+
+            recognition.onresult = (event) => {
+                let interim = '';
+                let final_ = '';
+                for (let i = 0; i < event.results.length; i++) {
+                    if (event.results[i].isFinal) {
+                        final_ += event.results[i][0].transcript + ' ';
+                    } else {
+                        interim += event.results[i][0].transcript;
+                    }
+                }
+                finalTranscript = final_;
+                interimTranscript = interim;
+
+                // Display transcript
+                let html = finalTranscript;
+                if (interim) {
+                    html += '<span class="interim">' + interim + '</span>';
+                }
+                transcriptDiv.innerHTML = html;
+                transcriptDiv.scrollTop = transcriptDiv.scrollHeight;
+
+                // Reset silence timer on speech
+                resetSilenceTimer();
+            };
+
+            recognition.onerror = (event) => {
+                if (event.error === 'no-speech') {
+                    // Expected during silence periods — don't stop
+                    return;
+                }
+                console.warn('Speech recognition error:', event.error);
+                if (event.error === 'not-allowed') {
+                    micLabel.textContent = 'Micro refuse — tapez votre reponse';
+                    // Show fallback
+                    document.getElementById('s2-voice-unsupported').classList.remove('hidden');
+                    transcriptDiv.classList.add('hidden');
+                }
+            };
+
+            recognition.onend = () => {
+                // Restart if we haven't manually stopped and time remains
+                if (isRecording && (performance.now() - startTime) < S2_MAX_MS) {
+                    try { recognition.start(); } catch(e) {}
+                }
+            };
+        }
+    }
+
+    function finishRecording() {
+        if (!startTime) return;
+        const durationMs = Math.round(performance.now() - startTime);
+
+        // Stop everything
+        isRecording = false;
+        if (silenceTimer) clearTimeout(silenceTimer);
+        if (countdownInterval) clearInterval(countdownInterval);
+        if (recognition) {
+            try { recognition.stop(); } catch(e) {}
+        }
+
+        // Update UI
+        updateTimer(S2_MAX_MS); // Show 0:00
+        micPulse.classList.add('idle');
+        micLabel.textContent = 'Enregistrement termine';
+        document.querySelector('.s2-mic-status').classList.remove('recording');
+        btnFinish.disabled = true;
+        timerLabel.textContent = 'Termine';
+
+        // Get transcript
+        let transcript = '';
+        if (hasSpeechSupport) {
+            transcript = (finalTranscript + interimTranscript).trim();
+        } else {
+            const fallbackInput = document.getElementById('s2-fallback-input');
+            transcript = fallbackInput ? fallbackInput.value.trim() : '';
+        }
+
+        // Submit
+        document.getElementById('f-s2-transcript').value = transcript;
+        document.getElementById('f-s2-duration').value = durationMs;
+        mainPanel.classList.add('hidden');
+        submittingPanel.classList.remove('hidden');
+        document.getElementById('s2-form').submit();
+    }
+
+    // Event listeners
+    btnStart.addEventListener('click', startRecording);
+    btnFinish.addEventListener('click', finishRecording);
+
+    // Tab switch during S2 — pause recognition, invalidate on long defocus
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            if (recognition && isRecording) {
+                try { recognition.stop(); } catch(e) {}
+            }
+            if (silenceTimer) clearTimeout(silenceTimer);
+        } else {
+            if (isRecording && (performance.now() - startTime) < S2_MAX_MS) {
+                // Resume recording
+                if (recognition) {
+                    try { recognition.start(); } catch(e) {}
+                }
+                resetSilenceTimer();
+            }
+        }
+    });
+
+    // Set initial timer display
+    timerRing.style.strokeDasharray = CIRCUMFERENCE;
+    timerRing.style.strokeDashoffset = 0;
+    updateTimer(0);
+})();
+</script>
+{% endblock %}

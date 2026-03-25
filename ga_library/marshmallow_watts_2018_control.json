@@ -1,0 +1,33 @@
+{
+    "domain": "psychology",
+    "version": "Watts2018-pie-control",
+    "correct_product": "Academic achievement",
+    "products": [
+        "Academic achievement",
+        "Behavioral problems",
+        "SAT scores",
+        "BMI"
+    ],
+    "title": "Marshmallow Test Replication — Pie chart (contrôle)",
+    "semantic_references": {
+        "L1_broad": [
+            "developmental psychology",
+            "self-control",
+            "delayed gratification",
+            "psychologie du développement",
+            "contrôle de soi"
+        ],
+        "L2_specific": [
+            "marshmallow test replication effect sizes on life outcomes",
+            "réplication du test du marshmallow et tailles d'effet",
+            "delayed gratification predicts academic achievement more than health",
+            "le contrôle de soi prédit les résultats scolaires mais pas la santé"
+        ],
+        "L3_detailed": [
+            "academic achievement shows the largest effect size (d=0.32) in marshmallow replication",
+            "la réussite scolaire montre le plus grand effet (d=0.32) dans la réplication",
+            "BMI and behavioral problems show negligible effects of delayed gratification"
+        ]
+    },
+    "is_control": true
+}

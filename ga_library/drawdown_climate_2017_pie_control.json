@@ -1,0 +1,31 @@
+{
+    "domain": "climate",
+    "version": "Hawken2017-pie-control",
+    "is_control": true,
+    "correct_product": "Reduced food waste",
+    "products": [
+        "Reduced food waste",
+        "Plant-rich diets",
+        "Solar farms",
+        "Electric vehicles"
+    ],
+    "title": "Project Drawdown — Pie chart (contrôle)",
+    "semantic_references": {
+        "L1_broad": [
+            "climate change",
+            "changement climatique",
+            "environmental science",
+            "solutions climatiques"
+        ],
+        "L2_specific": [
+            "ranking of climate solutions by CO2 reduction potential over 30 years",
+            "classement des solutions climatiques par potentiel de réduction de CO2",
+            "comparative impact of food systems vs energy vs transport on greenhouse gas emissions"
+        ],
+        "L3_detailed": [
+            "reduced food waste has the highest CO2 reduction potential at 70.5 gigatons from 2020 to 2050",
+            "la réduction du gaspillage alimentaire a le plus grand potentiel de réduction de CO2 avec 70.5 gigatonnes",
+            "food-related solutions (waste reduction and plant-rich diets) outweigh energy and transport solutions in total CO2 impact"
+        ]
+    }
+}

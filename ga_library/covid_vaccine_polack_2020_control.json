@@ -1,0 +1,34 @@
+{
+    "domain": "epidemiology",
+    "version": "Polack2020-pie-control",
+    "correct_product": "16-55 years",
+    "products": [
+        "16-55 years",
+        ">55 years",
+        "Severe disease",
+        "Asymptomatic"
+    ],
+    "title": "COVID-19 Vaccine Efficacy by Subgroup (Polack et al., 2020) — Pie chart (contrôle)",
+    "semantic_references": {
+        "L1_broad": [
+            "epidemiology",
+            "vaccination",
+            "COVID-19",
+            "épidémiologie",
+            "vaccination",
+            "COVID-19"
+        ],
+        "L2_specific": [
+            "BNT162b2 COVID vaccine efficacy by age group and endpoint",
+            "efficacité du vaccin COVID BNT162b2 par groupe d'âge",
+            "mRNA vaccine clinical trial results phase 3",
+            "résultats essai clinique phase 3 vaccin ARNm"
+        ],
+        "L3_detailed": [
+            "BNT162b2 achieves 95.6% efficacy in the 16-55 age group",
+            "le BNT162b2 atteint 95.6% d'efficacité chez les 16-55 ans",
+            "asymptomatic infection efficacy drops to 75% suggesting transmission still possible"
+        ]
+    },
+    "is_control": true
+}

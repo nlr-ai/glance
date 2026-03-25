@@ -1,0 +1,1185 @@
+{% extends "base.html" %}
+{% block title %}Test — GLANCE{% endblock %}
+
+{% block head %}
+<style>
+    .flux-briefing {
+        text-align: center;
+        padding: 4rem 2rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 50vh;
+    }
+    .briefing-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        animation: pulse 2s ease-in-out infinite;
+    }
+    .flux-briefing h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 0.75rem;
+    }
+    .flux-briefing p {
+        font-size: 1.1rem;
+        color: #94a3b8;
+        line-height: 1.5;
+        margin-bottom: 2rem;
+        max-width: 300px;
+    }
+    .btn-large {
+        padding: 1rem 3rem;
+        font-size: 1.2rem;
+        font-weight: 700;
+    }
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.1); opacity: 0.8; }
+    }
+    /* iPhone 14 emulation frame on desktop */
+    .flux-phone-frame {
+        max-width: 390px;        /* iPhone 14 CSS width */
+        height: min(844px, 80vh); /* iPhone 14 height, capped to viewport */
+        margin: 0 auto;
+        border: 3px solid #1c1c1e;
+        border-radius: 47px;
+        padding: 12px;
+        background: #000;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 0 0 2px #333, 0 20px 60px rgba(0,0,0,0.5);
+    }
+    /* iOS Status Bar */
+    .ios-status-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 4px 20px 4px 24px;
+        font-size: 14px;
+        font-weight: 600;
+        color: #fff;
+        font-family: -apple-system, 'SF Pro Text', sans-serif;
+        height: 44px;
+        position: relative;
+    }
+    .ios-time {
+        font-size: 15px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+    .ios-dynamic-island {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 126px;
+        height: 37px;
+        background: #000;
+        border-radius: 20px;
+        top: 0;
+    }
+    .ios-indicators {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 12px;
+        color: #fff;
+    }
+    .ios-signal { letter-spacing: -2px; font-size: 10px; }
+    .ios-wifi svg, .ios-battery svg { vertical-align: middle; }
+
+    /* iOS App Header */
+    .ios-app-header {
+        padding: 8px 16px;
+        border-bottom: 1px solid #1c1c1e;
+        font-size: 17px;
+        font-weight: 700;
+        color: #fff;
+        font-family: -apple-system, 'SF Pro Display', sans-serif;
+    }
+    .flux-phone-home {
+        width: 134px;
+        height: 5px;
+        background: #666;
+        border-radius: 3px;
+        margin: 8px auto 0;
+    }
+    @media (max-width: 480px) {
+        /* On actual mobile, no fake frame needed */
+        .flux-phone-frame {
+            border: none;
+            border-radius: 0;
+            padding: 0;
+            background: transparent;
+            max-width: 100%;
+            aspect-ratio: auto;
+            box-shadow: none;
+        }
+        .ios-status-bar { display: none; }
+        .ios-app-header { display: none; }
+        .flux-phone-home { display: none; }
+        .flux-feed-container {
+            border-radius: 0;
+            height: 85vh;
+        }
+    }
+    .flux-feed-container {
+        width: 100%;
+        height: calc(100% - 90px); /* fill phone frame minus iOS chrome */
+        overflow-y: scroll;
+        background: #f3f2ef;  /* LinkedIn-style light gray feed bg */
+        border-radius: 35px;
+        scrollbar-width: none;          /* Firefox */
+        -ms-overflow-style: none;       /* IE/Edge legacy */
+        touch-action: none;             /* Disable manual touch/swipe scroll */
+    }
+    .flux-feed-container::-webkit-scrollbar {
+        display: none;                  /* Chrome/Safari/Edge */
+    }
+    .flux-feed-container.paused {
+        filter: blur(20px);
+        transition: filter 0.3s ease;
+    }
+    .feed-pause-overlay {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10;
+        cursor: pointer;
+        border-radius: 35px;
+    }
+    .feed-pause-overlay.hidden { display: none; }
+    .feed-pause-content { text-align: center; color: #fff; }
+    .feed-pause-icon { font-size: 3rem; margin-bottom: 0.5rem; }
+    .feed-pause-content p { font-size: 1rem; margin: 0.25rem 0; }
+    .feed-pause-hint { font-size: 0.8rem; color: #94a3b8; }
+    .flux-feed-inner {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1rem;
+    }
+    .flux-feed-item {
+        width: 100%;
+        flex-shrink: 0;
+    }
+    .flux-card {
+        background: #fff;
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid #d1d5db;
+        margin-bottom: 4px;
+        text-align: left;
+    }
+    .flux-card-header {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.75rem 1rem;
+    }
+    .flux-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: #0a66c2;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8rem;
+        font-weight: 600;
+        flex-shrink: 0;
+    }
+    .flux-card-header img.flux-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        object-fit: cover;
+        flex-shrink: 0;
+    }
+    .flux-card-meta {
+        min-width: 0;
+    }
+    .flux-author {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #1a1a1a;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .flux-journal {
+        font-size: 0.7rem;
+        color: #6b7280;
+    }
+    .flux-card-title {
+        padding: 0.6rem 1rem;
+        font-size: 0.95rem;
+        color: #1a1a1a;
+        line-height: 1.35;
+        font-weight: 700;
+    }
+    .flux-card-image {
+        position: relative;
+        overflow: hidden;
+    }
+    .flux-card-image img {
+        width: 100%;
+        height: auto;
+        display: block;
+    }
+    /* ── Content-type variant styles ── */
+
+    /* Text-only posts: hide image entirely, expand text area */
+    .flux-card[data-type="text_only"] .flux-card-image { display: none; }
+    .flux-card[data-type="text_only"] .flux-card-title {
+        font-size: 0.95rem;
+        padding: 0.8rem 1rem 1rem;
+        min-height: 80px;
+        line-height: 1.5;
+    }
+
+    /* Video: constrain height, add play button overlay */
+    .flux-card[data-type="video"] .flux-card-image {
+        position: relative;
+        max-height: 200px;
+        overflow: hidden;
+    }
+    .flux-card[data-type="video"] .flux-card-image img {
+        max-height: 200px;
+        object-fit: cover;
+    }
+    .flux-card[data-type="video"] .flux-card-image::after {
+        content: '\25B6';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 48px;
+        height: 48px;
+        background: rgba(0, 0, 0, 0.6);
+        border-radius: 50%;
+        color: #fff;
+        font-size: 1.3rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding-left: 4px;
+        pointer-events: none;
+    }
+
+    /* Link preview: smaller image, URL-style border */
+    .flux-card[data-type="link_preview"] .flux-card-image img {
+        max-height: 150px;
+        object-fit: cover;
+    }
+    .flux-card[data-type="link_preview"] .flux-card-image {
+        border-bottom: 2px solid #e5e7eb;
+    }
+    .flux-card[data-type="link_preview"] .flux-card-title {
+        font-size: 0.85rem;
+        color: #0a66c2;
+    }
+
+    /* Carousel: square-ish with page badge */
+    .flux-card[data-type="carousel"] .flux-card-image {
+        position: relative;
+        max-height: 250px;
+        overflow: hidden;
+    }
+    .flux-card[data-type="carousel"] .flux-card-image img {
+        max-height: 250px;
+        object-fit: cover;
+    }
+    .flux-card[data-type="carousel"] .flux-card-image::after {
+        content: '1/6';
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background: rgba(0, 0, 0, 0.6);
+        color: #fff;
+        font-size: 0.7rem;
+        font-weight: 600;
+        padding: 2px 8px;
+        border-radius: 10px;
+        pointer-events: none;
+    }
+    .flux-card-actions {
+        display: flex;
+        justify-content: space-around;
+        padding: 0.6rem 0;
+        border-top: 1px solid #e5e7eb;
+    }
+    .flux-action {
+        flex: 1;
+        text-align: center;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #6b7280;
+        cursor: default;
+        padding: 0.3rem 0;
+    }
+    .flux-progress {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 1rem;
+        padding: 0.5rem 0;
+    }
+    .flux-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #ddd;
+        transition: background 0.3s ease;
+    }
+    .flux-dot.seen {
+        background: #888;
+    }
+    .flux-dot.active {
+        background: #1565C0;
+    }
+    /* Selection panel — S10 saillance step */
+    .flux-selection {
+        text-align: center;
+        padding: 2.5rem 1rem;
+    }
+    .flux-selection p {
+        font-size: 1.1rem;
+        color: #444;
+        max-width: 480px;
+        margin: 0 auto 1.5rem auto;
+        line-height: 1.6;
+    }
+    .selection-thumbnails {
+        display: flex;
+        justify-content: center;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+    .selection-thumb {
+        width: 200px;
+        cursor: pointer;
+        border: 2px solid #e0e0e0;
+        border-radius: 6px;
+        overflow: hidden;
+        transition: border-color 0.2s ease, transform 0.15s ease;
+    }
+    .selection-thumb:hover {
+        border-color: #1565C0;
+        transform: scale(1.03);
+    }
+    .selection-thumb img {
+        width: 100%;
+        height: auto;
+        display: block;
+    }
+    /* Progress bar for questions */
+    .q-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+    .q-progress {
+        flex: 1;
+        height: 8px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 4px;
+        overflow: hidden;
+    }
+    .q-progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #3b82f6, #60a5fa);
+        border-radius: 4px;
+        transition: width 0.5s ease;
+        box-shadow: 0 0 8px rgba(59,130,246,0.3);
+    }
+    .q-step {
+        font-size: 0.8rem;
+        color: #94a3b8;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+    /* Q2 product buttons — visual emphasis */
+    .q2-product {
+        position: relative;
+        padding-left: 1.2rem;
+    }
+    .q2-product::before {
+        content: '';
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #6b7280;
+    }
+    .q2-product:nth-child(1)::before { background: #2563eb; }
+    .q2-product:nth-child(2)::before { background: #0d9488; }
+    .q2-product:nth-child(3)::before { background: #7c3aed; }
+    .q2-product:nth-child(4)::before { background: #059669; }
+    .q2-product:nth-child(5)::before { background: #d97706; }
+    .q2-product:nth-child(6)::before { background: #dc2626; }
+    .q2-product-name { margin-left: 0.5rem; }
+    /* Q3 side-by-side */
+    .q3-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+    .q3-actions .btn-choice {
+        flex: 1;
+    }
+    .selection-none {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 80px;
+        background: #f9fafb;
+        color: #6b7280;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+    .flux-transition {
+        text-align: center;
+        padding: 3rem 1rem;
+    }
+    .flux-transition p {
+        font-size: 1.1rem;
+        color: #444;
+        max-width: 480px;
+        margin: 0 auto;
+        line-height: 1.6;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="arena" id="arena">
+
+    <!-- BRIEFING — only shown on first test, then auto-skipped -->
+    <div class="state-panel {% if not first_test %}hidden{% endif %}" id="panel-briefing">
+        <div class="flux-briefing">
+            <div class="briefing-icon">👁️</div>
+            <h1>Pret ?</h1>
+            <p>Un feed va defiler.<br>Regardez-le naturellement.</p>
+            <button class="btn btn-primary btn-large" id="btn-start">C'est parti</button>
+        </div>
+    </div>
+
+    <!-- FEED -->
+    <div class="state-panel hidden" id="panel-feed">
+        <div class="flux-phone-frame">
+        <div class="ios-status-bar">
+            <div class="ios-time">21:43</div>
+            <div class="ios-dynamic-island"></div>
+            <div class="ios-indicators">
+                <span class="ios-signal">●●●●○</span>
+                <span class="ios-wifi">
+                    <svg width="15" height="11" viewBox="0 0 15 11" fill="currentColor">
+                        <path d="M7.5 8.5a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm-3.2-2.7a4.5 4.5 0 016.4 0l-.9.9a3.2 3.2 0 00-4.6 0l-.9-.9zm-2.5-2.5a7.5 7.5 0 0111.4 0l-.9.9a6.2 6.2 0 00-9.6 0l-.9-.9z"/>
+                    </svg>
+                </span>
+                <span class="ios-battery">
+                    <svg width="25" height="12" viewBox="0 0 25 12" fill="currentColor">
+                        <rect x="0" y="1" width="21" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1"/>
+                        <rect x="1.5" y="2.5" width="14" height="7" rx="1" fill="currentColor"/>
+                        <rect x="22" y="4" width="2" height="4" rx="1" fill="currentColor" opacity="0.4"/>
+                    </svg>
+                </span>
+            </div>
+        </div>
+        <div class="ios-app-header">
+            <div class="ios-app-title">Feed</div>
+        </div>
+        <div class="flux-feed-container" id="feed-container">
+          <div class="flux-feed-inner" id="feed-inner">
+            {% for item in feed_items %}
+            <div class="flux-feed-item" data-index="{{ loop.index0 }}" data-filename="{{ item.filename }}">
+                <div class="flux-card" data-type="{{ item.content_type or 'paper' }}">
+                    <div class="flux-card-header">
+                        {% if item.pfp %}
+                        <img class="flux-avatar" src="/ga/leurres/{{ item.pfp }}" alt="">
+                        {% else %}
+                        <div class="flux-avatar">{{ item.author[:1] if item.author else 'R' }}</div>
+                        {% endif %}
+                        <div class="flux-card-meta">
+                            <div class="flux-author">{{ item.author or 'Research Team' }}</div>
+                            <div class="flux-journal">{{ item.journal or 'Journal' }} · {{ ['2h', '4h', '6h', '1d', '3d'] | random }}</div>
+                        </div>
+                    </div>
+                    <div class="flux-card-image">
+                        <img src="{{ item.path }}" alt="Content">
+                    </div>
+                    {% if show_title and item.title %}
+                    <div class="flux-card-title">{{ item.title }}</div>
+                    {% endif %}
+                    <div class="flux-card-actions">
+                        <span class="flux-action">&#9825; {{ item.likes or 0 }}</span>
+                        <span class="flux-action">&#128172; {{ item.comments or 0 }}</span>
+                        <span class="flux-action">&#8599; Share</span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="feed-pause-overlay hidden" id="feed-pause-overlay">
+            <div class="feed-pause-content">
+                <div class="feed-pause-icon">⏸</div>
+                <p>Session en pause</p>
+                <p class="feed-pause-hint">Cliquez pour reprendre</p>
+            </div>
+        </div>
+        <div class="flux-phone-home"></div>
+        </div>
+        <div class="flux-progress" id="feed-progress">
+            {% for item in feed_items %}
+            <div class="flux-dot" data-index="{{ loop.index0 }}"></div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- SELECTION — S10 saillance: thumbnail recognition step -->
+    <div class="state-panel hidden" id="panel-selection">
+        <div class="flux-selection">
+            <h2>Quelle image vous a marque ?</h2>
+            <p class="question-text">Cliquez sur celle dont vous vous souvenez le mieux.</p>
+            <div class="selection-thumbnails" id="selection-thumbnails">
+                {% for thumb in selection_thumbs %}
+                <div class="selection-thumb" data-filename="{{ thumb.filename }}">
+                    <img src="{{ thumb.path }}" alt="Thumbnail">
+                </div>
+                {% endfor %}
+                <div class="selection-thumb selection-none" data-filename="none">
+                    <span>Aucune</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Q1: Free recall -->
+    <div class="state-panel hidden" id="panel-q1">
+        <div class="q-header">
+            <div class="q-progress"><div class="q-progress-fill" style="width:25%"></div></div>
+            <span class="q-step">1/4</span>
+        </div>
+        <p class="question-text">{{ questions.q1 }}</p>
+        {% if input_mode == 'voice' %}
+        <div id="voice-panel">
+            <div id="voice-unsupported" class="voice-unsupported hidden">
+                <p>Votre navigateur ne supporte pas la reconnaissance vocale. Utilisez Chrome ou Edge.</p>
+                <textarea id="q1-input" rows="3" placeholder="Decrivez ce que vous avez vu..." autofocus></textarea>
+                <button class="btn btn-primary" id="btn-q1">Suivant</button>
+            </div>
+            <div id="voice-supported">
+                <button class="btn btn-primary" id="btn-record">Parler</button>
+                <div id="voice-status" class="voice-status hidden">
+                    <div class="voice-pulse"></div>
+                    <span>Ecoute en cours...</span>
+                </div>
+                <div id="voice-transcript" class="voice-transcript hidden">
+                    <p id="transcript-text" class="transcript-text"></p>
+                    <textarea id="q1-input-voice" rows="3" placeholder="Transcript — corrigez si necessaire"></textarea>
+                    <div class="voice-actions">
+                        <button class="btn btn-secondary" id="btn-re-record">Passer</button>
+                        <button class="btn btn-primary" id="btn-q1">Valider</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <textarea id="q1-input" rows="3" placeholder="Decrivez ce que vous avez vu..." autofocus></textarea>
+        <button class="btn btn-primary" id="btn-q1">Suivant</button>
+        {% endif %}
+    </div>
+
+    <!-- Q2: Product hierarchy -->
+    <div class="state-panel hidden" id="panel-q2">
+        <div class="q-header">
+            <div class="q-progress"><div class="q-progress-fill" style="width:50%"></div></div>
+            <span class="q-step">2/4</span>
+        </div>
+        <p class="question-text">{{ questions.q2 }}</p>
+        <div class="product-choices" id="q2-choices">
+            {% for p in products %}
+            <button class="btn btn-choice q2-product" data-value="{{ p }}">
+                <span class="q2-product-name">{{ p }}</span>
+            </button>
+            {% endfor %}
+            <button class="btn btn-choice btn-muted" data-value="Je ne sais pas">🤷 Aucune idée</button>
+        </div>
+    </div>
+
+    <!-- Q3: Actionability -->
+    <div class="state-panel hidden" id="panel-q3">
+        <div class="q-header">
+            <div class="q-progress"><div class="q-progress-fill" style="width:75%"></div></div>
+            <span class="q-step">3/4</span>
+        </div>
+        <p class="question-text">{{ questions.q3 }}</p>
+        <div class="product-choices q3-actions" id="q3-choices">
+            {% for c in questions.q3_choices %}
+            <button class="btn btn-choice" data-value="{{ c }}">{{ c }}</button>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Q4: Free comment -->
+    <div class="state-panel hidden" id="panel-q4">
+        <div class="q-header">
+            <div class="q-progress"><div class="q-progress-fill" style="width:100%"></div></div>
+            <span class="q-step">4/4</span>
+        </div>
+        <p class="question-text">Un commentaire ? (optionnel)</p>
+        <textarea id="q4-input" rows="3" placeholder="Impressions, remarques..."></textarea>
+        <button class="btn btn-primary" id="btn-q4">Terminer</button>
+        <button class="btn btn-secondary" id="btn-q4-skip">Passer</button>
+    </div>
+
+    <!-- SUBMITTING -->
+    <div class="state-panel hidden" id="panel-submitting">
+        <div class="spinner"></div>
+        <p>Enregistrement...</p>
+    </div>
+
+    <!-- Hidden form for submission -->
+    <form id="submit-form" method="post" action="/submit" style="display:none">
+        <input type="hidden" name="ga_image_id" value="{{ image.id }}">
+        <input type="hidden" name="q1_text" id="f-q1-text">
+        <input type="hidden" name="q1_time_ms" id="f-q1-time">
+        <input type="hidden" name="q2_choice" id="f-q2-choice">
+        <input type="hidden" name="q2_time_ms" id="f-q2-time">
+        <input type="hidden" name="q3_choice" id="f-q3-choice">
+        <input type="hidden" name="q3_time_ms" id="f-q3-time">
+        <input type="hidden" name="q4_text" id="f-q4-text">
+        <input type="hidden" name="tab_switched" id="f-tab-switched" value="0">
+        <input type="hidden" name="exposure_actual_ms" id="f-exposure-actual" value="0">
+        <input type="hidden" name="q1_first_keystroke_ms" id="f-q1-first-ks" value="0">
+        <input type="hidden" name="q1_last_keystroke_ms" id="f-q1-last-ks" value="0">
+        <input type="hidden" name="exposure_mode" id="f-exposure-mode" value="stream">
+        <input type="hidden" name="stream_position" id="f-stream-position">
+        <input type="hidden" name="stream_length" id="f-stream-length">
+        <input type="hidden" name="stream_selected_id" id="f-stream-selected-id">
+        <input type="hidden" name="target_filename" id="f-target-filename">
+        <input type="hidden" name="stream_target_dwell_ms" id="f-stream-dwell" value="0">
+        <input type="hidden" name="screen_width" id="f-screen-w" value="0">
+        <input type="hidden" name="screen_height" id="f-screen-h" value="0">
+        <input type="hidden" name="device_pixel_ratio" id="f-dpr" value="1">
+        <input type="hidden" name="user_agent" id="f-ua" value="">
+        <input type="hidden" name="q1_input_mode" id="f-q1-input-mode" value="text">
+        <input type="hidden" name="q1_raw_transcript" id="f-q1-raw-transcript" value="">
+        <input type="hidden" name="total_pause_ms" id="f-total-pause" value="0">
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const ITEM_DURATION_MS = {{ item_duration_ms }};
+    const SCROLL_TRANSITION_MS = {{ scroll_transition_ms }};
+    const TARGET_POSITION = {{ target_position }};  // 0-indexed
+    const TARGET_FILENAME = "{{ target_filename }}";
+    const FEED_COUNT = {{ feed_items | length }};
+    const INPUT_MODE = "{{ input_mode }}";
+
+    // Set iOS status bar time to current time
+    const timeEl = document.querySelector('.ios-time');
+    if (timeEl) {
+        const now = new Date();
+        timeEl.textContent = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+    }
+
+    const panels = {
+        briefing: document.getElementById('panel-briefing'),
+        feed: document.getElementById('panel-feed'),
+        selection: document.getElementById('panel-selection'),
+        q1: document.getElementById('panel-q1'),
+        q2: document.getElementById('panel-q2'),
+        q3: document.getElementById('panel-q3'),
+        q4: document.getElementById('panel-q4'),
+        submitting: document.getElementById('panel-submitting'),
+    };
+
+    let currentState = 'briefing';
+    let questionStart = 0;
+    let q1Start = 0;
+    let feedStart = 0;
+    const responses = {
+        q1_text: '', q1_time: 0, q2_choice: '', q2_time: 0, q3_choice: '', q3_time: 0,
+        tab_switched: false, exposure_actual_ms: 0,
+        q1_first_keystroke_ms: 0, q1_last_keystroke_ms: 0,
+        stream_selected_id: '',
+        q1_input_mode: 'text', q1_raw_transcript: '',
+        total_pause_ms: 0,
+    };
+
+    // ── Pause state ──
+    let isPaused = false;
+    let pauseStartTime = 0;
+    const pauseOverlay = document.getElementById('feed-pause-overlay');
+
+    // ── Tab defocus: pause scroll, discard test on return ──
+    let feedHasStarted = false;  // guard: don't discard before feed actually starts
+    let defocusTimestamp = 0;
+    const MIN_DEFOCUS_MS = 2000; // ignore defocus < 2s (DevTools, alt-tab accidental)
+
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            defocusTimestamp = performance.now();
+            // Pause scroll animation immediately
+            if (scrollAnimId) {
+                cancelAnimationFrame(scrollAnimId);
+                scrollAnimId = null;
+            }
+            if (window._glanceRecognition && window._glanceIsRecording) {
+                try { window._glanceRecognition.stop(); } catch(e) {}
+            }
+        } else {
+            const awayMs = performance.now() - defocusTimestamp;
+            const activeStates = ['feed', 'selection', 'q1', 'q2', 'q3', 'q4'];
+            if (feedHasStarted && awayMs > MIN_DEFOCUS_MS && activeStates.includes(currentState)) {
+                // Gone >2s during active test — contaminated, discard
+                responses.tab_switched = true;
+                window.location.href = '/test';
+            } else if (currentState === 'feed' && scrollAnimId === null && feedHasStarted && !isPaused) {
+                // Short defocus during feed — resume scroll
+                newFlick();
+                scrollAnimId = requestAnimationFrame(scrollStep);
+            }
+        }
+    });
+
+    function showPanel(name) {
+        Object.values(panels).forEach(p => p.classList.add('hidden'));
+        panels[name].classList.remove('hidden');
+        currentState = name;
+    }
+
+    // Preload all feed images
+    const feedItems = document.querySelectorAll('.flux-feed-item');
+    const feedDots = document.querySelectorAll('.flux-dot');
+    feedItems.forEach(item => {
+        const img = new Image();
+        img.src = item.querySelector('img').src;
+    });
+
+    // Also preload selection thumbnails
+    document.querySelectorAll('.selection-thumb img').forEach(img => {
+        const preload = new Image();
+        preload.src = img.src;
+    });
+
+    // Set container height based on first image aspect ratio (560/1100 ~= 0.509)
+    const feedContainer = document.getElementById('feed-container');
+    // Disable manual scroll — only JS scrollTop allowed
+    feedContainer.addEventListener('wheel', (e) => e.preventDefault(), { passive: false });
+
+    // ── Feed state (must be declared before startFeed can be called) ──
+    let scrollAnimId = null;
+    const dwellTimes = {};
+    const dwellStarts = {};
+
+    // ── Start button or auto-start ──
+    const firstTest = {{ 'true' if first_test else 'false' }};
+    document.getElementById('btn-start').addEventListener('click', () => {
+        showPanel('feed');
+        startFeed();
+    });
+    if (!firstTest) {
+        showPanel('feed');
+        startFeed();
+    }
+
+    // ── Feed inertial flick scroll + IntersectionObserver dwell tracking ──
+    function startFeed() {
+        feedHasStarted = true;
+        feedStart = performance.now();
+
+        // Track dwell time per item via IntersectionObserver
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                const fname = entry.target.dataset.filename;
+                if (entry.isIntersecting) {
+                    dwellStarts[fname] = performance.now();
+                } else if (dwellStarts[fname]) {
+                    dwellTimes[fname] = (dwellTimes[fname] || 0) +
+                        (performance.now() - dwellStarts[fname]);
+                    delete dwellStarts[fname];
+                }
+            });
+        }, {
+            root: feedContainer,
+            threshold: 0.5
+        });
+
+        feedItems.forEach(fi => observer.observe(fi));
+
+        // Progress dots
+        function updateDots() {
+            const containerRect = feedContainer.getBoundingClientRect();
+            const centerY = containerRect.top + containerRect.height / 2;
+            let activeIdx = 0;
+            feedItems.forEach((fi, i) => {
+                const fiRect = fi.getBoundingClientRect();
+                if (fiRect.top < centerY) activeIdx = i;
+            });
+            feedDots.forEach((d, i) => {
+                d.classList.toggle('active', i === activeIdx);
+                d.classList.toggle('seen', i < activeIdx);
+            });
+        }
+
+        // Inertial scroll physics — smoother deceleration for natural feel
+        let velocity = 0;
+        const FRICTION = 0.985;  // Gentler decel — longer glide, like real iOS momentum
+        const STOP_THRESHOLD = 12;
+        let paused = false;
+        let lastTime = performance.now();
+
+        // Calibrate flick velocity per-item (items have variable heights)
+        // With friction F=0.985 at 60fps, V₀ to travel distance H: V₀ = H × (1-F) × 60 / F ≈ H × 0.91
+        const itemHeights = Array.from(feedItems).map(fi => fi.offsetHeight);
+        const avgItemHeight = itemHeights.reduce((a, b) => a + b, 0) / itemHeights.length;
+
+        // Track which item is currently at the top of the viewport
+        function getCurrentItemIndex() {
+            const scrollPos = feedContainer.scrollTop;
+            let cumHeight = 0;
+            for (let i = 0; i < itemHeights.length; i++) {
+                cumHeight += itemHeights[i] + 16; // 16px = gap (1rem)
+                if (cumHeight > scrollPos + 50) return i;
+            }
+            return itemHeights.length - 1;
+        }
+
+        console.log('[GLANCE scroll]', { itemHeights, avg: avgItemHeight });
+
+        function newFlick() {
+            // Use current item's height for velocity calibration
+            const currentIdx = getCurrentItemIndex();
+            const currentH = itemHeights[currentIdx] || avgItemHeight;
+            const flickBase = currentH * 0.91;
+            velocity = flickBase * (0.8 + Math.random() * 0.4);
+            paused = false;
+        }
+
+        function scrollStep(now) {
+            if (isPaused) return;
+            const dt = Math.min(now - lastTime, 50); // cap dt to prevent jumps
+            lastTime = now;
+            const maxScroll = feedContainer.scrollHeight - feedContainer.clientHeight;
+
+            if (feedContainer.scrollTop >= maxScroll - 5) {
+                // Feed complete
+                observer.disconnect();
+                Object.keys(dwellStarts).forEach(fname => {
+                    dwellTimes[fname] = (dwellTimes[fname] || 0) +
+                        (performance.now() - dwellStarts[fname]);
+                });
+                responses.exposure_actual_ms = Math.round(performance.now() - feedStart);
+                responses.stream_target_dwell_ms = Math.round(dwellTimes[TARGET_FILENAME] || 0);
+                feedDots.forEach(d => { d.classList.remove('active'); d.classList.add('seen'); });
+                showPanel('selection');
+                return;
+            }
+
+            if (!paused) {
+                feedContainer.scrollTop += velocity * (dt / 1000);
+                velocity *= FRICTION;
+                updateDots();
+
+                if (velocity < STOP_THRESHOLD) {
+                    // Pause between flicks — short, variable, like a real thumb
+                    paused = true;
+                    // 400-1200ms — quick glance pauses, not long stares
+                    const pauseMs = 400 + Math.random() * 800;
+                    setTimeout(() => {
+                        newFlick();
+                        scrollAnimId = requestAnimationFrame(scrollStep);
+                    }, pauseMs);
+                    return;
+                }
+            }
+
+            scrollAnimId = requestAnimationFrame(scrollStep);
+        }
+
+        // Resume handler — called from outside the closure via custom event
+        feedContainer.addEventListener('glance-resume', () => {
+            newFlick();
+            lastTime = performance.now();
+            scrollAnimId = requestAnimationFrame(scrollStep);
+        });
+
+        // First flick
+        newFlick();
+        scrollAnimId = requestAnimationFrame(scrollStep);
+    }
+
+    // ── Click on feed = pause ──
+    feedContainer.addEventListener('click', (e) => {
+        if (currentState !== 'feed' || isPaused) return;
+        e.preventDefault();
+        isPaused = true;
+        pauseStartTime = performance.now();
+        // Stop scroll
+        if (scrollAnimId) {
+            cancelAnimationFrame(scrollAnimId);
+            scrollAnimId = null;
+        }
+        // Blur + overlay
+        feedContainer.classList.add('paused');
+        pauseOverlay.classList.remove('hidden');
+    });
+
+    // ── Click on overlay = resume ──
+    pauseOverlay.addEventListener('click', (e) => {
+        e.stopPropagation();
+        isPaused = false;
+        // Track pause duration
+        if (pauseStartTime) {
+            responses.total_pause_ms += Math.round(performance.now() - pauseStartTime);
+            pauseStartTime = 0;
+        }
+        feedContainer.classList.remove('paused');
+        pauseOverlay.classList.add('hidden');
+        // Resume with new flick — startFeed's newFlick is in closure,
+        // but we dispatch a custom event to trigger resume from inside startFeed.
+        feedContainer.dispatchEvent(new CustomEvent('glance-resume'));
+    });
+
+    // ── Selection: thumbnail recognition (S10) ──
+    document.querySelectorAll('.selection-thumb').forEach(thumb => {
+        thumb.addEventListener('click', () => {
+            responses.stream_selected_id = thumb.dataset.filename;
+
+            if (thumb.dataset.filename === TARGET_FILENAME) {
+                // S10 hit — user noticed the target, ask questions
+                showPanel('q1');
+                q1Start = performance.now();
+                questionStart = performance.now();
+                const textInput = document.getElementById('q1-input');
+                if (textInput) textInput.focus();
+            } else {
+                // S10 miss — user didn't notice the target, skip questions
+                responses.q1_text = '';
+                responses.q1_time = 0;
+                responses.q1_input_mode = INPUT_MODE;
+                responses.q2_choice = '';
+                responses.q2_time = 0;
+                responses.q3_choice = '';
+                responses.q3_time = 0;
+                submitTest();
+            }
+        });
+    });
+
+    // ── Voice mode setup ──
+    if (INPUT_MODE === 'voice') {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            // Browser doesn't support Web Speech API — show fallback
+            document.getElementById('voice-unsupported').classList.remove('hidden');
+            document.getElementById('voice-supported').classList.add('hidden');
+        } else {
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'fr-FR';
+            recognition.continuous = true;
+            recognition.interimResults = true;
+
+            let rawTranscript = '';
+            let isRecording = false;
+
+            const btnRecord = document.getElementById('btn-record');
+            const voiceStatus = document.getElementById('voice-status');
+            const voiceTranscript = document.getElementById('voice-transcript');
+            const transcriptText = document.getElementById('transcript-text');
+            const q1InputVoice = document.getElementById('q1-input-voice');
+            const btnReRecord = document.getElementById('btn-re-record');
+
+            btnRecord.addEventListener('click', () => {
+                recognition.start();
+                isRecording = true;
+                btnRecord.classList.add('hidden');
+                voiceStatus.classList.remove('hidden');
+                voiceTranscript.classList.add('hidden');
+            });
+
+            recognition.onresult = (event) => {
+                let transcript = '';
+                for (let i = 0; i < event.results.length; i++) {
+                    transcript += event.results[i][0].transcript;
+                }
+                rawTranscript = transcript;
+                transcriptText.textContent = transcript;
+                q1InputVoice.value = transcript;
+                // Show transcript div live as speech is recognized
+                voiceTranscript.classList.remove('hidden');
+                // Record first speech result as first "keystroke" equivalent
+                const elapsed = Math.round(performance.now() - q1Start);
+                if (!responses.q1_first_keystroke_ms) {
+                    responses.q1_first_keystroke_ms = elapsed;
+                }
+                responses.q1_last_keystroke_ms = elapsed;
+            };
+
+            recognition.onend = () => {
+                isRecording = false;
+                voiceStatus.classList.add('hidden');
+                voiceTranscript.classList.remove('hidden');
+            };
+
+            recognition.onerror = (event) => {
+                isRecording = false;
+                voiceStatus.classList.add('hidden');
+                if (event.error === 'not-allowed') {
+                    transcriptText.textContent = 'Acces au microphone refuse. Tapez votre reponse.';
+                }
+                voiceTranscript.classList.remove('hidden');
+            };
+
+            // Re-record button
+            btnReRecord.addEventListener('click', () => {
+                // "Passer" — skip Q1 with empty answer
+                if (isRecording) recognition.stop();
+                responses.q1_text = '';
+                responses.q1_time = Math.round(performance.now() - questionStart);
+                responses.q1_input_mode = 'voice';
+                responses.q1_raw_transcript = '';
+                showPanel('q2');
+                questionStart = performance.now();
+            });
+
+            // Track edits on transcript textarea
+            q1InputVoice.addEventListener('keydown', () => {
+                const elapsed = Math.round(performance.now() - q1Start);
+                if (!responses.q1_first_keystroke_ms) {
+                    responses.q1_first_keystroke_ms = elapsed;
+                }
+                responses.q1_last_keystroke_ms = elapsed;
+            });
+
+            // Store recognition state on window for unified Q1 handler
+            window._glanceRecognition = recognition;
+            window._glanceIsRecording = false;
+            window._glanceRawTranscript = '';
+
+            recognition.addEventListener('start', () => { window._glanceIsRecording = true; });
+            recognition.addEventListener('end', () => { window._glanceIsRecording = false; });
+            recognition.onresult = ((origHandler) => (event) => {
+                origHandler(event);
+                window._glanceRawTranscript = rawTranscript;
+            })(recognition.onresult);
+        }
+    }
+
+    // ── Text mode: keystroke timing ──
+    if (INPUT_MODE !== 'voice') {
+        const q1Input = document.getElementById('q1-input');
+        if (q1Input) {
+            q1Input.addEventListener('keydown', () => {
+                const elapsed = Math.round(performance.now() - q1Start);
+                if (!responses.q1_first_keystroke_ms) {
+                    responses.q1_first_keystroke_ms = elapsed;
+                }
+                responses.q1_last_keystroke_ms = elapsed;
+            });
+        }
+    }
+
+    // ── Q1 submit handler (unified voice + text) ──
+    // Uses querySelectorAll to bind ALL btn-q1 elements (voice mode has two: fallback + main)
+    document.querySelectorAll('#panel-q1 [id="btn-q1"]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (INPUT_MODE === 'voice') {
+                const q1Voice = document.getElementById('q1-input-voice');
+                const q1Fallback = document.getElementById('q1-input');
+                // Stop recognition if running
+                if (window._glanceRecognition && window._glanceIsRecording) {
+                    window._glanceRecognition.stop();
+                }
+                // Voice-supported: use q1-input-voice; unsupported fallback: use q1-input
+                responses.q1_text = (q1Voice && q1Voice.value) ? q1Voice.value
+                                  : (q1Fallback ? q1Fallback.value : '');
+                responses.q1_raw_transcript = window._glanceRawTranscript || '';
+                responses.q1_input_mode = 'voice';
+            } else {
+                const q1Text = document.getElementById('q1-input');
+                responses.q1_text = q1Text ? q1Text.value : '';
+                responses.q1_input_mode = 'text';
+            }
+            responses.q1_time = Math.round(performance.now() - questionStart);
+            showPanel('q2');
+            questionStart = performance.now();
+        });
+    });
+
+    // ── Q2: product choice ──
+    document.querySelectorAll('#q2-choices .btn-choice').forEach(btn => {
+        btn.addEventListener('click', () => {
+            responses.q2_choice = btn.dataset.value;
+            responses.q2_time = Math.round(performance.now() - questionStart);
+            showPanel('q3');
+            questionStart = performance.now();
+        });
+    });
+
+    // ── Q3: actionability ──
+    document.querySelectorAll('#q3-choices .btn-choice').forEach(btn => {
+        btn.addEventListener('click', () => {
+            responses.q3_choice = btn.dataset.value;
+            responses.q3_time = Math.round(performance.now() - questionStart);
+            showPanel('q4');
+        });
+    });
+
+    // ── Q4: free comment ──
+    document.getElementById('btn-q4').addEventListener('click', () => {
+        responses.q4_text = document.getElementById('q4-input').value;
+        submitTest();
+    });
+    document.getElementById('btn-q4-skip').addEventListener('click', () => {
+        responses.q4_text = '';
+        submitTest();
+    });
+
+    // ── Submit ──
+    function submitTest() {
+        showPanel('submitting');
+        document.getElementById('f-q1-text').value = responses.q1_text;
+        document.getElementById('f-q1-time').value = responses.q1_time;
+        document.getElementById('f-q2-choice').value = responses.q2_choice;
+        document.getElementById('f-q2-time').value = responses.q2_time;
+        document.getElementById('f-q3-choice').value = responses.q3_choice;
+        document.getElementById('f-q3-time').value = responses.q3_time;
+        document.getElementById('f-q4-text').value = responses.q4_text || '';
+        document.getElementById('f-tab-switched').value = responses.tab_switched ? 1 : 0;
+        document.getElementById('f-exposure-actual').value = responses.exposure_actual_ms;
+        document.getElementById('f-q1-first-ks').value = responses.q1_first_keystroke_ms;
+        document.getElementById('f-q1-last-ks').value = responses.q1_last_keystroke_ms;
+        document.getElementById('f-q1-input-mode').value = responses.q1_input_mode;
+        document.getElementById('f-q1-raw-transcript').value = responses.q1_raw_transcript;
+        // Stream metadata
+        document.getElementById('f-exposure-mode').value = 'stream';
+        document.getElementById('f-stream-position').value = TARGET_POSITION + 1;  // 1-indexed for storage
+        document.getElementById('f-stream-length').value = FEED_COUNT;
+        document.getElementById('f-stream-selected-id').value = responses.stream_selected_id;
+        document.getElementById('f-target-filename').value = TARGET_FILENAME;
+        document.getElementById('f-stream-dwell').value = responses.stream_target_dwell_ms || 0;
+        document.getElementById('f-total-pause').value = responses.total_pause_ms || 0;
+        document.getElementById('f-screen-w').value = window.innerWidth;
+        document.getElementById('f-screen-h').value = window.innerHeight;
+        document.getElementById('f-dpr').value = window.devicePixelRatio || 1;
+        document.getElementById('f-ua').value = navigator.userAgent;
+        document.getElementById('submit-form').submit();
+    }
+</script>
+{% endblock %}

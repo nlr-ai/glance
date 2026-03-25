@@ -1,0 +1,286 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — GLANCE{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <h1>Dashboard GLANCE</h1>
+
+    <div class="stats-bar">
+        <div class="stat">
+            <div class="stat-value">{{ stats.total or 0 }}</div>
+            <div class="stat-label">tests</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value">{{ (stats.pct_s9a or 0) | round(0) }}%</div>
+            <div class="stat-label">S9a (sujet)</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value">{{ (stats.pct_s9b or 0) | round(0) }}%</div>
+            <div class="stat-label">S9b (hierarchie)</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value">{{ (stats.pct_s9c or 0) | round(0) }}%</div>
+            <div class="stat-label">S9c (action)</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value">{{ (agg.Score_GLANCE * 100) | round(0) }}%</div>
+            <div class="stat-label">Score GLANCE</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value">{{ (agg.Mediane_RT2 / 1000) | round(1) }}s</div>
+            <div class="stat-label">Mediane RT2 ({{ agg.RT2_class }})</div>
+        </div>
+        <div class="stat {{ 'stat-warn' if invalidation_rate and invalidation_rate > 20 else '' }}">
+            <div class="stat-value">{{ invalidation_rate | round(0) }}%</div>
+            <div class="stat-label">Invalidation (tab switch)</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value">{{ (agg.Avg_Fluency * 1000) | round(1) }}</div>
+            <div class="stat-label">Fluency (S9b/log(RT2)) x1000</div>
+        </div>
+        {% if agg.Avg_Effort is not none %}
+        <div class="stat {{ 'stat-warn' if agg.Avg_Effort and agg.Avg_Effort > 0.6 else '' }}">
+            <div class="stat-value">{{ (agg.Avg_Effort * 100) | round(0) }}%</div>
+            <div class="stat-label">Effort cognitif moyen</div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- ── Stream vs Spotlight comparison ── -->
+    {% if stream_stats or spotlight_stats %}
+    <h2>Stream vs Spotlight (attention ambiante vs dirigee)</h2>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Mode</th>
+                <th>N</th>
+                <th>Taux S9a</th>
+                <th>Taux S9b</th>
+                <th>Score S9c</th>
+                <th>Score GLANCE</th>
+                <th>Med. RT2</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if spotlight_stats %}
+            <tr>
+                <td><strong>Spotlight</strong></td>
+                <td>{{ spotlight_stats.N }}</td>
+                <td>{{ (spotlight_stats.Taux_S9a * 100) | round(0) }}%</td>
+                <td>{{ (spotlight_stats.Taux_S9b * 100) | round(0) }}%</td>
+                <td>{{ (spotlight_stats.Score_S9c * 100) | round(0) }}%</td>
+                <td>{{ (spotlight_stats.Score_GLANCE * 100) | round(0) }}%</td>
+                <td>{{ (spotlight_stats.Mediane_RT2 / 1000) | round(1) }}s</td>
+            </tr>
+            {% endif %}
+            {% if stream_stats %}
+            <tr>
+                <td><strong>Stream</strong></td>
+                <td>{{ stream_stats.N }}</td>
+                <td>{{ (stream_stats.Taux_S9a * 100) | round(0) }}%</td>
+                <td>{{ (stream_stats.Taux_S9b * 100) | round(0) }}%</td>
+                <td>{{ (stream_stats.Score_S9c * 100) | round(0) }}%</td>
+                <td>{{ (stream_stats.Score_GLANCE * 100) | round(0) }}%</td>
+                <td>{{ (stream_stats.Mediane_RT2 / 1000) | round(1) }}s</td>
+            </tr>
+            {% endif %}
+            {% if stream_stats and spotlight_stats %}
+            <tr style="font-style:italic; color:#888;">
+                <td>Delta (Stream - Spotlight)</td>
+                <td>-</td>
+                <td>{{ '%+.0f' | format((stream_stats.Taux_S9a - spotlight_stats.Taux_S9a) * 100) }}%</td>
+                <td>{{ '%+.0f' | format((stream_stats.Taux_S9b - spotlight_stats.Taux_S9b) * 100) }}%</td>
+                <td>{{ '%+.0f' | format((stream_stats.Score_S9c - spotlight_stats.Score_S9c) * 100) }}%</td>
+                <td>{{ '%+.0f' | format((stream_stats.Score_GLANCE - spotlight_stats.Score_GLANCE) * 100) }}%</td>
+                <td>{{ '%+.1f' | format((stream_stats.Mediane_RT2 - spotlight_stats.Mediane_RT2) / 1000) }}s</td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    {% if s10_stats and s10_stats.n_stream > 0 %}
+    <h2>S10 — Saillance (mode stream)</h2>
+    <div class="stats-bar">
+        <div class="stat">
+            <div class="stat-value">{{ s10_stats.n_stream }}</div>
+            <div class="stat-label">tests stream</div>
+        </div>
+        <div class="stat {{ 'stat-pass' if s10_stats.s10_rate > 0.70 else ('stat-fail' if s10_stats.s10_rate < 0.33 else '') }}">
+            <div class="stat-value">{{ (s10_stats.s10_rate * 100) | round(0) }}%</div>
+            <div class="stat-label">S10 ({{ s10_stats.s10_label }})</div>
+        </div>
+        {% if s10_stats.s10_x_s9b is not none %}
+        <div class="stat {{ 'stat-pass' if s10_stats.s10_x_s9b > 0.56 else 'stat-fail' }}">
+            <div class="stat-value">{{ (s10_stats.s10_x_s9b * 100) | round(0) }}%</div>
+            <div class="stat-label">S10 x S9b (chaine complete)</div>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <h2>Speed-Accuracy (S9b x RT2)</h2>
+    <div class="stats-bar">
+        <div class="stat stat-pass">
+            <div class="stat-value">{{ speed_dist.fast_right }}</div>
+            <div class="stat-label">Fast & Right</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value">{{ speed_dist.slow_right }}</div>
+            <div class="stat-label">Slow & Right</div>
+        </div>
+        <div class="stat stat-fail">
+            <div class="stat-value">{{ speed_dist.fast_wrong }}</div>
+            <div class="stat-label">Fast & Wrong</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value">{{ speed_dist.slow_wrong }}</div>
+            <div class="stat-label">Slow & Wrong</div>
+        </div>
+    </div>
+
+    {% if quadrant_stats %}
+    <h2>Par profil (quadrants)</h2>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Quadrant</th>
+                <th>N</th>
+                <th>Taux S9a</th>
+                <th>Taux S9b</th>
+                <th>Score S9c</th>
+                <th>Score GLANCE</th>
+                <th>Med. RT2</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for q, qs in quadrant_stats.items() %}
+            <tr>
+                <td>{{ q }}</td>
+                <td>{{ qs.N }}</td>
+                <td>{{ (qs.Taux_S9a * 100) | round(0) }}%</td>
+                <td class="{{ 'pass' if qs.Taux_S9b >= 0.8 else ('fail' if qs.Taux_S9b < 0.6 else '') }}">{{ (qs.Taux_S9b * 100) | round(0) }}%</td>
+                <td>{{ (qs.Score_S9c * 100) | round(0) }}%</td>
+                <td>{{ (qs.Score_GLANCE * 100) | round(0) }}%</td>
+                <td>{{ (qs.Mediane_RT2 / 1000) | round(1) }}s</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    {% if ab_delta %}
+    <h2>Delta A/B (VEC vs Controle)</h2>
+    <div class="card">
+        <table class="result-table">
+            <tr>
+                <td class="label">Taux S9b Controle</td>
+                <td>{{ (ab_delta.taux_s9b_control * 100) | round(1) }}% (N={{ ab_delta.n_control }})</td>
+            </tr>
+            <tr>
+                <td class="label">Taux S9b VEC</td>
+                <td>{{ (ab_delta.taux_s9b_vec * 100) | round(1) }}% (N={{ ab_delta.n_vec }})</td>
+            </tr>
+            <tr>
+                <td class="label">Delta S9b</td>
+                <td class="{{ 'pass' if ab_delta.delta_s9b > 0.10 else ('fail' if ab_delta.delta_s9b < -0.10 else '') }}">
+                    {{ '%+.1f' | format(ab_delta.delta_s9b * 100) }}%
+                </td>
+            </tr>
+            {% if ab_delta.mcnemar_chi2 is not none %}
+            <tr>
+                <td class="label">McNemar chi2</td>
+                <td>{{ ab_delta.mcnemar_chi2 }} {{ '(p<0.05)' if ab_delta.mcnemar_significant else '(n.s.)' }}</td>
+            </tr>
+            {% endif %}
+            {% if ab_fluency %}
+            <tr>
+                <td class="label">Fluency Controle</td>
+                <td>{{ (ab_fluency.fluency_control * 1000) | round(1) }} (x1000)</td>
+            </tr>
+            <tr>
+                <td class="label">Fluency VEC</td>
+                <td>{{ (ab_fluency.fluency_vec * 1000) | round(1) }} (x1000)</td>
+            </tr>
+            <tr>
+                <td class="label">Delta Fluency</td>
+                <td class="{{ 'pass' if ab_fluency.fluency_delta > 0 else 'fail' }}">
+                    {{ '%+.1f' | format(ab_fluency.fluency_delta * 1000) }} (x1000) — {{ ab_fluency.interpretation }}
+                </td>
+            </tr>
+            {% endif %}
+        </table>
+    </div>
+    {% endif %}
+
+    <h2>Images ({{ images | length }})</h2>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Titre</th>
+                <th>Domaine</th>
+                <th>Version</th>
+                <th>Reponse correcte</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for img in images %}
+            <tr>
+                <td>{{ img.id }}</td>
+                <td>{{ img.title or img.filename }}</td>
+                <td>{{ img.domain }}</td>
+                <td>{{ img.version or '-' }}</td>
+                <td>{{ img.correct_product or '-' }}</td>
+            </tr>
+            {% endfor %}
+            {% if not images %}
+            <tr><td colspan="5">Aucune image. Ajoutez des PNG dans ga_library/ avec un .json de metadata.</td></tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    <h2>Tests recents</h2>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Mode</th>
+                <th>Profil</th>
+                <th>Image</th>
+                <th>S9a</th>
+                <th>S9b</th>
+                <th>S9c</th>
+                <th>GLANCE</th>
+                <th>Speed-Acc</th>
+                <th>Q1</th>
+                <th>Q2</th>
+                <th>T(Q2)</th>
+                <th title="Changement d'onglet pendant l'exposition">Tab</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for t in tests %}
+            <tr class="{{ 'row-invalidated' if t.tab_switched else '' }}">
+                <td>{{ t.created_at[:16] }}</td>
+                <td>{% if t.exposure_mode == 'stream' %}<span title="Attention ambiante">Stream</span>{% else %}<span title="Attention dirigee">Spotlight</span>{% endif %}</td>
+                <td>{{ t.clinical_domain }} / {{ t.data_literacy }}</td>
+                <td>{{ t.title or '-' }}</td>
+                <td class="{{ 'pass' if t.s9a_pass else 'fail' }}">{{ '&#10003;' if t.s9a_pass else '&#10007;' }}</td>
+                <td class="{{ 'pass' if t.s9b_pass else 'fail' }}">{{ '&#10003;' if t.s9b_pass else '&#10007;' }}</td>
+                <td class="{{ 'pass' if t.s9c_pass else 'fail' }}">{{ '&#10003;' if t.s9c_pass else '&#10007;' }}</td>
+                <td>{{ ((t.glance_score or 0) * 100) | round(0) }}%</td>
+                <td>{{ t.speed_accuracy or '-' }}</td>
+                <td class="q1-cell">{{ t.q1_text[:50] if t.q1_text else '-' }}</td>
+                <td>{{ t.q2_choice or '-' }}</td>
+                <td>{{ ((t.q2_time_ms or 0) / 1000) | round(1) }}s</td>
+                <td>{% if t.tab_switched %}<span class="tab-warn" title="Test invalide">&#9888;</span>{% else %}-{% endif %}</td>
+            </tr>
+            {% endfor %}
+            {% if not tests %}
+            <tr><td colspan="13">Aucun test enregistre.</td></tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

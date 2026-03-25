@@ -1,0 +1,34 @@
+{
+    "domain": "epidemiology",
+    "version": "Aiello2008-pie-control",
+    "correct_product": "Soap and water",
+    "products": [
+        "Soap and water",
+        "Hand sanitizer",
+        "Education only",
+        "Control"
+    ],
+    "title": "Handwashing and Respiratory Infections — Pie chart (contrôle)",
+    "semantic_references": {
+        "L1_broad": [
+            "epidemiology",
+            "hygiene",
+            "infection prevention",
+            "épidémiologie",
+            "hygiène",
+            "prévention des infections"
+        ],
+        "L2_specific": [
+            "hand hygiene interventions respiratory infection risk reduction",
+            "réduction du risque d'infection respiratoire par hygiène des mains",
+            "soap versus sanitizer effectiveness for disease prevention",
+            "efficacité savon vs gel hydroalcoolique en prévention"
+        ],
+        "L3_detailed": [
+            "soap and water reduces respiratory infection risk by 24%",
+            "le lavage au savon réduit le risque d'infection respiratoire de 24%",
+            "education alone achieves only 10% reduction highlighting need for behavioral intervention"
+        ]
+    },
+    "is_control": true
+}

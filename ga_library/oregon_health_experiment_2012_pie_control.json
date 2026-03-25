@@ -1,0 +1,31 @@
+{
+    "domain": "policy",
+    "version": "Finkelstein2012-pie-control",
+    "is_control": true,
+    "correct_product": "Depression screening",
+    "products": [
+        "Emergency visits",
+        "Depression screening",
+        "Financial strain",
+        "Physical health"
+    ],
+    "title": "Oregon Health Insurance Experiment — Pie chart (contrôle)",
+    "semantic_references": {
+        "L1_broad": [
+            "health policy",
+            "politique de santé publique",
+            "insurance coverage",
+            "couverture d'assurance maladie"
+        ],
+        "L2_specific": [
+            "impact of Medicaid expansion on health outcomes in low-income populations",
+            "effet de la couverture Medicaid sur les résultats de santé",
+            "randomized experiment comparing insured vs uninsured populations"
+        ],
+        "L3_detailed": [
+            "depression screening increased by 30% under Medicaid coverage in the Oregon experiment",
+            "le dépistage de la dépression a montré le plus grand effet positif de la couverture Medicaid",
+            "Medicaid increased emergency visits and depression detection but showed no significant physical health improvement"
+        ]
+    }
+}

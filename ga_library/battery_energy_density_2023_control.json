@@ -1,0 +1,34 @@
+{
+    "domain": "energy",
+    "version": "Battery2023-pie-control",
+    "correct_product": "Solid-state",
+    "products": [
+        "Solid-state",
+        "Lithium-ion",
+        "Sodium-ion",
+        "Lead-acid"
+    ],
+    "title": "Battery Technologies — Pie chart (contrôle)",
+    "semantic_references": {
+        "L1_broad": [
+            "energy storage",
+            "batteries",
+            "engineering",
+            "stockage d'énergie",
+            "batteries",
+            "ingénierie"
+        ],
+        "L2_specific": [
+            "battery technology energy density comparison by chemistry",
+            "comparaison de densité énergétique des technologies de batteries",
+            "solid-state vs lithium-ion energy storage performance",
+            "performances du stockage solide vs lithium-ion"
+        ],
+        "L3_detailed": [
+            "solid-state batteries achieve 400 Wh/kg, 60% more than lithium-ion",
+            "les batteries solides atteignent 400 Wh/kg, 60% de plus que le lithium-ion",
+            "lead-acid at 40 Wh/kg highlights the 10x improvement in modern battery tech"
+        ]
+    },
+    "is_control": true
+}

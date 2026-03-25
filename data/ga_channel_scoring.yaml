@@ -1,0 +1,409 @@
+# GLANCE GA Graph — Visual Channel Scoring
+# Each GA node scored against the visual channel catalog
+# Scoring based on Cleveland & McGill hierarchy + Stevens power law
+# 2026-03-25
+
+# Methodology:
+# - effectiveness = channel accuracy (Stevens beta) x usage quality (0-1)
+# - coverage_score = weighted average of channel effectiveness values
+# - weights: encoding channels weighted 2x vs social/emotional channels
+# - missing_channels = high-value channels from catalog NOT used by this node
+
+scoring:
+
+  # =====================================================================
+  # ZONE SPACES (structural containers)
+  # =====================================================================
+
+  - ga_node: "space:ga:zone_left"
+    ga_name: "Zone Probleme"
+    visual_channels:
+      - channel: "thing:vc:spatial_position"
+        usage: "Left side of GA — exploits Western left-to-right reading. Problem precedes solution spatially."
+        effectiveness: 0.90
+      - channel: "thing:vc:reading_direction"
+        usage: "Z-pattern entry point (top-left). Eye lands here first by habit."
+        effectiveness: 0.85
+      - channel: "thing:vc:palette_temperature"
+        usage: "Intended warm/red-toned to signal problem/danger zone. Valence -1.0 matches red semantic association."
+        effectiveness: 0.75
+      - channel: "thing:vc:color_emotion"
+        usage: "Red/warm colors prime urgency and danger for the problem zone."
+        effectiveness: 0.70
+      - channel: "thing:vc:common_region"
+        usage: "Zone boundary groups engagement, comprehension, gap, spin, thumbnail as a perceptual unit."
+        effectiveness: 0.80
+    coverage_score: 0.80
+    missing_channels:
+      - "thing:vc:figure_ground — zone boundary sharpness not specified (how distinct is zone_left from zone_right?)"
+      - "thing:vc:visual_weight_dist — whether problem zone is visually heavier than solution zone is unspecified"
+
+  - ga_node: "space:ga:zone_right"
+    ga_name: "Zone Solution"
+    visual_channels:
+      - channel: "thing:vc:spatial_position"
+        usage: "Right side of GA — resolution position in Z-pattern. Solution follows problem."
+        effectiveness: 0.85
+      - channel: "thing:vc:reading_direction"
+        usage: "Terminal position in Z-pattern (bottom-right). Where the eye concludes."
+        effectiveness: 0.80
+      - channel: "thing:vc:palette_temperature"
+        usage: "Intended cool/blue-toned for trust, professionalism. Valence +1.0 matches blue semantic association."
+        effectiveness: 0.75
+      - channel: "thing:vc:common_region"
+        usage: "Zone boundary groups GLANCE, GRADE, Vanity as a perceptual unit for the hierarchy."
+        effectiveness: 0.85
+      - channel: "thing:vc:visual_hierarchy_levels"
+        usage: "Contains the 3-level hierarchy (GLANCE > GRADE > Vanity). Clear visual levels via bar lengths."
+        effectiveness: 0.80
+    coverage_score: 0.81
+    missing_channels:
+      - "thing:vc:directional_cues — no explicit visual arrow from problem zone to solution zone"
+      - "thing:vc:negative_space — whitespace strategy between zones not specified"
+
+  # =====================================================================
+  # PROBLEM NODES (left zone contents)
+  # =====================================================================
+
+  - ga_node: "thing:engagement"
+    ga_name: "Engagement (x7 vues)"
+    visual_channels:
+      - channel: "thing:vc:numbers_format"
+        usage: "7.7x as natural frequency multiplier. Immediately comprehensible magnitude."
+        effectiveness: 0.85
+      - channel: "thing:vc:color_hue"
+        usage: "Red hue encodes engagement (hot, viral, attention). Categorical distinction from comprehension."
+        effectiveness: 0.65
+      - channel: "thing:vc:font_weight"
+        usage: "Bold x7 number draws fixation to the engagement magnitude."
+        effectiveness: 0.70
+    coverage_score: 0.73
+    missing_channels:
+      - "thing:vc:length — engagement magnitude (x7) not encoded as bar length; only as a number. A 7x-tall bar would be instantly perceived"
+      - "thing:vc:area — large area could viscerally convey the enormity of 7x engagement"
+      - "thing:vc:position_common_scale — engagement not placed on a shared comparison axis with comprehension"
+
+  - ga_node: "thing:comprehension"
+    ga_name: "Comprehension (0)"
+    visual_channels:
+      - channel: "thing:vc:numbers_format"
+        usage: "The '0' or '3eme sur 4' signals failure. Stark numerical anchoring."
+        effectiveness: 0.80
+      - channel: "thing:vc:color_luminance"
+        usage: "Lighter/grayer encoding signals weakness/absence. Luminance maps to certainty/strength."
+        effectiveness: 0.65
+      - channel: "thing:vc:proximity"
+        usage: "Placed adjacent to engagement to enable direct comparison (x7 vs 0)."
+        effectiveness: 0.70
+    coverage_score: 0.72
+    missing_channels:
+      - "thing:vc:length — comprehension magnitude not encoded as bar length contrasting with engagement"
+      - "thing:vc:position_common_scale — not on shared axis with engagement for direct comparison"
+      - "thing:vc:size — visual size of comprehension element should be proportionally tiny vs engagement to viscerally encode the gap"
+
+  - ga_node: "narrative:gap"
+    ga_name: "Le Gap"
+    visual_channels:
+      - channel: "thing:vc:spatial_position"
+        usage: "Scissors chart — lines diverging from a common origin. Position encodes the divergence."
+        effectiveness: 0.80
+      - channel: "thing:vc:color_hue"
+        usage: "Red (engagement) vs gray/blue (comprehension). Categorical distinction between the two lines."
+        effectiveness: 0.60
+      - channel: "thing:vc:orientation"
+        usage: "Diverging line slopes encode the rate of gap growth. Upward slope (engagement) vs flat/down (comprehension)."
+        effectiveness: 0.75
+      - channel: "thing:vc:negative_space"
+        usage: "The gap itself IS negative space between the two diverging lines. The emptiness is the message."
+        effectiveness: 0.85
+      - channel: "thing:vc:continuity"
+        usage: "Continuous lines from left to right encode temporal progression of the gap."
+        effectiveness: 0.70
+    coverage_score: 0.74
+    missing_channels:
+      - "thing:vc:area — the area between the diverging lines could be filled/shaded to make the gap magnitude viscerally perceptible (Stevens beta ~0.7 for area, but still better than nothing)"
+      - "thing:vc:length — a single bar encoding gap magnitude (x7 vs 0) would make the contrast instantly scannable"
+      - "thing:vc:color_luminance — luminance gradient across the gap area could encode increasing severity"
+
+  - ga_node: "narrative:spin"
+    ga_name: "Visual Spin"
+    visual_channels:
+      - channel: "thing:vc:area"
+        usage: "Stevens beta ~0.7 demonstrated via area compression example. The spin IS the perceptual compression."
+        effectiveness: 0.75
+      - channel: "thing:vc:color_saturation"
+        usage: "Over-saturated BioRender-style elements exemplify spin — attractive but distorting."
+        effectiveness: 0.60
+      - channel: "thing:vc:edge_sharpness"
+        usage: "Blur/distortion metaphor for perceptual compression. Loupe deforming the thumbnail."
+        effectiveness: 0.55
+    coverage_score: 0.63
+    missing_channels:
+      - "thing:vc:position_common_scale — a before/after comparison (perceived vs actual) on a common scale would make the compression tangible"
+      - "thing:vc:length — side-by-side bars showing actual vs perceived magnitude would be the clearest demonstration"
+      - "thing:vc:data_viz_elements — the spin concept needs a data visualization that itself demonstrates the distortion"
+
+  - ga_node: "thing:ga_thumbnail"
+    ga_name: "GA Thumbnail"
+    visual_channels:
+      - channel: "thing:vc:image_category"
+        usage: "A real GA shown as an exemplar. Scene categorization identifies it as 'infographic/chart' within 300ms."
+        effectiveness: 0.80
+      - channel: "thing:vc:resolution"
+        usage: "Shown at reduced scale. Resolution quality determines whether the exemplar is readable."
+        effectiveness: 0.55
+      - channel: "thing:vc:professional_markers"
+        usage: "Production quality of the chosen GA communicates domain credibility."
+        effectiveness: 0.60
+      - channel: "thing:vc:border_frame"
+        usage: "Framed as an object — the GA is an artifact being examined, not the viewer's own content."
+        effectiveness: 0.70
+    coverage_score: 0.66
+    missing_channels:
+      - "thing:vc:figure_ground — thumbnail needs strong figure-ground separation from its surrounding zone"
+      - "thing:vc:aspect_ratio — which GA to show and at what crop affects recognizability"
+      - "thing:vc:visual_density — the chosen GA's own density communicates complexity of the domain problem"
+
+  # =====================================================================
+  # SOLUTION NODES (right zone contents)
+  # =====================================================================
+
+  - ga_node: "thing:glance"
+    ga_name: "GLANCE (>=80%)"
+    visual_channels:
+      - channel: "thing:vc:length"
+        usage: "Bar height encodes S9b score. P32 optimal channel. Beta ~1.0."
+        effectiveness: 0.95
+      - channel: "thing:vc:position_common_scale"
+        usage: "Bar aligned on common baseline with GRADE and Vanity. Direct magnitude comparison."
+        effectiveness: 0.95
+      - channel: "thing:vc:font_weight"
+        usage: "Bold '>=80%' label on or near the bar. Primary numerical anchoring."
+        effectiveness: 0.75
+      - channel: "thing:vc:numbers_format"
+        usage: ">=80% as natural percentage. Immediately comprehensible target."
+        effectiveness: 0.80
+      - channel: "thing:vc:color_luminance"
+        usage: "Darkest bar in hierarchy = strongest/most certain. Luminance encodes confidence level."
+        effectiveness: 0.70
+      - channel: "thing:vc:spatial_position"
+        usage: "Top position in hierarchy (highest bar). Spatial dominance = importance."
+        effectiveness: 0.90
+    coverage_score: 0.84
+    missing_channels:
+      - "thing:vc:edge_sharpness — stability=0.40 (low stability, untested) should be visually encoded. A slightly soft edge or hatched pattern would signal 'target, not result'"
+      - "thing:vc:color_saturation — could encode the uncertainty: muted saturation for untested target vs full saturation for proven metrics"
+
+  - ga_node: "thing:grade"
+    ga_name: "GRADE (74%)"
+    visual_channels:
+      - channel: "thing:vc:length"
+        usage: "Bar height encodes 74% comprehension score. Proportionally shorter than GLANCE bar."
+        effectiveness: 0.95
+      - channel: "thing:vc:position_common_scale"
+        usage: "Same baseline as GLANCE bar. Direct visual comparison of heights."
+        effectiveness: 0.95
+      - channel: "thing:vc:numbers_format"
+        usage: "'74%' label. The benchmark number. Akl 2007 RCT result."
+        effectiveness: 0.85
+      - channel: "thing:vc:color_luminance"
+        usage: "Medium darkness — between GLANCE (darkest) and Vanity (lightest). Ordinal luminance."
+        effectiveness: 0.75
+    coverage_score: 0.88
+    missing_channels:
+      - "thing:vc:text_color — 'GRADE' label could use established gray or neutral to signal 'baseline reference'"
+      - "thing:vc:proximity — physical proximity to GLANCE bar needed for direct comparison"
+
+  - ga_node: "thing:vanity"
+    ga_name: "Vanity Metrics (~0%)"
+    visual_channels:
+      - channel: "thing:vc:length"
+        usage: "Near-zero bar height. Visually minimal — the absence of length IS the message."
+        effectiveness: 0.90
+      - channel: "thing:vc:position_common_scale"
+        usage: "Same baseline, near-zero height. Dramatic contrast with GLANCE/GRADE bars."
+        effectiveness: 0.90
+      - channel: "thing:vc:color_luminance"
+        usage: "Lightest bar — near-white. Luminance = near-invisible = near-worthless."
+        effectiveness: 0.80
+      - channel: "thing:vc:numbers_format"
+        usage: "'~0%' label. Bennett 2023 P=.829 correlation with comprehension."
+        effectiveness: 0.75
+      - channel: "thing:vc:color_hue"
+        usage: "Gray/desaturated. Categorically distinct from the 'active' GLANCE/GRADE bars."
+        effectiveness: 0.65
+    coverage_score: 0.80
+    missing_channels:
+      - "thing:vc:text_contrast — the vanity label should have low contrast ratio to reinforce irrelevance"
+      - "thing:vc:font_size — smaller font for vanity label would reinforce the hierarchy typographically"
+
+  # =====================================================================
+  # EVIDENCE NODES
+  # =====================================================================
+
+  - ga_node: "moment:akl_2007"
+    ga_name: "Akl 2007 (RCT)"
+    visual_channels:
+      - channel: "thing:vc:numbers_format"
+        usage: "N=84, 74% vs 14%, P<.001. Statistical notation for expert readers."
+        effectiveness: 0.60
+      - channel: "thing:vc:font_size"
+        usage: "Smaller font as supporting evidence. Secondary in typographic hierarchy."
+        effectiveness: 0.65
+      - channel: "thing:vc:connectedness"
+        usage: "Visual connection (line, proximity) from Akl 2007 to GRADE 74% bar. Source-to-claim link."
+        effectiveness: 0.55
+    coverage_score: 0.60
+    missing_channels:
+      - "thing:vc:data_viz_elements — the RCT result could be shown as a mini bar chart (74% vs 14%) for instant comparison"
+      - "thing:vc:icons — a study icon or shield icon for 'RCT' would signal evidence quality pre-attentively"
+      - "thing:vc:position_common_scale — citation currently unanchored; could be aligned to the metric it supports"
+
+  - ga_node: "moment:6_rcts"
+    ga_name: "6 RCTs (corpus)"
+    visual_channels:
+      - channel: "thing:vc:numbers_format"
+        usage: "'6 RCTs, 538-562 participants.' Count of studies as natural frequency."
+        effectiveness: 0.70
+      - channel: "thing:vc:font_size"
+        usage: "Secondary font size. Supporting evidence tier."
+        effectiveness: 0.65
+      - channel: "thing:vc:connectedness"
+        usage: "Visual connection from corpus to engagement x7 claim. Source-to-claim link."
+        effectiveness: 0.55
+      - channel: "thing:vc:proximity"
+        usage: "Placed near the engagement node it supports."
+        effectiveness: 0.60
+    coverage_score: 0.63
+    missing_channels:
+      - "thing:vc:icons — 6 small study icons (repeated symbol) would pre-attentively communicate corpus size"
+      - "thing:vc:length — study count as mini bar would provide ordinal magnitude encoding"
+      - "thing:vc:data_viz_elements — forest plot miniature could convey consensus direction instantly"
+
+  # =====================================================================
+  # ACTOR NODE
+  # =====================================================================
+
+  - ga_node: "actor:scisense"
+    ga_name: "SciSense"
+    visual_channels:
+      - channel: "thing:vc:branding"
+        usage: "SciSense logo/name. Signature at 30% opacity. Discreet author attribution."
+        effectiveness: 0.65
+      - channel: "thing:vc:text_contrast"
+        usage: "30% opacity = very low contrast. Deliberately de-emphasized. Secondary to content."
+        effectiveness: 0.70
+      - channel: "thing:vc:spatial_position"
+        usage: "Bottom-right or corner placement. Conventional attribution position."
+        effectiveness: 0.60
+    coverage_score: 0.65
+    missing_channels:
+      - "thing:vc:font_family — a serif or scientific font for SciSense would subtly reinforce academic authority"
+      - "thing:vc:avatar — an institutional avatar could anchor credibility when shown in feed context"
+
+# =====================================================================
+# AGGREGATE SCORING
+# =====================================================================
+
+aggregate:
+  overall_coverage: 0.74
+  computation: "Weighted average of all node coverage_scores. Zone spaces weighted 0.5x (structural), content nodes weighted 1.0x, evidence nodes weighted 0.8x, actor weighted 0.3x."
+
+  breakdown:
+    zone_spaces_avg: 0.81
+    problem_nodes_avg: 0.70
+    solution_nodes_avg: 0.84
+    evidence_nodes_avg: 0.62
+    actor_avg: 0.65
+
+  strongest_node:
+    id: "thing:grade"
+    name: "GRADE (74%)"
+    score: 0.88
+    reason: "Optimal dual encoding: length + position on common scale (both beta ~1.0). Strong numerical label. Clear ordinal luminance. The benchmark is the best-encoded node because it exploits the two highest-accuracy channels with a well-established data point (stability=0.95)."
+
+  weakest_node:
+    id: "moment:akl_2007"
+    name: "Akl 2007 (RCT)"
+    score: 0.60
+    reason: "Evidence citation relies on text-heavy encoding (numbers, font size) without pre-attentive visual encoding. No bar, no icon, no positional anchoring. Expert-only notation (N=84, P<.001). Within 5 seconds, most viewers will not reach or process this node."
+
+  second_weakest:
+    id: "narrative:spin"
+    name: "Visual Spin"
+    score: 0.63
+    reason: "The most conceptually difficult node is encoded with the weakest channels (area compression, saturation). The mechanism that explains WHY the gap exists is the hardest to visually communicate and the least well-served."
+
+# =====================================================================
+# GAP ANALYSIS: Unused High-Value Channels
+# =====================================================================
+
+gap_analysis:
+  description: "Visual channels from the catalog with weight >= 0.50 that are NOT used by ANY GA node."
+
+  unused_high_value_channels:
+    - channel: "thing:vc:figure_ground"
+      weight: 0.75
+      energy: 0.70
+      impact: "Figure-ground segregation is not explicitly designed. The evidence hierarchy bars are assumed to be 'figure' but no specification ensures sufficient contrast ratio against background. At mobile scale, weak figure-ground = invisible bars."
+      recommendation: "Specify minimum contrast ratio (WCAG 4.5:1) for all evidence-encoding elements against their immediate background."
+
+    - channel: "thing:vc:visual_hierarchy_levels"
+      weight: 0.65
+      energy: 0.65
+      impact: "Only zone_right explicitly uses hierarchy levels. The number of visual hierarchy levels in the full GA is not specified. Risk: too many levels overwhelm the 5-second window."
+      recommendation: "Cap the GA at 3 visual hierarchy levels: (1) Zone structure, (2) Bar hierarchy, (3) Labels/citations. Audit the current design for level count."
+
+    - channel: "thing:vc:cognitive_load"
+      weight: 0.80
+      energy: 0.75
+      impact: "The integrative variable predicting S9a/S9b/S9c is not explicitly managed. Individual channels contribute to load but no compound assessment exists."
+      recommendation: "Compute a cognitive load proxy: count(visual elements) + count(text words) + count(distinct colors) + count(hierarchy levels). Target: 15-20 elements max for 5-second scan."
+
+    - channel: "thing:vc:info_noise_ratio"
+      weight: 0.70
+      energy: 0.65
+      impact: "Data-ink ratio of the GA is not quantified. Decorative elements, chrome, and non-data-bearing visual complexity are not tracked."
+      recommendation: "Audit data-ink ratio: every pixel should encode information or provide structural scaffolding. Remove all decorative elements."
+
+    - channel: "thing:vc:credibility_gestalt"
+      weight: 0.65
+      energy: 0.60
+      impact: "The compound credibility signal (production quality + typography + palette + data presence) is not designed as a coherent gestalt."
+      recommendation: "Define a visual identity standard: font pair, color palette (max 4 colors), grid system, icon style. Consistency across elements builds credibility gestalt."
+
+    - channel: "thing:vc:human_faces"
+      weight: 0.70
+      energy: 0.75
+      impact: "No face presence specified. This is actually CORRECT for this GA (faces would steal fixation from evidence bars). But the absence should be a deliberate design choice documented as a constraint."
+      recommendation: "Explicit design constraint: NO human faces in the GLANCE GA. Face absence preserves attentional budget for evidence hierarchy."
+
+    - channel: "thing:vc:directional_cues"
+      weight: 0.55
+      energy: 0.55
+      impact: "No arrows or gaze cues guide the viewer from problem to solution. The narrative flow relies on implicit Z-pattern reading only."
+      recommendation: "Consider a subtle directional cue (arrow, gradient, visual flow line) from gap (problem) to GLANCE bar (solution). Not mandatory — implicit reading may suffice."
+
+    - channel: "thing:vc:visual_density"
+      weight: 0.65
+      energy: 0.70
+      impact: "Overall visual density of the GA is not specified. The 2-zone structure with 13 nodes risks exceeding the 5-second scan budget if densely packed."
+      recommendation: "Target 40-60% visual fill. Whitespace ratio should be explicitly defined in the design specification."
+
+    - channel: "thing:vc:symmetry"
+      weight: 0.45
+      energy: 0.50
+      impact: "The 2-zone structure (left/right) may read as symmetric, signaling 'equal weight.' But the zones have unequal importance (solution > problem). Asymmetry should reinforce this."
+      recommendation: "Make zone_right (solution) visually larger than zone_left (problem). 60/40 split, not 50/50. The solution zone should visually dominate."
+
+  channels_correctly_excluded:
+    - channel: "thing:vc:stereo_depth"
+      reason: "2D screen viewing. Irrelevant."
+    - channel: "thing:vc:motion"
+      reason: "Static GA. Correctly excluded."
+    - channel: "thing:vc:texture_density"
+      reason: "Not needed for this GA's information architecture."
+    - channel: "thing:vc:volume"
+      reason: "3D encoding correctly avoided. Would introduce ~40% compression."
+    - channel: "thing:vc:angle_slope"
+      reason: "No pie charts. Bar chart encoding is superior. Correct."

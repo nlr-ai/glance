@@ -1,0 +1,28 @@
+{
+    "domain": "tech",
+    "version": "Vaswani2017",
+    "correct_product": "Transformer (Big)",
+    "products": ["Transformer (Big)", "Transformer (Base)", "ConvS2S", "GNMT+RL"],
+    "title": "Machine Translation — Transformer vs RNN/CNN (2017)",
+    "description": "BLEU scores on WMT 2014 EN→DE from Vaswani et al., 'Attention Is All You Need' (NeurIPS 2017). Transformer (Big) achieves 28.4 BLEU, surpassing RNN and CNN architectures.",
+    "semantic_references": {
+        "L1_broad": [
+            "machine learning",
+            "traduction automatique",
+            "intelligence artificielle",
+            "deep learning",
+            "architecture neuronale"
+        ],
+        "L2_specific": [
+            "comparaison d'architectures de traduction neuronale",
+            "attention mechanism vs recurrent neural networks",
+            "transformer architecture for sequence to sequence translation",
+            "self-attention replaces recurrence for machine translation"
+        ],
+        "L3_detailed": [
+            "the Transformer architecture achieves the highest BLEU score on WMT 2014 EN-DE translation",
+            "le Transformer surpasse les réseaux récurrents et convolutifs grâce au mécanisme d'attention",
+            "self-attention alone outperforms LSTM and CNN on translation benchmarks"
+        ]
+    }
+}

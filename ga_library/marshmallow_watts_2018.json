@@ -1,0 +1,33 @@
+{
+    "domain": "psychology",
+    "version": "Watts2018",
+    "correct_product": "Academic achievement",
+    "products": [
+        "Academic achievement",
+        "Behavioral problems",
+        "SAT scores",
+        "BMI"
+    ],
+    "title": "Marshmallow Test Replication — Effect Sizes (Watts et al., 2018)",
+    "semantic_references": {
+        "L1_broad": [
+            "developmental psychology",
+            "self-control",
+            "delayed gratification",
+            "psychologie du développement",
+            "contrôle de soi"
+        ],
+        "L2_specific": [
+            "marshmallow test replication effect sizes on life outcomes",
+            "réplication du test du marshmallow et tailles d'effet",
+            "delayed gratification predicts academic achievement more than health",
+            "le contrôle de soi prédit les résultats scolaires mais pas la santé"
+        ],
+        "L3_detailed": [
+            "academic achievement shows the largest effect size (d=0.32) in marshmallow replication",
+            "la réussite scolaire montre le plus grand effet (d=0.32) dans la réplication",
+            "BMI and behavioral problems show negligible effects of delayed gratification"
+        ]
+    },
+    "description": "Effect sizes (Cohen's d) of delayed gratification on later-life outcomes. The replication found a small effect on academic achievement (d=0.32) but negligible effects on BMI and behavioral outcomes."
+}

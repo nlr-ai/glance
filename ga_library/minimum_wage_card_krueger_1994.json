@@ -1,0 +1,33 @@
+{
+    "domain": "economics",
+    "version": "CardKrueger1994",
+    "correct_product": "NJ fast food",
+    "products": [
+        "NJ fast food",
+        "NJ full-service",
+        "PA full-service",
+        "PA fast food"
+    ],
+    "title": "Minimum Wage and Employment — Card & Krueger (1994)",
+    "semantic_references": {
+        "L1_broad": [
+            "labor economics",
+            "minimum wage",
+            "employment",
+            "économie du travail",
+            "salaire minimum"
+        ],
+        "L2_specific": [
+            "minimum wage increase effect on fast food employment",
+            "effet de l'augmentation du salaire minimum sur l'emploi restauration",
+            "Card and Krueger natural experiment New Jersey Pennsylvania",
+            "expérience naturelle salaire minimum New Jersey Pennsylvanie"
+        ],
+        "L3_detailed": [
+            "NJ fast food employment increased 13% after minimum wage rise",
+            "l'emploi fast food au New Jersey a augmenté de 13% après la hausse du SMIC",
+            "contradicts classical prediction that minimum wage increases reduce employment"
+        ]
+    },
+    "description": "Employment change (%) after NJ minimum wage increase. NJ fast food employment rose +13%, contradicting the classical prediction of job loss, while PA (control) declined slightly."
+}

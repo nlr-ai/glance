@@ -1,0 +1,34 @@
+{
+    "domain": "neuroscience",
+    "version": "Erickson2011-pie-control",
+    "correct_product": "Aerobic exercise",
+    "products": [
+        "Aerobic exercise",
+        "Walking",
+        "Stretching",
+        "Control"
+    ],
+    "title": "Exercise and Hippocampal Volume Change (Erickson et al., 2011) — Pie chart (contrôle)",
+    "semantic_references": {
+        "L1_broad": [
+            "neuroscience",
+            "exercise",
+            "neuroplasticity",
+            "neurosciences",
+            "exercice physique",
+            "neuroplasticité"
+        ],
+        "L2_specific": [
+            "exercise effect on hippocampal volume in older adults",
+            "effet de l'exercice sur le volume hippocampique chez les seniors",
+            "aerobic exercise increases brain volume neuroplasticity",
+            "l'exercice aérobique augmente le volume cérébral"
+        ],
+        "L3_detailed": [
+            "aerobic exercise increases hippocampal volume by 2% in older adults",
+            "l'exercice aérobique augmente le volume hippocampique de 2% chez les seniors",
+            "control group shows 1.5% hippocampal decline highlighting age-related atrophy"
+        ]
+    },
+    "is_control": true
+}

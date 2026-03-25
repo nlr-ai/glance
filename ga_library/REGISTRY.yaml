@@ -1,0 +1,424 @@
+# GLANCE GA Library Registry
+# Each entry: paper source, type (vec/control/chart), hypotheses served, date added
+
+images:
+  immunomod_v10_wireframe:
+    paper: "Immunomodulateurs RTIs pédiatriques (MDPI Children, Inchauspe 2026)"
+    domain: med
+    type: vec
+    hypotheses: [H1, H2, H3]
+    correct: OM-85
+    added: "2026-03-25"
+
+  immunomod_v2a4_infographic:
+    paper: "Immunomodulateurs RTIs pédiatriques (MDPI Children, Inchauspe 2026)"
+    domain: med
+    type: calibration_reference
+    hypotheses: [H1]
+    correct: OM-85
+    added: "2026-03-25"
+
+  attention_transformer_2017:
+    paper: "Attention Is All You Need (Vaswani et al., 2017)"
+    domain: tech
+    type: chart
+    hypotheses: [H1, H2]
+    correct: "Transformer (Big)"
+    added: "2026-03-25"
+
+  immunomod_v10_area_control:
+    paper: "Immunomodulateurs RTIs pédiatriques (MDPI Children, Inchauspe 2026)"
+    domain: med
+    type: control_ab
+    hypotheses: [AB_delta]
+    correct: OM-85
+    notes: "Same data as v10 wireframe, but encoded by AREA (circles) — Stevens β≈0.7 perceptual compression"
+    added: "2026-03-25"
+
+  attention_transformer_2017_pie_control:
+    paper: "Attention Is All You Need (Vaswani et al., 2017)"
+    domain: tech
+    type: control_ab
+    hypotheses: [AB_delta]
+    correct: "Transformer (Big)"
+    notes: "Same data as bar chart, but encoded as pie chart — area-based, perceptually compressed"
+    added: "2026-03-25"
+
+  # ── H1 universality: 3 maximally distant domains ──────────────────
+
+  oregon_health_experiment_2012:
+    paper: "The Oregon Health Insurance Experiment (Finkelstein et al., QJE 2012)"
+    domain: policy
+    type: chart
+    hypotheses: [H1, H2]
+    correct: "Depression screening"
+    added: "2026-03-25"
+
+  oregon_health_experiment_2012_pie_control:
+    paper: "The Oregon Health Insurance Experiment (Finkelstein et al., QJE 2012)"
+    domain: policy
+    type: control_ab
+    hypotheses: [AB_delta]
+    correct: "Depression screening"
+    notes: "Same data as bar chart, but encoded as pie chart — area-based, perceptually compressed"
+    added: "2026-03-25"
+
+  hattie_visible_learning_2009:
+    paper: "Visible Learning meta-analysis (Hattie, 2009)"
+    domain: education
+    type: chart
+    hypotheses: [H1, H2]
+    correct: "Feedback"
+    added: "2026-03-25"
+
+  hattie_visible_learning_2009_bubble_control:
+    paper: "Visible Learning meta-analysis (Hattie, 2009)"
+    domain: education
+    type: control_ab
+    hypotheses: [AB_delta]
+    correct: "Feedback"
+    notes: "Same data as bar chart, but encoded as bubble chart — area-based, perceptually compressed"
+    added: "2026-03-25"
+
+  drawdown_climate_2017:
+    paper: "Drawdown: top climate solutions (Hawken, 2017)"
+    domain: climate
+    type: chart
+    hypotheses: [H1, H2]
+    correct: "Reduced food waste"
+    added: "2026-03-25"
+
+  drawdown_climate_2017_pie_control:
+    paper: "Drawdown: top climate solutions (Hawken, 2017)"
+    domain: climate
+    type: control_ab
+    hypotheses: [AB_delta]
+    correct: "Reduced food waste"
+    notes: "Same data as bar chart, but encoded as pie chart — area-based, perceptually compressed"
+    added: "2026-03-25"
+
+  # ── Psychology (3 papers) ──────────────────────────────────────────
+
+  obedience_milgram_1963:
+    paper: "Behavioral Study of Obedience (Milgram, JASP 1963)"
+    domain: psychology
+    type: chart
+    hypotheses: [H1, H2]
+    correct: "Baseline"
+    added: "2026-03-25"
+
+  obedience_milgram_1963_control:
+    paper: "Behavioral Study of Obedience (Milgram, JASP 1963)"
+    domain: psychology
+    type: control_ab
+    hypotheses: [AB_delta]
+    correct: "Baseline"
+    notes: "Pie chart control — area encoding β≈0.7"
+    added: "2026-03-25"
+
+  marshmallow_watts_2018:
+    paper: "Revisiting the Marshmallow Test (Watts et al., Psych Science 2018)"
+    domain: psychology
+    type: chart
+    hypotheses: [H1, H2]
+    correct: "Academic achievement"
+    added: "2026-03-25"
+
+  marshmallow_watts_2018_control:
+    paper: "Revisiting the Marshmallow Test (Watts et al., Psych Science 2018)"
+    domain: psychology
+    type: control_ab
+    hypotheses: [AB_delta]
+    correct: "Academic achievement"
+    notes: "Pie chart control — area encoding β≈0.7"
+    added: "2026-03-25"
+
+  cbt_depression_cuijpers_2020:
+    paper: "Meta-analysis of CBT for depression (Cuijpers et al., 2020)"
+    domain: psychology
+    type: chart
+    hypotheses: [H1, H2]
+    correct: "Combined therapy"
+    added: "2026-03-25"
+
+  cbt_depression_cuijpers_2020_control:
+    paper: "Meta-analysis of CBT for depression (Cuijpers et al., 2020)"
+    domain: psychology
+    type: control_ab
+    hypotheses: [AB_delta]
+    correct: "Combined therapy"
+    notes: "Pie chart control — area encoding β≈0.7"
+    added: "2026-03-25"
+
+  # ── Economics (2 papers) ───────────────────────────────────────────
+
+  minimum_wage_card_krueger_1994:
+    paper: "Minimum Wages and Employment (Card & Krueger, AER 1994)"
+    domain: economics
+    type: chart
+    hypotheses: [H1, H2]
+    correct: "NJ fast food"
+    added: "2026-03-25"
+
+  minimum_wage_card_krueger_1994_control:
+    paper: "Minimum Wages and Employment (Card & Krueger, AER 1994)"
+    domain: economics
+    type: control_ab
+    hypotheses: [AB_delta]
+    correct: "NJ fast food"
+    notes: "Pie chart control — area encoding β≈0.7"
+    added: "2026-03-25"
+
+  microfinance_banerjee_2015:
+    paper: "Six Randomized Evaluations of Microcredit (Banerjee et al., AEJ:Applied 2015)"
+    domain: economics
+    type: chart
+    hypotheses: [H1, H2]
+    correct: "India"
+    added: "2026-03-25"
+
+  microfinance_banerjee_2015_control:
+    paper: "Six Randomized Evaluations of Microcredit (Banerjee et al., AEJ:Applied 2015)"
+    domain: economics
+    type: control_ab
+    hypotheses: [AB_delta]
+    correct: "India"
+    notes: "Pie chart control — area encoding β≈0.7"
+    added: "2026-03-25"
+
+  # ── Neuroscience (2 papers) ────────────────────────────────────────
+
+  sleep_memory_walker_2009:
+    paper: "The Role of Sleep in Cognition and Emotion (Walker, ANYAS 2009)"
+    domain: neuroscience
+    type: chart
+    hypotheses: [H1, H2]
+    correct: "Full night sleep"
+    added: "2026-03-25"
+
+  sleep_memory_walker_2009_control:
+    paper: "The Role of Sleep in Cognition and Emotion (Walker, ANYAS 2009)"
+    domain: neuroscience
+    type: control_ab
+    hypotheses: [AB_delta]
+    correct: "Full night sleep"
+    notes: "Pie chart control — area encoding β≈0.7"
+    added: "2026-03-25"
+
+  exercise_neuroplasticity_erickson_2011:
+    paper: "Exercise training increases hippocampal volume (Erickson et al., PNAS 2011)"
+    domain: neuroscience
+    type: chart
+    hypotheses: [H1, H2]
+    correct: "Aerobic exercise"
+    added: "2026-03-25"
+
+  exercise_neuroplasticity_erickson_2011_control:
+    paper: "Exercise training increases hippocampal volume (Erickson et al., PNAS 2011)"
+    domain: neuroscience
+    type: control_ab
+    hypotheses: [AB_delta]
+    correct: "Aerobic exercise"
+    notes: "Pie chart control — area encoding β≈0.7"
+    added: "2026-03-25"
+
+  # ── Nutrition / Public Health (2 papers) ───────────────────────────
+
+  predimed_estruch_2018:
+    paper: "Primary Prevention of CVD with Mediterranean Diet (Estruch et al., NEJM 2018)"
+    domain: nutrition
+    type: chart
+    hypotheses: [H1, H2]
+    correct: "Med + EVOO"
+    added: "2026-03-25"
+
+  predimed_estruch_2018_control:
+    paper: "Primary Prevention of CVD with Mediterranean Diet (Estruch et al., NEJM 2018)"
+    domain: nutrition
+    type: control_ab
+    hypotheses: [AB_delta]
+    correct: "Med + EVOO"
+    notes: "Pie chart control — area encoding β≈0.7"
+    added: "2026-03-25"
+
+  sugar_tax_teng_2019:
+    paper: "Impact of sugar-sweetened beverage taxes (Teng et al., BMJ 2019)"
+    domain: nutrition
+    type: chart
+    hypotheses: [H1, H2]
+    correct: "Philadelphia"
+    added: "2026-03-25"
+
+  sugar_tax_teng_2019_control:
+    paper: "Impact of sugar-sweetened beverage taxes (Teng et al., BMJ 2019)"
+    domain: nutrition
+    type: control_ab
+    hypotheses: [AB_delta]
+    correct: "Philadelphia"
+    notes: "Pie chart control — area encoding β≈0.7"
+    added: "2026-03-25"
+
+  # ── Energy / Engineering (2 papers) ────────────────────────────────
+
+  battery_energy_density_2023:
+    paper: "Battery Technologies Energy Density Comparison (DOE/industry benchmarks 2023)"
+    domain: energy
+    type: chart
+    hypotheses: [H1, H2]
+    correct: "Solid-state"
+    added: "2026-03-25"
+
+  battery_energy_density_2023_control:
+    paper: "Battery Technologies Energy Density Comparison (DOE/industry benchmarks 2023)"
+    domain: energy
+    type: control_ab
+    hypotheses: [AB_delta]
+    correct: "Solid-state"
+    notes: "Pie chart control — area encoding β≈0.7"
+    added: "2026-03-25"
+
+  renewable_lcoe_lazard_2023:
+    paper: "Lazard's Levelized Cost of Energy Analysis v16.0 (2023)"
+    domain: energy
+    type: chart
+    hypotheses: [H1, H2]
+    correct: "Solar utility"
+    added: "2026-03-25"
+
+  renewable_lcoe_lazard_2023_control:
+    paper: "Lazard's Levelized Cost of Energy Analysis v16.0 (2023)"
+    domain: energy
+    type: control_ab
+    hypotheses: [AB_delta]
+    correct: "Solar utility"
+    notes: "Pie chart control — area encoding β≈0.7"
+    added: "2026-03-25"
+
+  # ── Epidemiology (2 papers) ────────────────────────────────────────
+
+  covid_vaccine_polack_2020:
+    paper: "Safety and Efficacy of BNT162b2 (Polack et al., NEJM 2020)"
+    domain: epidemiology
+    type: chart
+    hypotheses: [H1, H2]
+    correct: "16-55 years"
+    added: "2026-03-25"
+
+  covid_vaccine_polack_2020_control:
+    paper: "Safety and Efficacy of BNT162b2 (Polack et al., NEJM 2020)"
+    domain: epidemiology
+    type: control_ab
+    hypotheses: [AB_delta]
+    correct: "16-55 years"
+    notes: "Pie chart control — area encoding β≈0.7"
+    added: "2026-03-25"
+
+  handwashing_aiello_2008:
+    paper: "Effect of hand hygiene on infectious disease (Aiello et al., AJPH 2008)"
+    domain: epidemiology
+    type: chart
+    hypotheses: [H1, H2]
+    correct: "Soap and water"
+    added: "2026-03-25"
+
+  handwashing_aiello_2008_control:
+    paper: "Effect of hand hygiene on infectious disease (Aiello et al., AJPH 2008)"
+    domain: epidemiology
+    type: control_ab
+    hypotheses: [AB_delta]
+    correct: "Soap and water"
+    notes: "Pie chart control — area encoding β≈0.7"
+    added: "2026-03-25"
+
+  # ── Ecology / Biology (2 papers) ───────────────────────────────────
+
+  pollinator_decline_potts_2010:
+    paper: "Global pollinator declines (Potts et al., Trends in Ecology & Evolution 2010)"
+    domain: ecology
+    type: chart
+    hypotheses: [H1, H2]
+    correct: "Habitat loss"
+    added: "2026-03-25"
+
+  pollinator_decline_potts_2010_control:
+    paper: "Global pollinator declines (Potts et al., Trends in Ecology & Evolution 2010)"
+    domain: ecology
+    type: control_ab
+    hypotheses: [AB_delta]
+    correct: "Habitat loss"
+    notes: "Pie chart control — area encoding β≈0.7"
+    added: "2026-03-25"
+
+  coral_recovery_interventions_2020:
+    paper: "Coral reef recovery interventions (Boström-Einarsson et al. 2020 & UNEP)"
+    domain: ecology
+    type: chart
+    hypotheses: [H1, H2]
+    correct: "Coral gardening"
+    added: "2026-03-25"
+
+  coral_recovery_interventions_2020_control:
+    paper: "Coral reef recovery interventions (Boström-Einarsson et al. 2020 & UNEP)"
+    domain: ecology
+    type: control_ab
+    hypotheses: [AB_delta]
+    correct: "Coral gardening"
+    notes: "Pie chart control — area encoding β≈0.7"
+    added: "2026-03-25"
+
+  # ── Transport (1 paper) ────────────────────────────────────────────
+
+  modal_emissions_itf_2021:
+    paper: "Transport CO₂ and the Paris Agreement (ITF, 2021)"
+    domain: transport
+    type: chart
+    hypotheses: [H1, H2]
+    correct: "Bicycle"
+    added: "2026-03-25"
+
+  modal_emissions_itf_2021_control:
+    paper: "Transport CO₂ and the Paris Agreement (ITF, 2021)"
+    domain: transport
+    type: control_ab
+    hypotheses: [AB_delta]
+    correct: "Bicycle"
+    notes: "Pie chart control — area encoding β≈0.7"
+    added: "2026-03-25"
+
+  # ── Agriculture (1 paper) ──────────────────────────────────────────
+
+  crop_yield_ponisio_2015:
+    paper: "Diversification practices reduce the yield gap (Ponisio et al., Proc. R. Soc. B 2015)"
+    domain: agriculture
+    type: chart
+    hypotheses: [H1, H2]
+    correct: "Precision farming"
+    added: "2026-03-25"
+
+  crop_yield_ponisio_2015_control:
+    paper: "Diversification practices reduce the yield gap (Ponisio et al., Proc. R. Soc. B 2015)"
+    domain: agriculture
+    type: control_ab
+    hypotheses: [AB_delta]
+    correct: "Precision farming"
+    notes: "Pie chart control — area encoding β≈0.7"
+    added: "2026-03-25"
+
+  # ── Materials Science (1 paper) ────────────────────────────────────
+
+  concrete_co2_alternatives_2023:
+    paper: "Concrete alternatives CO₂ reduction (IEA Cement Roadmap & lit. 2023)"
+    domain: materials
+    type: chart
+    hypotheses: [H1, H2]
+    correct: "Geopolymer"
+    added: "2026-03-25"
+
+  concrete_co2_alternatives_2023_control:
+    paper: "Concrete alternatives CO₂ reduction (IEA Cement Roadmap & lit. 2023)"
+    domain: materials
+    type: control_ab
+    hypotheses: [AB_delta]
+    correct: "Geopolymer"
+    notes: "Pie chart control — area encoding β≈0.7"
+    added: "2026-03-25"

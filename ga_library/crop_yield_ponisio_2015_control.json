@@ -1,0 +1,34 @@
+{
+    "domain": "agriculture",
+    "version": "Ponisio2015-pie-control",
+    "correct_product": "Precision farming",
+    "products": [
+        "Precision farming",
+        "Conservation",
+        "Integrated",
+        "Organic"
+    ],
+    "title": "Crop Yield by Farming Method — Pie chart (contrôle)",
+    "semantic_references": {
+        "L1_broad": [
+            "agriculture",
+            "food production",
+            "farming",
+            "agriculture",
+            "production alimentaire",
+            "culture"
+        ],
+        "L2_specific": [
+            "farming method yield comparison organic conventional precision",
+            "comparaison de rendement bio conventionnel agriculture de précision",
+            "yield gap meta-analysis sustainable farming methods",
+            "méta-analyse du déficit de rendement méthodes durables"
+        ],
+        "L3_detailed": [
+            "precision farming is the only method exceeding conventional yields at +3%",
+            "l'agriculture de précision est la seule méthode dépassant le conventionnel à +3%",
+            "organic farming shows a 19% yield gap but with potential biodiversity benefits"
+        ]
+    },
+    "is_control": true
+}

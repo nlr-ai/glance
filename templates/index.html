@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}GLANCE — SciSense{% endblock %}
+
+{% block head %}
+<style>
+.landing { text-align: center; padding-top: 2rem; }
+.landing-big {
+    font-size: 1.3rem;
+    line-height: 1.6;
+    color: var(--text, #e2e8f0);
+}
+.landing-hook {
+    margin: 2rem auto;
+    max-width: 400px;
+}
+.landing-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    max-width: 350px;
+    margin: 2rem auto;
+    text-align: left;
+}
+.landing-step {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 1rem;
+    color: var(--text-muted, #94a3b8);
+}
+.step-num {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--primary, #3b82f6);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+}
+.btn-large {
+    padding: 1rem 3rem;
+    font-size: 1.2rem;
+    font-weight: 700;
+    display: inline-block;
+    margin: 1rem 0;
+}
+.landing-footer {
+    margin-top: 2rem;
+    font-size: 0.8rem;
+    color: var(--text-dim, #64748b);
+}
+.landing-link {
+    color: var(--text-muted, #94a3b8);
+    text-decoration: underline;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="landing">
+    <h1>GLANCE</h1>
+    <p class="subtitle">Testez votre oeil scientifique en 2 minutes</p>
+
+    <div class="card landing-hook">
+        <p class="landing-big">Un feed scientifique defile.<br>
+        Une image cache un piege.<br>
+        <strong>Saurez-vous la reperer ?</strong></p>
+    </div>
+
+    <div class="landing-steps">
+        <div class="landing-step">
+            <span class="step-num">1</span>
+            <span>Scrollez un feed comme sur LinkedIn</span>
+        </div>
+        <div class="landing-step">
+            <span class="step-num">2</span>
+            <span>Identifiez l'image qui vous a marque</span>
+        </div>
+        <div class="landing-step">
+            <span class="step-num">3</span>
+            <span>Decouvrez si votre cerveau a ete piege</span>
+        </div>
+    </div>
+
+    <a href="/onboard" class="btn btn-primary btn-large">Commencer</a>
+
+    <p class="landing-footer">
+        Gratuit · 2 minutes · Aucune inscription<br>
+        <a href="/dashboard" class="landing-link">Voir les resultats</a>
+    </p>
+</div>
+{% endblock %}

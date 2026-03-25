@@ -1,0 +1,33 @@
+{
+    "domain": "psychology",
+    "version": "Milgram1963",
+    "correct_product": "Baseline",
+    "products": [
+        "Baseline",
+        "Remote feedback",
+        "Touch proximity",
+        "Experimenter absent"
+    ],
+    "title": "Obedience to Authority — Milgram Experiment (1963)",
+    "semantic_references": {
+        "L1_broad": [
+            "social psychology",
+            "obedience",
+            "authority",
+            "psychologie sociale",
+            "obéissance"
+        ],
+        "L2_specific": [
+            "Milgram obedience experiment conditions comparison",
+            "obéissance à l'autorité selon la proximité avec la victime",
+            "social influence and compliance in laboratory settings",
+            "effet de la proximité sur le comportement d'obéissance"
+        ],
+        "L3_detailed": [
+            "the baseline Milgram condition shows the highest obedience rate at 65%",
+            "la condition de base de Milgram montre le taux d'obéissance le plus élevé à 65%",
+            "proximity to the victim reduces obedience from 65% to 30% in touch condition"
+        ]
+    },
+    "description": "Percentage of participants delivering maximum shock by experimental condition. Milgram's classic study showed 65% full obedience in the baseline condition, dropping sharply with increased proximity to the victim."
+}

@@ -1,0 +1,34 @@
+{
+    "domain": "ecology",
+    "version": "CoralRecovery2020-pie-control",
+    "correct_product": "Coral gardening",
+    "products": [
+        "Coral gardening",
+        "Marine protected areas",
+        "Pollution control",
+        "No intervention"
+    ],
+    "title": "Coral Reef Recovery Interventions — Pie chart (contrôle)",
+    "semantic_references": {
+        "L1_broad": [
+            "marine ecology",
+            "coral reefs",
+            "conservation",
+            "écologie marine",
+            "récifs coralliens",
+            "conservation"
+        ],
+        "L2_specific": [
+            "coral reef recovery intervention effectiveness comparison",
+            "comparaison d'efficacité des interventions de restauration corallienne",
+            "active restoration versus marine protected areas for coral",
+            "restauration active vs aires marines protégées pour les coraux"
+        ],
+        "L3_detailed": [
+            "coral gardening achieves 25% coral cover increase vs -5% without intervention",
+            "le jardinage corallien augmente la couverture de 25% vs -5% sans intervention",
+            "marine protected areas alone achieve 15% recovery highlighting need for active restoration"
+        ]
+    },
+    "is_control": true
+}

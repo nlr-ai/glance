@@ -1,0 +1,312 @@
+{
+  "leurres": [
+    {
+      "filename": "leurre_title_oncology.png",
+      "title": "Pembrolizumab plus Chemotherapy in Advanced Non-Small-Cell Lung Cancer",
+      "author": "Dr. M. Reck et al.",
+      "journal": "NEJM",
+      "likes": 142,
+      "comments": 23,
+      "pfp": "pfp_reck.jpg",
+      "content_type": "paper"
+    },
+    {
+      "filename": "leurre_title_neuroscience.png",
+      "title": "Hippocampal Sharp-Wave Ripples and Memory Consolidation During Sleep",
+      "author": "Dr. G. Buzsaki et al.",
+      "journal": "Nature Neuroscience",
+      "likes": 87,
+      "comments": 12,
+      "pfp": "pfp_buzsaki.jpg",
+      "content_type": "paper"
+    },
+    {
+      "filename": "leurre_title_epidemiology.png",
+      "title": "Global Burden of Disease Study 2019: Trends in Mortality",
+      "author": "GBD 2019 Collaborators",
+      "journal": "The Lancet",
+      "likes": 234,
+      "comments": 45,
+      "pfp": "pfp_gbd.jpg",
+      "content_type": "paper"
+    },
+    {
+      "filename": "leurre_title_cardiology.png",
+      "title": "SGLT2 Inhibitors and Cardiovascular Outcomes in Heart Failure",
+      "author": "Dr. J. McMurray et al.",
+      "journal": "NEJM",
+      "likes": 198,
+      "comments": 31,
+      "pfp": "pfp_mcmurray.jpg",
+      "content_type": "paper"
+    },
+    {
+      "filename": "leurre_figure_scatter.png",
+      "title": "Dose-Response Relationship in Phase III Immunotherapy Trials",
+      "author": "Dr. A. Ribas et al.",
+      "journal": "JCO",
+      "likes": 56,
+      "comments": 8,
+      "pfp": "pfp_ribas.jpg",
+      "content_type": "paper"
+    },
+    {
+      "filename": "leurre_figure_line_pfs.png",
+      "title": "Progression-Free Survival with Combined Checkpoint Inhibition",
+      "author": "Dr. J. Larkin et al.",
+      "journal": "NEJM",
+      "likes": 112,
+      "comments": 19,
+      "pfp": "pfp_larkin.jpg",
+      "content_type": "paper"
+    },
+    {
+      "filename": "leurre_figure_heatmap.png",
+      "title": "Transcriptomic Signatures of Treatment Response in Melanoma",
+      "author": "Dr. W. Hugo et al.",
+      "journal": "Cell",
+      "likes": 73,
+      "comments": 11,
+      "pfp": "pfp_hugo.jpg",
+      "content_type": "paper"
+    },
+    {
+      "filename": "leurre_ga_bar_comparison.png",
+      "title": "Comparative Efficacy of Biologic Therapies in Moderate-to-Severe Psoriasis",
+      "author": "Dr. K. Reich et al.",
+      "journal": "JAMA Dermatology",
+      "likes": 91,
+      "comments": 14,
+      "pfp": "pfp_reich.jpg",
+      "content_type": "paper"
+    },
+    {
+      "filename": "leurre_ga_infographic_meta.png",
+      "title": "Physical Activity and Risk of Depression: Umbrella Review",
+      "author": "Dr. F. Schuch et al.",
+      "journal": "JAMA Psychiatry",
+      "likes": 167,
+      "comments": 28,
+      "pfp": "pfp_schuch.jpg",
+      "content_type": "paper"
+    },
+    {
+      "filename": "leurre_ga_flowchart_prisma.png",
+      "title": "Antibiotic Stewardship in Pediatric Acute Respiratory Infections",
+      "author": "Dr. C. Gerber et al.",
+      "journal": "Pediatrics",
+      "likes": 44,
+      "comments": 6,
+      "pfp": "pfp_gerber.jpg",
+      "content_type": "paper"
+    },
+    {
+      "filename": "leurre_personal_newjob.png",
+      "title": "Excited to announce I've joined CHU Necker as Head of Pediatric Research!",
+      "author": "Dr. Elena Vasquez",
+      "journal": "LinkedIn",
+      "likes": 287,
+      "comments": 34,
+      "pfp": "pfp_vasquez.jpg",
+      "content_type": "social"
+    },
+    {
+      "filename": "leurre_personal_conference.png",
+      "title": "Just presented our work on vaccine hesitancy at #ESPID2025",
+      "author": "Prof. Marco Rinaldi",
+      "journal": "LinkedIn",
+      "likes": 156,
+      "comments": 22,
+      "pfp": "pfp_rinaldi.jpg",
+      "content_type": "social"
+    },
+    {
+      "filename": "leurre_personal_milestone.png",
+      "title": "500 citations on our 2019 meta-analysis!",
+      "author": "Dr. Fatima Al-Sayed",
+      "journal": "ResearchGate",
+      "likes": 89,
+      "comments": 15,
+      "pfp": "pfp_alsayed.jpg",
+      "content_type": "social"
+    },
+    {
+      "filename": "leurre_personal_opinion.png",
+      "title": "Hot take: we need to stop publishing graphical abstracts that look like abstract art",
+      "author": "Dr. James Whitfield",
+      "journal": "X/Twitter",
+      "likes": 234,
+      "comments": 41,
+      "pfp": "pfp_whitfield.jpg",
+      "content_type": "social"
+    },
+    {
+      "filename": "leurre_job_postdoc.png",
+      "title": "HIRING: Postdoctoral Fellow in Computational Immunology",
+      "author": "ETH Zurich",
+      "journal": "LinkedIn",
+      "likes": 67,
+      "comments": 12,
+      "pfp": "pfp_eth.jpg",
+      "content_type": "social"
+    },
+    {
+      "filename": "leurre_job_medwriter.png",
+      "title": "Looking for a Medical Science Liaison — Respiratory/Immunology",
+      "author": "Sarah Mitchell",
+      "journal": "LinkedIn",
+      "likes": 43,
+      "comments": 8,
+      "pfp": "pfp_recruiter.jpg",
+      "content_type": "social"
+    },
+    {
+      "filename": "leurre_news_who.png",
+      "title": "WHO releases updated guidelines on childhood vaccination schedules",
+      "author": "WHO",
+      "journal": "X/Twitter",
+      "likes": 412,
+      "comments": 38,
+      "pfp": "pfp_who.jpg",
+      "content_type": "social"
+    },
+    {
+      "filename": "leurre_news_funding.png",
+      "title": "EU announces €2.1B Horizon Europe call for health research",
+      "author": "European Commission",
+      "journal": "LinkedIn",
+      "likes": 324,
+      "comments": 27,
+      "pfp": "pfp_eu.jpg",
+      "content_type": "social"
+    },
+    {
+      "filename": "leurre_event_webinar.png",
+      "title": "FREE WEBINAR: Evidence-Based Medicine in the Age of AI",
+      "author": "MedEd Global",
+      "journal": "LinkedIn",
+      "likes": 78,
+      "comments": 9,
+      "pfp": "pfp_webinar.jpg",
+      "content_type": "social"
+    },
+    {
+      "filename": "leurre_event_congress.png",
+      "title": "Don't miss ECCMID 2026 in Vienna! Early bird closes April 15",
+      "author": "ESCMID",
+      "journal": "LinkedIn",
+      "likes": 198,
+      "comments": 14,
+      "pfp": "pfp_eccmid.jpg",
+      "content_type": "social"
+    },
+    {
+      "filename": "leurre_video_talk.png",
+      "title": "Keynote: The Future of Precision Medicine | ESMO 2025",
+      "author": "Dr. Philippe Laurent",
+      "journal": "LinkedIn",
+      "likes": 312,
+      "comments": 47,
+      "content_type": "video"
+    },
+    {
+      "filename": "leurre_video_tutorial.png",
+      "title": "How to Use R for Meta-Analysis — Step by Step",
+      "author": "Dr. Maria Santos",
+      "journal": "LinkedIn",
+      "likes": 189,
+      "comments": 31,
+      "content_type": "video"
+    },
+    {
+      "filename": "leurre_video_interview.png",
+      "title": "In Conversation: Dr. Sarah Chen on mRNA Vaccines Beyond COVID",
+      "author": "BioTech Weekly",
+      "journal": "LinkedIn",
+      "likes": 534,
+      "comments": 82,
+      "content_type": "video"
+    },
+    {
+      "filename": "leurre_carousel_tips.png",
+      "title": "5 Tips for Writing a Better Graphical Abstract",
+      "author": "Dr. Sophie Martin",
+      "journal": "LinkedIn",
+      "likes": 267,
+      "comments": 38,
+      "content_type": "carousel"
+    },
+    {
+      "filename": "leurre_carousel_stats.png",
+      "title": "Global Health Spending 2024 — Key Figures",
+      "author": "Global Health Analytics",
+      "journal": "LinkedIn",
+      "likes": 421,
+      "comments": 56,
+      "content_type": "carousel"
+    },
+    {
+      "filename": "leurre_carousel_career.png",
+      "title": "From PhD to Industry: What I Wish I'd Known",
+      "author": "Dr. Aisha Patel",
+      "journal": "LinkedIn",
+      "likes": 1247,
+      "comments": 193,
+      "content_type": "carousel"
+    },
+    {
+      "filename": "leurre_textonly_opinion.png",
+      "title": "Unpopular opinion: Impact Factor is dead. Here's why your h-index matters more in 2026...",
+      "author": "Prof. David Nkomo",
+      "journal": "LinkedIn",
+      "likes": 856,
+      "comments": 127,
+      "content_type": "text_only"
+    },
+    {
+      "filename": "leurre_textonly_question.png",
+      "title": "Quick question for my network: Has anyone successfully transitioned from bench science to medical writing?",
+      "author": "Dr. Camille Dubois",
+      "journal": "LinkedIn",
+      "likes": 145,
+      "comments": 89,
+      "content_type": "text_only"
+    },
+    {
+      "filename": "leurre_textonly_announcement.png",
+      "title": "Thrilled to share: our paper on CAR-T cell therapy in pediatric ALL just got accepted in Blood!",
+      "author": "Dr. Yuki Tanaka",
+      "journal": "LinkedIn",
+      "likes": 1893,
+      "comments": 214,
+      "content_type": "text_only"
+    },
+    {
+      "filename": "leurre_link_nature.png",
+      "title": "New CRISPR technique corrects 90% of genetic mutations | Nature",
+      "author": "Dr. Hannah Berg",
+      "journal": "LinkedIn",
+      "likes": 743,
+      "comments": 98,
+      "content_type": "link_preview"
+    },
+    {
+      "filename": "leurre_link_bbc.png",
+      "title": "WHO warns of rising antibiotic resistance in children under 5",
+      "author": "Dr. Priya Sharma",
+      "journal": "LinkedIn",
+      "likes": 567,
+      "comments": 73,
+      "content_type": "link_preview"
+    },
+    {
+      "filename": "leurre_link_preprint.png",
+      "title": "Preprint: Single-cell atlas of human liver aging reveals stellate cell niche remodeling",
+      "author": "Prof. Li Wei",
+      "journal": "LinkedIn",
+      "likes": 198,
+      "comments": 34,
+      "content_type": "link_preview"
+    }
+  ]
+}

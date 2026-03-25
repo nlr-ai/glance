@@ -1,0 +1,34 @@
+{
+    "domain": "nutrition",
+    "version": "Teng2019",
+    "correct_product": "Philadelphia",
+    "products": [
+        "Philadelphia",
+        "Berkeley",
+        "UK",
+        "Mexico"
+    ],
+    "title": "Sugar Tax Effects on Consumption — Meta-analysis (Teng et al., 2019)",
+    "semantic_references": {
+        "L1_broad": [
+            "public health",
+            "sugar tax",
+            "nutrition policy",
+            "santé publique",
+            "taxe sur le sucre",
+            "politique nutritionnelle"
+        ],
+        "L2_specific": [
+            "sugar-sweetened beverage tax effect on consumption by city",
+            "effet de la taxe sur les boissons sucrées par ville",
+            "fiscal policy intervention reducing sugar intake worldwide",
+            "intervention fiscale réduisant la consommation de sucre"
+        ],
+        "L3_detailed": [
+            "Philadelphia's sugar tax achieved the largest consumption reduction at 38%",
+            "la taxe de Philadelphie a obtenu la plus forte réduction de consommation à 38%",
+            "sugar taxes reduce consumption but magnitude varies widely by jurisdiction"
+        ]
+    },
+    "description": "Reduction in sugary drink consumption (%) following sugar tax implementation. Philadelphia shows the largest effect (-38%), while Mexico shows a more modest -7.6%."
+}

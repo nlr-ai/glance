@@ -1,0 +1,32 @@
+{
+    "domain": "climate",
+    "version": "Hawken2017",
+    "is_control": false,
+    "correct_product": "Reduced food waste",
+    "products": [
+        "Reduced food waste",
+        "Plant-rich diets",
+        "Solar farms",
+        "Electric vehicles"
+    ],
+    "title": "Project Drawdown — Top Climate Solutions by CO₂ Reduction",
+    "description": "CO₂ reduction potential (gigatons, 2020–2050) for 4 climate solutions from Hawken's Drawdown (2017). Reduced food waste leads with 70.5 GT potential reduction.",
+    "semantic_references": {
+        "L1_broad": [
+            "climate change",
+            "changement climatique",
+            "environmental science",
+            "solutions climatiques"
+        ],
+        "L2_specific": [
+            "ranking of climate solutions by CO2 reduction potential over 30 years",
+            "classement des solutions climatiques par potentiel de réduction de CO2",
+            "comparative impact of food systems vs energy vs transport on greenhouse gas emissions"
+        ],
+        "L3_detailed": [
+            "reduced food waste has the highest CO2 reduction potential at 70.5 gigatons from 2020 to 2050",
+            "la réduction du gaspillage alimentaire a le plus grand potentiel de réduction de CO2 avec 70.5 gigatonnes",
+            "food-related solutions (waste reduction and plant-rich diets) outweigh energy and transport solutions in total CO2 impact"
+        ]
+    }
+}

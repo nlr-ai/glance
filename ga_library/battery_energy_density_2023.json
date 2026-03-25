@@ -1,0 +1,34 @@
+{
+    "domain": "energy",
+    "version": "Battery2023",
+    "correct_product": "Solid-state",
+    "products": [
+        "Solid-state",
+        "Lithium-ion",
+        "Sodium-ion",
+        "Lead-acid"
+    ],
+    "title": "Battery Technologies — Energy Density Comparison (2023)",
+    "semantic_references": {
+        "L1_broad": [
+            "energy storage",
+            "batteries",
+            "engineering",
+            "stockage d'énergie",
+            "batteries",
+            "ingénierie"
+        ],
+        "L2_specific": [
+            "battery technology energy density comparison by chemistry",
+            "comparaison de densité énergétique des technologies de batteries",
+            "solid-state vs lithium-ion energy storage performance",
+            "performances du stockage solide vs lithium-ion"
+        ],
+        "L3_detailed": [
+            "solid-state batteries achieve 400 Wh/kg, 60% more than lithium-ion",
+            "les batteries solides atteignent 400 Wh/kg, 60% de plus que le lithium-ion",
+            "lead-acid at 40 Wh/kg highlights the 10x improvement in modern battery tech"
+        ]
+    },
+    "description": "Energy density (Wh/kg) of battery technologies. Solid-state batteries lead at 400 Wh/kg, 60% higher than conventional lithium-ion, representing the next generation of energy storage."
+}

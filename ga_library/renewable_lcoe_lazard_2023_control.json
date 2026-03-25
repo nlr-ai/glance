@@ -1,0 +1,34 @@
+{
+    "domain": "energy",
+    "version": "Lazard2023-pie-control",
+    "correct_product": "Solar utility",
+    "products": [
+        "Solar utility",
+        "Wind onshore",
+        "Gas combined",
+        "Nuclear"
+    ],
+    "title": "Renewable Energy LCOE Comparison (Lazard, 2023) — Pie chart (contrôle)",
+    "semantic_references": {
+        "L1_broad": [
+            "renewable energy",
+            "energy economics",
+            "electricity",
+            "énergie renouvelable",
+            "économie de l'énergie",
+            "électricité"
+        ],
+        "L2_specific": [
+            "levelized cost of energy comparison by source Lazard",
+            "coût actualisé de l'énergie par source Lazard",
+            "solar and wind cost advantage over nuclear and gas",
+            "avantage coût du solaire et éolien sur nucléaire et gaz"
+        ],
+        "L3_detailed": [
+            "utility-scale solar achieves the lowest LCOE at $24/MWh",
+            "le solaire utilitaire atteint le LCOE le plus bas à 24$/MWh",
+            "nuclear LCOE at $141/MWh is nearly 6x more expensive than solar"
+        ]
+    },
+    "is_control": true
+}

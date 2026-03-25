@@ -1,0 +1,31 @@
+{
+    "domain": "education",
+    "version": "Hattie2009-bubble-control",
+    "is_control": true,
+    "correct_product": "Feedback",
+    "products": [
+        "Feedback",
+        "Direct instruction",
+        "Peer tutoring",
+        "Homework"
+    ],
+    "title": "Visible Learning — Bubble chart (contrôle)",
+    "semantic_references": {
+        "L1_broad": [
+            "education",
+            "pédagogie",
+            "educational research",
+            "recherche en éducation"
+        ],
+        "L2_specific": [
+            "meta-analysis of educational interventions and their effect on learning outcomes",
+            "méta-analyse des interventions pédagogiques sur la réussite scolaire",
+            "comparative effectiveness of teaching strategies measured by Cohen's d"
+        ],
+        "L3_detailed": [
+            "feedback has the highest effect size (d=0.73) among educational interventions in Hattie's meta-analysis",
+            "le feedback a l'effet le plus fort (d=0.73) parmi les interventions pédagogiques analysées par Hattie",
+            "homework shows the weakest effect size (d=0.29) compared to feedback, direct instruction, and peer tutoring"
+        ]
+    }
+}

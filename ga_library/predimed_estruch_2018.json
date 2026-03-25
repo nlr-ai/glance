@@ -1,0 +1,34 @@
+{
+    "domain": "nutrition",
+    "version": "Estruch2018",
+    "correct_product": "Med + EVOO",
+    "products": [
+        "Med + EVOO",
+        "Med + Nuts",
+        "Low-fat diet",
+        "Control diet"
+    ],
+    "title": "Mediterranean Diet and Cardiovascular Risk — PREDIMED (Estruch et al., 2018)",
+    "semantic_references": {
+        "L1_broad": [
+            "nutrition",
+            "cardiovascular disease",
+            "diet",
+            "nutrition",
+            "maladie cardiovasculaire",
+            "régime alimentaire"
+        ],
+        "L2_specific": [
+            "Mediterranean diet cardiovascular risk reduction PREDIMED trial",
+            "réduction du risque cardiovasculaire par le régime méditerranéen",
+            "olive oil and nuts supplementation prevents cardiovascular events",
+            "supplémentation huile d'olive et noix en prévention cardiovasculaire"
+        ],
+        "L3_detailed": [
+            "Mediterranean diet with EVOO reduces major cardiovascular events by 31%",
+            "le régime méditerranéen à l'huile d'olive réduit les événements CV de 31%",
+            "PREDIMED shows Mediterranean diet superiority over low-fat diet for CVD prevention"
+        ]
+    },
+    "description": "Reduction in major cardiovascular events (%) by dietary intervention. Mediterranean diet supplemented with extra-virgin olive oil achieves the largest risk reduction (-31%)."
+}
