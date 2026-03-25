@@ -86,6 +86,11 @@
 .gd-node-tooltip{display:none;position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:var(--gd-navy);color:#fff;padding:0.5rem 0.75rem;border-radius:6px;font-size:0.75rem;white-space:nowrap;z-index:10;box-shadow:0 4px 12px rgba(0,0,0,0.2);pointer-events:none}
 .gd-node-tooltip::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:var(--gd-navy)}
 .gd-node-bubble:hover .gd-node-tooltip{display:block}
+#nodeContextMenu{display:none;position:absolute;z-index:20;background:#1a2332;border:1px solid rgba(42,157,143,0.3);border-radius:8px;padding:0.25rem 0;min-width:220px;box-shadow:0 8px 32px rgba(0,0,0,0.5)}
+.ctx-item{display:block;padding:0.5rem 1rem;color:#e2e8f0;font-size:0.8rem;cursor:pointer;text-decoration:none;border:none;background:none;width:100%;text-align:left;font-family:inherit}
+.ctx-item:hover{background:rgba(42,157,143,0.15)}
+.ctx-sep{border-top:1px solid rgba(255,255,255,0.1);margin:0.25rem 0}
+.ctx-header{padding:0.5rem 1rem;color:#fff;font-weight:700;font-size:0.8rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:280px}
 .gd-node-legend{display:flex;gap:1.5rem;margin-top:1rem;font-size:0.75rem;color:var(--gd-text-dim)}
 .gd-node-legend-dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:0.375rem;vertical-align:middle}
 .gd-pair-compare{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
@@ -331,6 +336,18 @@
             <div id="hcMeta" style="color:#94a3b8;font-size:0.65rem;margin-bottom:0.4rem;"></div>
             <div id="hcNarratives" style="border-top:1px solid rgba(255,255,255,0.1);padding-top:0.4rem;"></div>
         </div>
+        <!-- Context menu for node actions -->
+        <div id="nodeContextMenu">
+            <div id="ctxNodeTitle" class="ctx-header"></div>
+            <div class="ctx-sep"></div>
+            <button class="ctx-item" onclick="ctxAction('vision')">&#x1f441; Re-analyser cette zone</button>
+            <button class="ctx-item" onclick="ctxAction('channels')">&#x1f4e1; Canaux de ce node</button>
+            <button class="ctx-item" onclick="ctxAction('deepen')">&#x1f52c; Approfondir ici</button>
+            <button class="ctx-item" onclick="ctxAction('ask')">&#x1f4ac; Demander sur ce node...</button>
+            <button class="ctx-item" onclick="ctxAction('improve')">&#x26a1; Ameliorer ce node</button>
+            <div class="ctx-sep"></div>
+            <button class="ctx-item" onclick="ctxAction('health')">&#x1f517; Narratives liees</button>
+        </div>
     </div>
     <script>
     // Node hover interaction
@@ -390,6 +407,75 @@
     })();
     </script>
     <script>
+    // Node context menu interaction
+    (function() {
+        var ctxNodeId = null;
+        var ctxNodeName = '';
+        var menu = document.getElementById('nodeContextMenu');
+        var container = document.querySelector('.graph-overlay');
+        if (!menu || !container) return;
+
+        // Enable context menu on nodes
+        container.querySelectorAll('[data-node-id]').forEach(function(el) {
+            el.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                ctxNodeId = el.dataset.nodeId;
+                var titleEl = el.querySelector('title');
+                ctxNodeName = (titleEl ? titleEl.textContent : ctxNodeId).split('(')[0].trim();
+                var weight = parseFloat(el.dataset.weight || 0);
+
+                document.getElementById('ctxNodeTitle').textContent = ctxNodeName + ' (w=' + Math.round(weight * 100) + '%)';
+
+                var rect = menu.parentElement.getBoundingClientRect();
+                var x = e.clientX - rect.left;
+                var y = e.clientY - rect.top;
+                // Keep menu within bounds
+                if (x + 240 > rect.width) x = rect.width - 240;
+                if (y + 260 > rect.height) y = Math.max(0, rect.height - 260);
+                menu.style.left = x + 'px';
+                menu.style.top = y + 'px';
+                menu.style.display = 'block';
+            });
+        });
+
+        // Dismiss on click outside
+        document.addEventListener('click', function(e) {
+            if (!menu.contains(e.target)) {
+                menu.style.display = 'none';
+            }
+        });
+
+        // Dismiss on Escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') menu.style.display = 'none';
+        });
+
+        // Prevent default context menu on the overlay container itself
+        menu.addEventListener('contextmenu', function(e) { e.preventDefault(); });
+
+        // Expose ctxAction globally
+        window.ctxAction = function(action) {
+            menu.style.display = 'none';
+            if (action === 'ask') {
+                showTextTool('ask');
+                var textarea = document.getElementById('toolText');
+                textarea.value = "Concernant '" + ctxNodeName + "': ";
+                textarea.focus();
+            } else if (action === 'improve') {
+                runTool('advise', "Ameliore specifiquement l'element '" + ctxNodeName + "' (" + ctxNodeId + ")", ctxNodeId);
+            } else if (action === 'deepen') {
+                runTool('deepen', '', ctxNodeId);
+            } else if (action === 'vision') {
+                runTool('vision', '', ctxNodeId);
+            } else if (action === 'channels') {
+                runTool('channels', '', ctxNodeId);
+            } else if (action === 'health') {
+                runTool('health', '', ctxNodeId);
+            }
+        };
+    })();
+    </script>
     </div>
     <script>
     function toggleLayer(name) {
@@ -921,7 +1007,7 @@ function runTextTool() {
     runTool(tool, text);
 }
 
-async function runTool(toolName, textInput) {
+async function runTool(toolName, textInput, nodeId) {
     const spinner = document.getElementById('toolSpinner');
     const resultsDiv = document.getElementById('toolResults');
 
@@ -946,8 +1032,11 @@ async function runTool(toolName, textInput) {
 
     try {
         const fetchOpts = { method: 'POST', headers: {'Content-Type': 'application/json'} };
-        if (textInput) {
-            fetchOpts.body = JSON.stringify({ text: textInput });
+        if (textInput || nodeId) {
+            const bodyObj = {};
+            if (textInput) bodyObj.text = textInput;
+            if (nodeId) bodyObj.node_id = nodeId;
+            fetchOpts.body = JSON.stringify(bodyObj);
         }
 
         const resp = await fetch(`/analyze/tool/${toolName}/${SLUG}?pwd=${PWD}`, fetchOpts);

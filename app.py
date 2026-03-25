@@ -2338,6 +2338,14 @@ async def analyze_tool(tool_name: str, ga_slug: str, request: Request, pwd: str 
     except Exception:
         pass
     text_input = body.get("text", "")
+    node_id = body.get("node_id", "")
+
+    # Prepend node context for tools that use text_input
+    if node_id and tool_name in ("advise", "rubber_duck"):
+        if text_input:
+            text_input = f"Focus on node '{node_id}': {text_input}"
+        else:
+            text_input = f"Improve node '{node_id}' specifically."
 
     # Get latest graph
     latest = get_latest_graph(ga_id)
