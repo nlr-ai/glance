@@ -1,0 +1,17 @@
+{
+  "domain": "bioinfo",
+  "version": "bioinfo_crispr_tissue_eng_2024",
+  "title": "CRISPR innovations in tissue engineering and gene editing",
+  "source": "Razavi et al., Life Sciences, 2024",
+  "doi": "10.1016/j.lfs.2024.123120",
+  "figure": "Graphical Abstract",
+  "is_control": false,
+  "bloc": "bioinfo",
+  "target_sub": "r/bioinformatics",
+  "expected_archetype": "Variable",
+  "semantic_references": {
+    "L1": ["CRISPR", "Cas9", "tissue engineering", "gene editing"],
+    "L2": ["CRISPR/Cas9 and dCas9 systems enable precise gene editing for tissue engineering applications", "Review covers CRISPR interference, activation, and novel applications in regenerative medicine"],
+    "L3": ["Comprehensive review of CRISPR innovations including Cas9 and deactivated Cas9 systems for gene editing and regulation in tissue engineering, covering CRISPR interference, CRISPR activation, and applications in regenerative medicine and therapeutic development"]
+  }
+}

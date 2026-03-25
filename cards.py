@@ -438,11 +438,12 @@ def generate_default_card() -> bytes:
     return buf.getvalue()
 
 
-# ── GA OG Card — VERDICT STAMP design (V4) ──────────────────────────
+# ── GA OG Card — MULTI-CHANNEL VERDICT STAMP design (V5) ─────────────
 
 import json as _json
 import random as _random
 
+from PIL import ImageEnhance
 
 # Impact / Arial Black font candidates for bold score display
 _FONT_IMPACT_CANDIDATES = [
@@ -481,29 +482,101 @@ def _get_italic_font(size: int) -> ImageFont.FreeTypeFont:
     return ImageFont.load_default()
 
 
-def _stamp_verdict(score_pct: int) -> tuple[str, tuple[int, int, int], tuple[int, int, int]]:
-    """Return (verdict_label, gradient_start_rgb, gradient_end_rgb) for the score tier.
+# ── Tier key resolution ─────────────────────────────────────────────
 
-    Verdict stamp design — bold gradients that convey authority:
-        >=80  LIMPIDE     green    #059669 -> #047857
-        60-79 FLUIDE      teal     #0D9488 -> #0F766E
-        40-59 ACCESSIBLE  amber    #D97706 -> #B45309
-        20-39 BRUMEUX     orange   #EA580C -> #C2410C
-        10-19 OPAQUE      red      #DC2626 -> #B91C1C
-        <10   ILLISIBLE   dark-red #991B1B -> #7F1D1D
-    """
+def _get_tier_key(score_pct: int) -> str:
+    """Return the tier key string for a given score percentage."""
     if score_pct >= 80:
-        return "LIMPIDE", (5, 150, 105), (4, 120, 87)
+        return 'limpide'
     elif score_pct >= 60:
-        return "FLUIDE", (13, 148, 136), (15, 118, 110)
+        return 'fluide'
     elif score_pct >= 40:
-        return "ACCESSIBLE", (217, 119, 6), (180, 83, 9)
+        return 'accessible'
     elif score_pct >= 20:
-        return "BRUMEUX", (234, 88, 12), (194, 65, 12)
+        return 'brumeux'
     elif score_pct >= 10:
-        return "OPAQUE", (220, 38, 38), (185, 28, 28)
+        return 'opaque'
     else:
-        return "ILLISIBLE", (153, 27, 27), (127, 29, 29)
+        return 'illisible'
+
+
+# ── Multi-channel tier parameter dicts ──────────────────────────────
+
+# Channel 1: COLOR (gradient start, gradient end)
+TIER_COLORS = {
+    'limpide':    ((5, 150, 105),  (4, 120, 87)),
+    'fluide':     ((13, 148, 136), (15, 118, 110)),
+    'accessible': ((217, 119, 6),  (180, 83, 9)),
+    'brumeux':    ((234, 88, 12),  (194, 65, 12)),
+    'opaque':     ((220, 38, 38),  (185, 28, 28)),
+    'illisible':  ((153, 27, 27),  (127, 29, 29)),
+}
+
+# Channel 2: ROTATION (degrees, positive = CCW in PIL)
+TIER_ROTATION = {
+    'illisible':  -7,
+    'opaque':     -5,
+    'brumeux':    -3,
+    'accessible': -2,
+    'fluide':     -1,
+    'limpide':     0,
+}
+
+# Channel 3: STAMP SIZE (width, height)
+TIER_STAMP_SIZE = {
+    'illisible':  (320, 210),
+    'opaque':     (290, 190),
+    'brumeux':    (260, 175),
+    'accessible': (250, 170),
+    'fluide':     (270, 175),
+    'limpide':    (310, 200),
+}
+
+# Channel 6: TYPOGRAPHY — score number font size
+TIER_SCORE_FONT = {
+    'illisible':  72,
+    'opaque':     64,
+    'brumeux':    56,
+    'accessible': 52,
+    'fluide':     56,
+    'limpide':    64,
+}
+
+# Channel 7: SPEED LINES — count
+TIER_SPEED_LINES = {
+    'illisible':  6,
+    'opaque':     4,
+    'brumeux':    2,
+    'accessible': 1,
+    'fluide':     2,
+    'limpide':    4,
+}
+
+# Channel 8: EMOTION ICON
+TIER_ICONS = {
+    'illisible':  '\u26a0',   # warning
+    'opaque':     '\u2717',   # fail X
+    'brumeux':    '\u2193',   # down arrow
+    'accessible': '\u2192',   # right arrow
+    'fluide':     '\u2191',   # up arrow
+    'limpide':    '\u2605',   # star
+}
+
+# Verdict labels (same as V4 but organized)
+TIER_VERDICT = {
+    'limpide':    'LIMPIDE',
+    'fluide':     'FLUIDE',
+    'accessible': 'ACCESSIBLE',
+    'brumeux':    'BRUMEUX',
+    'opaque':     'OPAQUE',
+    'illisible':  'ILLISIBLE',
+}
+
+
+def _stamp_verdict(score_pct: int) -> tuple[str, tuple[int, int, int], tuple[int, int, int]]:
+    """Return (verdict_label, gradient_start_rgb, gradient_end_rgb) for the score tier."""
+    tier = _get_tier_key(score_pct)
+    return TIER_VERDICT[tier], TIER_COLORS[tier][0], TIER_COLORS[tier][1]
 
 
 def _resolve_score(image: dict, avg_glance: float | None,
@@ -546,23 +619,10 @@ def _resolve_score(image: dict, avg_glance: float | None,
     return None, ""
 
 
-def _draw_gradient_rect(img: Image.Image, xy: tuple, color_top: tuple, color_bot: tuple):
-    """Draw a vertical gradient rectangle directly onto an RGBA image."""
-    x0, y0, x1, y1 = xy
-    for row in range(y0, y1):
-        t = (row - y0) / max(1, (y1 - y0 - 1))
-        r = int(color_top[0] + (color_bot[0] - color_top[0]) * t)
-        g = int(color_top[1] + (color_bot[1] - color_top[1]) * t)
-        b = int(color_top[2] + (color_bot[2] - color_top[2]) * t)
-        for col in range(x0, x1):
-            img.putpixel((col, row), (r, g, b, 255))
-
-
 def _add_noise_texture(img: Image.Image, intensity: int = 12):
     """Add subtle noise/stipple texture to an RGBA image for a printed feel."""
     pixels = img.load()
     w, h = img.size
-    # Deterministic seed for reproducibility
     rng = _random.Random(42)
     for y in range(h):
         for x in range(w):
@@ -577,51 +637,85 @@ def _add_noise_texture(img: Image.Image, intensity: int = 12):
 
 
 def _draw_speed_lines(draw: ImageDraw.ImageDraw, cx: int, cy: int,
-                      stamp_w: int, stamp_h: int):
-    """Draw 3-4 thin white speed lines radiating outward from the stamp."""
-    lines = [
-        # (start_offset_x, start_offset_y, end_offset_x, end_offset_y)
-        (-stamp_w // 2 - 10, -stamp_h // 4, -stamp_w // 2 - 55, -stamp_h // 4 - 12),
-        (-stamp_w // 2 - 8, stamp_h // 6, -stamp_w // 2 - 48, stamp_h // 6 + 8),
-        (stamp_w // 2 + 10, -stamp_h // 3, stamp_w // 2 + 50, -stamp_h // 3 - 10),
-        (stamp_w // 2 + 12, stamp_h // 5, stamp_w // 2 + 58, stamp_h // 5 + 6),
+                      stamp_w: int, stamp_h: int, tier: str):
+    """Draw tier-varying speed lines radiating outward from the stamp.
+
+    LIMPIDE uses golden lines (#FFD700). All others use white.
+    Count varies by tier — more for extreme scores (both ends).
+    """
+    n_lines = TIER_SPEED_LINES.get(tier, 2)
+    line_color = (255, 215, 0, 50) if tier == 'limpide' else (255, 255, 255, 38)
+
+    # Base line templates — we pick n_lines from this pool
+    all_lines = [
+        (-stamp_w // 2 - 10, -stamp_h // 4,     -stamp_w // 2 - 55, -stamp_h // 4 - 12),
+        (-stamp_w // 2 - 8,  stamp_h // 6,       -stamp_w // 2 - 48, stamp_h // 6 + 8),
+        (stamp_w // 2 + 10,  -stamp_h // 3,      stamp_w // 2 + 50,  -stamp_h // 3 - 10),
+        (stamp_w // 2 + 12,  stamp_h // 5,       stamp_w // 2 + 58,  stamp_h // 5 + 6),
+        (-stamp_w // 2 - 15, -stamp_h // 2 + 10, -stamp_w // 2 - 60, -stamp_h // 2 - 5),
+        (stamp_w // 2 + 8,   -stamp_h // 6,      stamp_w // 2 + 52,  -stamp_h // 6 - 4),
     ]
-    for sx, sy, ex, ey in lines:
+
+    for i in range(min(n_lines, len(all_lines))):
+        sx, sy, ex, ey = all_lines[i]
         draw.line(
             [(cx + sx, cy + sy), (cx + ex, cy + ey)],
-            fill=(255, 255, 255, 38),  # ~15% opacity
-            width=1,
+            fill=line_color,
+            width=2 if tier in ('illisible', 'limpide') else 1,
         )
 
 
-def _build_stamp(score_pct: int, score_source: str, verdict_label: str,
-                 grad_start: tuple, grad_end: tuple,
-                 archetype_icon: Image.Image | None = None) -> Image.Image:
-    """Build the floating verdict stamp as an RGBA image, ready to rotate and paste.
+def _apply_ga_treatment(ga_img: Image.Image, tier: str) -> Image.Image:
+    """Apply tier-varying visual treatment to the GA background image.
 
-    Returns an RGBA Image of the stamp on a transparent canvas with padding
-    for rotation without clipping.
+    Channel 4: GA IMAGE TREATMENT
+        Low scores:  blur + darken  (the GA is literally opaque)
+        Mid scores:  light blur
+        High scores: brighten + saturate (crystal clear)
     """
-    STAMP_W, STAMP_H = 280, 180
-    PAD = 60  # extra space around stamp for rotation + shadow
+    if tier == 'illisible':
+        ga_img = ga_img.filter(ImageFilter.GaussianBlur(radius=4))
+        ga_img = ImageEnhance.Brightness(ga_img).enhance(0.55)
+    elif tier == 'opaque':
+        ga_img = ga_img.filter(ImageFilter.GaussianBlur(radius=3))
+        ga_img = ImageEnhance.Brightness(ga_img).enhance(0.6)
+    elif tier == 'brumeux':
+        ga_img = ga_img.filter(ImageFilter.GaussianBlur(radius=1.5))
+        ga_img = ImageEnhance.Brightness(ga_img).enhance(0.8)
+    elif tier == 'accessible':
+        # Very slight blur
+        ga_img = ga_img.filter(ImageFilter.GaussianBlur(radius=0.5))
+    elif tier == 'fluide':
+        # Slight brighten
+        ga_img = ImageEnhance.Brightness(ga_img).enhance(1.05)
+    elif tier == 'limpide':
+        ga_img = ImageEnhance.Brightness(ga_img).enhance(1.1)
+        ga_img = ImageEnhance.Color(ga_img).enhance(1.2)
+
+    return ga_img
+
+
+def _build_stamp_v5(score_pct: int, score_source: str, tier: str,
+                    verdict_label: str, grad_start: tuple, grad_end: tuple,
+                    archetype_icon: Image.Image | None = None) -> Image.Image:
+    """Build the floating verdict stamp as an RGBA image — V5 multi-channel.
+
+    Varies stamp size, score font size, texture, and emotion icon by tier.
+    Includes the explanation line: "X% du message compris en 5s".
+
+    Returns an RGBA Image on a padded transparent canvas.
+    """
+    STAMP_W, STAMP_H = TIER_STAMP_SIZE[tier]
+    PAD = 80  # extra space for rotation + shadow (larger stamps need more)
     canvas_w = STAMP_W + PAD * 2
     canvas_h = STAMP_H + PAD * 2
 
     canvas = Image.new("RGBA", (canvas_w, canvas_h), (0, 0, 0, 0))
 
-    # ── Stamp rectangle with rounded corners ──
+    # ── Stamp gradient background with rounded corners ──
     stamp_img = Image.new("RGBA", (STAMP_W, STAMP_H), (0, 0, 0, 0))
-    stamp_draw = ImageDraw.Draw(stamp_img)
 
-    # Draw gradient background with rounded rect
-    # First fill with rounded rect in top color, then overlay gradient
-    stamp_draw.rounded_rectangle(
-        [(0, 0), (STAMP_W - 1, STAMP_H - 1)],
-        radius=12,
-        fill=grad_start + (255,),
-    )
-
-    # Vertical gradient overlay (respecting rounded corners via alpha compositing)
+    # Build gradient layer masked to rounded rect
     grad_layer = Image.new("RGBA", (STAMP_W, STAMP_H), (0, 0, 0, 0))
     grad_draw = ImageDraw.Draw(grad_layer)
     for row in range(STAMP_H):
@@ -631,65 +725,88 @@ def _build_stamp(score_pct: int, score_source: str, verdict_label: str,
         b = int(grad_start[2] + (grad_end[2] - grad_start[2]) * t)
         grad_draw.line([(0, row), (STAMP_W - 1, row)], fill=(r, g, b, 255))
 
-    # Mask the gradient to the rounded rect shape
     mask = Image.new("L", (STAMP_W, STAMP_H), 0)
     mask_draw = ImageDraw.Draw(mask)
-    mask_draw.rounded_rectangle([(0, 0), (STAMP_W - 1, STAMP_H - 1)], radius=12, fill=255)
+    mask_draw.rounded_rectangle([(0, 0), (STAMP_W - 1, STAMP_H - 1)], radius=14, fill=255)
     grad_layer.putalpha(mask)
     stamp_img = Image.alpha_composite(
         Image.new("RGBA", (STAMP_W, STAMP_H), (0, 0, 0, 0)),
         grad_layer,
     )
 
-    # ── Tier-specific texture effects ──
-    if score_pct < 10:
-        # ILLISIBLE: diagonal warning stripes inside the stamp
+    # ── Channel 5: TEXTURE ON STAMP ──
+    if tier == 'illisible':
+        # Heavy diagonal warning stripes + thick lines
         stripe_layer = Image.new("RGBA", (STAMP_W, STAMP_H), (0, 0, 0, 0))
         stripe_draw = ImageDraw.Draw(stripe_layer)
-        stripe_spacing = 18
+        stripe_spacing = 14
         for offset in range(-STAMP_H, STAMP_W + STAMP_H, stripe_spacing):
             stripe_draw.line(
                 [(offset, 0), (offset + STAMP_H, STAMP_H)],
-                fill=(0, 0, 0, 30),
-                width=6,
+                fill=(0, 0, 0, 40),
+                width=8,
             )
         stripe_layer.putalpha(mask)
         stamp_img = Image.alpha_composite(stamp_img, stripe_layer)
+        _add_noise_texture(stamp_img, intensity=16)
+    elif tier in ('opaque', 'brumeux'):
+        # Medium noise grain
+        _add_noise_texture(stamp_img, intensity=12)
+    elif tier == 'limpide':
+        # Clean + subtle shimmer (white highlight gradient on top half)
+        shimmer = Image.new("RGBA", (STAMP_W, STAMP_H), (0, 0, 0, 0))
+        shimmer_draw = ImageDraw.Draw(shimmer)
+        for row in range(STAMP_H // 3):
+            alpha = int(25 * (1.0 - row / (STAMP_H // 3)))
+            shimmer_draw.line([(0, row), (STAMP_W - 1, row)],
+                              fill=(255, 255, 255, alpha))
+        shimmer.putalpha(mask)
+        stamp_img = Image.alpha_composite(stamp_img, shimmer)
+        _add_noise_texture(stamp_img, intensity=4)
+    else:
+        # accessible, fluide — light noise
+        _add_noise_texture(stamp_img, intensity=8)
 
-    # ── Noise texture (printed feel) ──
-    _add_noise_texture(stamp_img, intensity=10)
-
-    # ── White border (3px, 80% opacity) ──
+    # ── White border ──
     border_draw = ImageDraw.Draw(stamp_img)
+    border_width = 4 if tier in ('illisible', 'limpide') else 3
     border_draw.rounded_rectangle(
         [(0, 0), (STAMP_W - 1, STAMP_H - 1)],
-        radius=12,
-        outline=(255, 255, 255, 204),  # 80% opacity
-        width=3,
+        radius=14,
+        outline=(255, 255, 255, 220),
+        width=border_width,
     )
 
     # ── Text content inside the stamp ──
     draw = ImageDraw.Draw(stamp_img)
 
-    # "SCORE GLANCE" — top, small, letter-spaced
+    # "SCORE GLANCE" header (left-aligned) + emotion icon (right-aligned)
     font_header = _get_font(12, bold=True)
     header_text = "S C O R E   G L A N C E"
     h_bbox = draw.textbbox((0, 0), header_text, font=font_header)
     h_w = h_bbox[2] - h_bbox[0]
-    draw.text(((STAMP_W - h_w) // 2, 14), header_text,
+    header_x = (STAMP_W - h_w) // 2 - 10  # shift left to make room for icon
+    draw.text((max(16, header_x), 14), header_text,
               fill=(255, 255, 255, 230), font=font_header)
+
+    # Channel 8: EMOTION ICON — top-right corner of stamp
+    icon_char = TIER_ICONS[tier]
+    font_icon = _get_font(18, bold=True)
+    draw.text((STAMP_W - 30, 10), icon_char,
+              fill=(255, 255, 255, 200), font=font_icon)
 
     # Thin white separator line
     line_y = 34
-    line_margin = 24
+    line_margin = 20
     draw.line(
         [(line_margin, line_y), (STAMP_W - line_margin, line_y)],
         fill=(255, 255, 255, 180),
         width=1,
     )
 
-    # Score number — BIG Impact
-    font_score = _get_impact_font(64)
+    # Channel 6: TYPOGRAPHY — score number with tier-varying font size
+    score_font_size = TIER_SCORE_FONT[tier]
+    font_score = _get_impact_font(score_font_size)
     score_text = f"{score_pct}%"
     s_bbox = draw.textbbox((0, 0), score_text, font=font_score)
     s_w = s_bbox[2] - s_bbox[0]
@@ -699,29 +816,36 @@ def _build_stamp(score_pct: int, score_source: str, verdict_label: str,
               fill=(255, 255, 255), font=font_score)
 
     # Verdict label — bold, below score
-    font_verdict = _get_font(28, bold=True)
+    font_verdict = _get_font(26, bold=True)
     v_bbox = draw.textbbox((0, 0), verdict_label, font=font_verdict)
     v_w = v_bbox[2] - v_bbox[0]
-    verdict_y = score_y + s_h + 8
+    verdict_y = score_y + s_h + 6
     draw.text(((STAMP_W - v_w) // 2, verdict_y), verdict_label,
               fill=(255, 255, 255), font=font_verdict)
 
-    # Source line — small, bottom
+    # CRITICAL ADDITION: Explanation line — "X% du message compris en 5s"
+    explanation = f"{score_pct}% du message compris en 5s"
+    font_explain = _get_font(14, bold=False)
+    e_bbox = draw.textbbox((0, 0), explanation, font=font_explain)
+    e_w = e_bbox[2] - e_bbox[0]
+    explain_y = verdict_y + (v_bbox[3] - v_bbox[1]) + 4
+    draw.text(((STAMP_W - e_w) // 2, explain_y), explanation,
+              fill=(255, 255, 255, 200), font=font_explain)
+
+    # Source line — small, bottom area
     font_source = _get_font(11, bold=False)
-    source_text = f"\u25c9 {score_source}" if score_source else "\u25c9 5 secondes"
+    source_text = f"\u25c9 glance.scisense.fr"
     src_bbox = draw.textbbox((0, 0), source_text, font=font_source)
     src_w = src_bbox[2] - src_bbox[0]
-    draw.text(((STAMP_W - src_w) // 2, STAMP_H - 24), source_text,
-              fill=(255, 255, 255, 153), font=font_source)  # 60% opacity
+    draw.text(((STAMP_W - src_w) // 2, STAMP_H - 22), source_text,
+              fill=(255, 255, 255, 153), font=font_source)
 
     # ── Tier watermark (subtle) ──
-    if score_pct >= 80:
-        # Celebratory check watermark
+    if tier == 'limpide':
         font_wm = _get_impact_font(80)
         draw.text((STAMP_W - 70, STAMP_H - 90), "\u2713",
                   fill=(255, 255, 255, 20), font=font_wm)
-    elif score_pct < 20:
-        # Warning X watermark
+    elif tier in ('illisible', 'opaque'):
         font_wm = _get_impact_font(80)
         draw.text((STAMP_W - 70, STAMP_H - 90), "\u2717",
                   fill=(255, 255, 255, 20), font=font_wm)
@@ -738,22 +862,24 @@ def _build_stamp(score_pct: int, score_source: str, verdict_label: str,
 
 
 def generate_ga_og_card(image: dict, avg_glance: float | None,
-                        n_tests: int, domain_label: str = "") -> bytes:
-    """Generate a 1200x630 OG card — VERDICT STAMP design (V4).
+                        n_tests: int, domain_label: str = "",
+                        override_score_pct: int | None = None) -> bytes:
+    """Generate a 1200x630 OG card — MULTI-CHANNEL VERDICT STAMP (V5).
 
-    Layout:
-        GA image fills the ENTIRE card (cover-fit, full bleed).
-        A floating VERDICT STAMP overlays center-left, rotated -4 degrees.
-        A frosted glass title strip sits at the bottom.
-        No dark background, no banner, no dot-grid.
+    8 visual channels vary simultaneously by tier:
+        1. Color (gradient)       2. Rotation (stamp tilt)
+        3. Stamp size             4. GA image treatment (blur/brighten)
+        5. Texture on stamp       6. Typography (score font size)
+        7. Speed lines (count)    8. Emotion icon
 
-    Score sources (priority): real tests > sidecar predicted_score > "?"
+    Plus: explanation line "X% du message compris en 5 secondes" inside stamp.
 
     Args:
         image: dict from ga_images table (filename, domain, title, etc.)
         avg_glance: average GLANCE score 0.0-1.0, or None if no tests
         n_tests: number of tests for this GA
         domain_label: human-readable domain label (e.g. "BIOLOGY")
+        override_score_pct: if set, forces this score (for testing/simulation)
 
     Returns:
         PNG bytes.
@@ -761,12 +887,19 @@ def generate_ga_og_card(image: dict, avg_glance: float | None,
     img = Image.new("RGBA", (CARD_W, CARD_H), (40, 40, 40, 255))
 
     # ── Resolve score ──
-    score_pct, score_source = _resolve_score(image, avg_glance, n_tests)
-    has_score = score_pct is not None
+    if override_score_pct is not None:
+        score_pct = override_score_pct
+        score_source = "simulation"
+        has_score = True
+    else:
+        score_pct, score_source = _resolve_score(image, avg_glance, n_tests)
+        has_score = score_pct is not None
 
     if has_score:
+        tier = _get_tier_key(score_pct)
         verdict_label, grad_start, grad_end = _stamp_verdict(score_pct)
     else:
+        tier = 'accessible'  # neutral fallback for no-score
         verdict_label = "EN ATTENTE"
         grad_start = (55, 65, 81)
         grad_end = (45, 55, 71)
@@ -790,6 +923,10 @@ def generate_ga_og_card(image: dict, avg_glance: float | None,
             crop_y = (new_h - CARD_H) // 2
             ga_img = ga_img.crop((crop_x, crop_y, crop_x + CARD_W, crop_y + CARD_H))
 
+            # Channel 4: GA IMAGE TREATMENT — varies by tier
+            if has_score:
+                ga_img = _apply_ga_treatment(ga_img, tier)
+
             img.paste(ga_img, (0, 0))
             ga_loaded = True
         except Exception:
@@ -806,7 +943,6 @@ def generate_ga_og_card(image: dict, avg_glance: float | None,
     # ── Slight darkening vignette over the image for readability ──
     vignette = Image.new("RGBA", (CARD_W, CARD_H), (0, 0, 0, 0))
     vig_draw = ImageDraw.Draw(vignette)
-    # Subtle overall darken to help stamp and text pop
     vig_draw.rectangle([(0, 0), (CARD_W, CARD_H)], fill=(0, 0, 0, 40))
     img = Image.alpha_composite(img, vignette)
 
@@ -829,32 +965,32 @@ def generate_ga_og_card(image: dict, avg_glance: float | None,
             except Exception:
                 pass
 
-        stamp_canvas = _build_stamp(
-            score_pct, score_source, verdict_label,
+        stamp_canvas = _build_stamp_v5(
+            score_pct, score_source, tier, verdict_label,
             grad_start, grad_end, archetype_icon,
         )
 
-        # Rotate -4 degrees (slight tilt — slammed down effect)
-        stamp_rotated = stamp_canvas.rotate(4, expand=True, resample=Image.BICUBIC)
+        # Channel 2: ROTATION — varies by tier
+        # PIL rotate() uses positive = CCW, so negate for visual CW tilt
+        rotation_deg = -TIER_ROTATION[tier]  # negate: -7 in dict -> rotate(7)
+        stamp_rotated = stamp_canvas.rotate(
+            rotation_deg, expand=True, resample=Image.BICUBIC
+        )
 
         # ── Drop shadow ──
-        # Create shadow from the stamp alpha channel
         shadow_offset_x, shadow_offset_y = 6, 8
-        shadow_blur = 20
-        shadow = Image.new("RGBA", stamp_rotated.size, (0, 0, 0, 0))
-        # Extract alpha from stamp and use as shadow shape
+        shadow_blur_radius = 20
         stamp_alpha = stamp_rotated.split()[3]
-        shadow_layer = Image.new("RGBA", stamp_rotated.size, (0, 0, 0, 102))  # 40% black
-        shadow_layer.putalpha(stamp_alpha)
-        # Blur the shadow
-        shadow_alpha_blurred = stamp_alpha.filter(ImageFilter.GaussianBlur(shadow_blur))
-        shadow_final = Image.new("RGBA", stamp_rotated.size, (0, 0, 0, 0))
+        shadow_alpha_blurred = stamp_alpha.filter(
+            ImageFilter.GaussianBlur(shadow_blur_radius)
+        )
         shadow_color = Image.new("RGBA", stamp_rotated.size, (0, 0, 0, 102))
         shadow_color.putalpha(shadow_alpha_blurred)
 
         # Position: center-left, slightly above middle
-        stamp_cx = CARD_W // 2 - 140  # center-left
-        stamp_cy = CARD_H // 2 - 40   # slightly above middle
+        stamp_w, stamp_h = TIER_STAMP_SIZE[tier]
+        stamp_cx = CARD_W // 2 - 140
+        stamp_cy = CARD_H // 2 - 40
         paste_x = stamp_cx - stamp_rotated.width // 2
         paste_y = stamp_cy - stamp_rotated.height // 2
 
@@ -868,78 +1004,68 @@ def generate_ga_og_card(image: dict, avg_glance: float | None,
         # Paste the stamp
         img.paste(stamp_rotated, (paste_x, paste_y), stamp_rotated)
 
-        # ── Speed lines (drawn on the main image) ──
+        # Channel 7: SPEED LINES — tier-varying count and color
         speed_draw = ImageDraw.Draw(img)
-        _draw_speed_lines(speed_draw, stamp_cx, stamp_cy, 280, 180)
+        _draw_speed_lines(speed_draw, stamp_cx, stamp_cy, stamp_w, stamp_h, tier)
 
     else:
-        # No score: show a muted "?" stamp
-        stamp_canvas = _build_stamp(
-            0, "", "EN ATTENTE", grad_start, grad_end, None,
-        )
-        # Override the score text — we need a "?" instead of "0%"
-        # Rebuild with a custom approach for no-score state
-        no_score_stamp = Image.new("RGBA", (280 + 120, 180 + 120), (0, 0, 0, 0))
-        ns_inner = Image.new("RGBA", (280, 180), (0, 0, 0, 0))
-        ns_draw = ImageDraw.Draw(ns_inner)
+        # No score: show a muted "?" stamp (unchanged from V4)
+        no_stamp_w, no_stamp_h = 280, 180
+        no_score_stamp = Image.new("RGBA", (no_stamp_w + 120, no_stamp_h + 120), (0, 0, 0, 0))
+        ns_inner = Image.new("RGBA", (no_stamp_w, no_stamp_h), (0, 0, 0, 0))
 
-        # Gray gradient background
-        ns_mask = Image.new("L", (280, 180), 0)
+        ns_mask = Image.new("L", (no_stamp_w, no_stamp_h), 0)
         ns_mask_draw = ImageDraw.Draw(ns_mask)
-        ns_mask_draw.rounded_rectangle([(0, 0), (279, 179)], radius=12, fill=255)
+        ns_mask_draw.rounded_rectangle([(0, 0), (no_stamp_w - 1, no_stamp_h - 1)],
+                                       radius=12, fill=255)
 
-        ns_grad = Image.new("RGBA", (280, 180), (0, 0, 0, 0))
+        ns_grad = Image.new("RGBA", (no_stamp_w, no_stamp_h), (0, 0, 0, 0))
         ns_grad_draw = ImageDraw.Draw(ns_grad)
-        for row in range(180):
-            t = row / 179
+        for row in range(no_stamp_h):
+            t = row / max(1, no_stamp_h - 1)
             g = int(55 + (45 - 55) * t)
-            ns_grad_draw.line([(0, row), (279, row)], fill=(g, g + 10, g + 20, 255))
+            ns_grad_draw.line([(0, row), (no_stamp_w - 1, row)],
+                              fill=(g, g + 10, g + 20, 255))
         ns_grad.putalpha(ns_mask)
         ns_inner = Image.alpha_composite(
-            Image.new("RGBA", (280, 180), (0, 0, 0, 0)), ns_grad
+            Image.new("RGBA", (no_stamp_w, no_stamp_h), (0, 0, 0, 0)), ns_grad
         )
 
         _add_noise_texture(ns_inner, intensity=8)
 
-        # Border
-        ns_border = ImageDraw.Draw(ns_inner)
-        ns_border.rounded_rectangle(
-            [(0, 0), (279, 179)], radius=12,
+        ns_draw = ImageDraw.Draw(ns_inner)
+        ns_draw.rounded_rectangle(
+            [(0, 0), (no_stamp_w - 1, no_stamp_h - 1)], radius=12,
             outline=(255, 255, 255, 150), width=3,
         )
 
-        # Header
         font_h = _get_font(12, bold=True)
         hdr = "S C O R E   G L A N C E"
-        hb = ns_border.textbbox((0, 0), hdr, font=font_h)
-        ns_border.text(((280 - (hb[2] - hb[0])) // 2, 14), hdr,
-                       fill=(255, 255, 255, 200), font=font_h)
-        ns_border.line([(24, 34), (256, 34)], fill=(255, 255, 255, 140), width=1)
+        hb = ns_draw.textbbox((0, 0), hdr, font=font_h)
+        ns_draw.text(((no_stamp_w - (hb[2] - hb[0])) // 2, 14), hdr,
+                     fill=(255, 255, 255, 200), font=font_h)
+        ns_draw.line([(24, 34), (no_stamp_w - 24, 34)],
+                     fill=(255, 255, 255, 140), width=1)
 
-        # "?" big
         font_q = _get_impact_font(64)
-        qb = ns_border.textbbox((0, 0), "?", font=font_q)
-        ns_border.text(((280 - (qb[2] - qb[0])) // 2, 38), "?",
-                       fill=(255, 255, 255), font=font_q)
+        qb = ns_draw.textbbox((0, 0), "?", font=font_q)
+        ns_draw.text(((no_stamp_w - (qb[2] - qb[0])) // 2, 38), "?",
+                     fill=(255, 255, 255), font=font_q)
 
-        # "EN ATTENTE"
         font_v = _get_font(28, bold=True)
-        vb = ns_border.textbbox((0, 0), "EN ATTENTE", font=font_v)
-        ns_border.text(((280 - (vb[2] - vb[0])) // 2, 110), "EN ATTENTE",
-                       fill=(255, 255, 255), font=font_v)
+        vb = ns_draw.textbbox((0, 0), "EN ATTENTE", font=font_v)
+        ns_draw.text(((no_stamp_w - (vb[2] - vb[0])) // 2, 110), "EN ATTENTE",
+                     fill=(255, 255, 255), font=font_v)
 
-        # Source
         font_s = _get_font(11)
-        st = "\u25c9 5 secondes"
-        sb = ns_border.textbbox((0, 0), st, font=font_s)
-        ns_border.text(((280 - (sb[2] - sb[0])) // 2, 156), st,
-                       fill=(255, 255, 255, 130), font=font_s)
+        st = "\u25c9 glance.scisense.fr"
+        sb = ns_draw.textbbox((0, 0), st, font=font_s)
+        ns_draw.text(((no_stamp_w - (sb[2] - sb[0])) // 2, 156), st,
+                     fill=(255, 255, 255, 130), font=font_s)
 
-        # Place on padded canvas and rotate
         no_score_stamp.paste(ns_inner, (60, 60), ns_inner)
         stamp_rotated = no_score_stamp.rotate(4, expand=True, resample=Image.BICUBIC)
 
-        # Shadow
         s_alpha = stamp_rotated.split()[3]
         s_alpha_blur = s_alpha.filter(ImageFilter.GaussianBlur(18))
         shadow_c = Image.new("RGBA", stamp_rotated.size, (0, 0, 0, 80))
@@ -957,12 +1083,9 @@ def generate_ga_og_card(image: dict, avg_glance: float | None,
     strip_h = 50
     strip_y = CARD_H - strip_h
 
-    # Semi-transparent white rectangle (frosted glass simulation)
-    frost = Image.new("RGBA", (CARD_W, strip_h), (255, 255, 255, 38))  # 15% white
-    # 1px white top border at 30% opacity
+    frost = Image.new("RGBA", (CARD_W, strip_h), (255, 255, 255, 38))
     frost_draw = ImageDraw.Draw(frost)
     frost_draw.line([(0, 0), (CARD_W, 0)], fill=(255, 255, 255, 77), width=1)
-
     img.paste(frost, (0, strip_y), frost)
 
     # ── Title strip content ──
@@ -970,10 +1093,9 @@ def generate_ga_og_card(image: dict, avg_glance: float | None,
     title = image.get("title", "") or image.get("filename", "")
     domain_text = domain_label.upper() if domain_label else ""
 
-    # Title (left side) — with text shadow for readability
     font_strip_title = _get_font(16, bold=True)
     if title:
-        max_title_w = CARD_W - 200  # leave room for GLANCE on right
+        max_title_w = CARD_W - 200
         display_title = title
         while True:
             tb = strip_draw.textbbox((0, 0), display_title, font=font_strip_title)
@@ -982,13 +1104,11 @@ def generate_ga_og_card(image: dict, avg_glance: float | None,
             display_title = display_title[:len(display_title) - 4] + "..."
 
         title_y = strip_y + (strip_h - (tb[3] - tb[1])) // 2
-        # Text shadow (dark behind for readability)
         strip_draw.text((21, title_y + 1), display_title,
                         fill=(0, 0, 0, 120), font=font_strip_title)
         strip_draw.text((20, title_y), display_title,
                         fill=(255, 255, 255, 230), font=font_strip_title)
 
-    # Domain pill (if available, left of GLANCE)
     glance_right_margin = 20
     font_glance = _get_font(18, bold=True)
     glance_text = "GLANCE"
@@ -997,13 +1117,11 @@ def generate_ga_og_card(image: dict, avg_glance: float | None,
     glance_x = CARD_W - glance_right_margin - glance_w
     glance_y = strip_y + (strip_h - (gb[3] - gb[1])) // 2
 
-    # GLANCE text with shadow
     strip_draw.text((glance_x + 1, glance_y + 1), glance_text,
                     fill=(0, 0, 0, 100), font=font_glance)
     strip_draw.text((glance_x, glance_y), glance_text,
                     fill=(255, 255, 255, 240), font=font_glance)
 
-    # Domain pill between title and GLANCE
     if domain_text:
         font_domain_pill = _get_font(11, bold=True)
         dp_bbox = strip_draw.textbbox((0, 0), domain_text, font=font_domain_pill)
@@ -1016,7 +1134,6 @@ def generate_ga_og_card(image: dict, avg_glance: float | None,
         pill_x = glance_x - pill_total_w - 14
         pill_y = strip_y + (strip_h - pill_total_h) // 2
 
-        # Pill background (white at 25%)
         pill_layer = Image.new("RGBA", (pill_total_w, pill_total_h), (0, 0, 0, 0))
         pill_draw = ImageDraw.Draw(pill_layer)
         pill_draw.rounded_rectangle(
@@ -1028,7 +1145,6 @@ def generate_ga_og_card(image: dict, avg_glance: float | None,
         )
         img.paste(pill_layer, (pill_x, pill_y), pill_layer)
 
-        # Redraw on main image after paste
         strip_draw = ImageDraw.Draw(img)
         strip_draw.text((pill_x + pill_pad_x, pill_y + pill_pad_y),
                         domain_text, fill=(255, 255, 255, 200),

@@ -1,0 +1,17 @@
+{
+  "domain": "viral",
+  "version": "viral_solar_perovskite_2025",
+  "title": "Advancements in perovskites for solar cell commercialization: A review",
+  "source": "Raju et al., Advanced Powder Materials, 2025",
+  "doi": "10.1016/j.apmate.2025.100275",
+  "figure": "Graphical Abstract",
+  "is_control": false,
+  "bloc": "viral",
+  "target_sub": "r/science",
+  "expected_archetype": "Variable",
+  "semantic_references": {
+    "L1": ["perovskite", "solar cell", "commercialization", "renewable energy"],
+    "L2": ["Perovskite solar cells have achieved efficiencies exceeding 26% for single-junction devices", "Stability and scalability remain key challenges for perovskite solar cell commercialization"],
+    "L3": ["Comprehensive review of perovskite solar cell technology covering materials advances, efficiency records exceeding 26% single-junction and 34% tandem, stability challenges from phase instability and environmental degradation, and pathways toward commercial viability"]
+  }
+}

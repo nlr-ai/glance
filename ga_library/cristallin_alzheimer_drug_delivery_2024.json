@@ -1,0 +1,17 @@
+{
+  "domain": "cristallin",
+  "version": "cristallin_alzheimer_drug_delivery_2024",
+  "title": "Alzheimer's disease current therapies, novel drug delivery systems and future directions for better disease management",
+  "source": "Singh et al., Journal of Controlled Release, 2024",
+  "doi": "10.1016/j.jconrel.2024.01.047",
+  "figure": "Graphical Abstract",
+  "is_control": false,
+  "bloc": "cristallin",
+  "target_sub": "r/science",
+  "expected_archetype": "Cristallin",
+  "semantic_references": {
+    "L1": ["Alzheimer's disease", "drug delivery", "nanoparticles", "therapeutics"],
+    "L2": ["Novel drug delivery systems including nanoparticles and liposomes improve brain targeting for AD therapies", "Review covers FDA-approved drugs and emerging formulation strategies for Alzheimer's treatment"],
+    "L3": ["Overview of Alzheimer's disease pathogenesis, current FDA-approved treatments, and innovative drug delivery strategies including nanoparticulate systems, liposomes, and intranasal delivery routes for improved brain bioavailability"]
+  }
+}

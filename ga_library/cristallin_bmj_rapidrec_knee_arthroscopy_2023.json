@@ -1,0 +1,17 @@
+{
+  "domain": "med",
+  "version": "cristallin_bmj_rapidrec_knee_arthroscopy_2023",
+  "title": "Arthroscopic Surgery for Degenerative Knee Arthritis and Meniscal Tears - BMJ Rapid Recommendation Infographic",
+  "source": "BMJ Rapid Recommendations, BMJ Open 2023",
+  "doi": "10.1136/bmjopen-2023-071847",
+  "figure": "Graphical Abstract / Infographic",
+  "is_control": false,
+  "bloc": "cristallin",
+  "mine_source": "bmj",
+  "expected_archetype": "Cristallin",
+  "semantic_references": {
+    "L1": ["BMJ", "arthroscopy", "knee", "meniscal tear", "degenerative arthritis", "surgery"],
+    "L2": ["BMJ Rapid Recommendation infographic for arthroscopic surgery in degenerative knee disease", "Visual summary of evidence for/against arthroscopic knee surgery"],
+    "L3": ["Complete BMJ Rapid Recommendation infographic for arthroscopic surgery for degenerative knee arthritis and meniscal tears. Reproduced with permission from BMJ. Used in user testing study in primary care to evaluate clinician comprehension and usability."]
+  }
+}

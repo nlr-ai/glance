@@ -1,0 +1,17 @@
+{
+  "domain": "pharma",
+  "version": "pharma_gut_brain_axis_2025",
+  "title": "The gut microbiota-immune-brain axis: Therapeutic implications",
+  "source": "O'Riordan et al., Cell Reports Medicine, 2025",
+  "doi": "10.1016/j.xcrm.2025.101982",
+  "figure": "Graphical Abstract",
+  "is_control": false,
+  "bloc": "pharma",
+  "target_sub": "r/MedicalWriters",
+  "expected_archetype": "Polished",
+  "semantic_references": {
+    "L1": ["gut microbiota", "immune system", "brain", "gut-brain axis"],
+    "L2": ["The immune system is a key communication pathway between gut microbiota and the brain", "Microbiome dysregulation is implicated in neuroinflammation across health and disease states"],
+    "L3": ["Review of the gut microbiota-immune-brain axis examining how the immune system mediates bidirectional communication between gut microbiome and brain function, with therapeutic implications for neuroinflammatory and neuropsychiatric disorders"]
+  }
+}

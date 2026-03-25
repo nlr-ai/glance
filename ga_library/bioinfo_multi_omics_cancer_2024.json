@@ -1,0 +1,17 @@
+{
+  "domain": "bioinfo",
+  "version": "bioinfo_multi_omics_cancer_2024",
+  "title": "Multi-OMICS approaches in cancer biology: New era in cancer therapy",
+  "source": "Chakraborty et al., BBA - Molecular Basis of Disease, 2024",
+  "doi": "10.1016/j.bbadis.2024.167120",
+  "figure": "Graphical Abstract",
+  "is_control": false,
+  "bloc": "bioinfo",
+  "target_sub": "r/bioinformatics",
+  "expected_archetype": "Variable",
+  "semantic_references": {
+    "L1": ["multi-omics", "cancer biology", "genomics", "proteomics"],
+    "L2": ["Multi-omics frameworks integrate diverse datasets to enhance understanding of cancer molecular mechanisms", "Algorithmic approaches enable tumor classification and prognosis through integrated omics data"],
+    "L3": ["Review of multi-omics approaches in cancer biology including genomics, transcriptomics, proteomics, and metabolomics integration, examining computational frameworks for tumor classification, biomarker discovery, and personalized therapy development"]
+  }
+}

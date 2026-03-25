@@ -1,0 +1,17 @@
+{
+  "domain": "pharma",
+  "version": "pharma_glp1_obesity_biomed_2024",
+  "title": "Efficacy and safety of GLP-1RAs for people with obesity: A systematic review based on RCT and Bayesian network meta-analysis",
+  "source": "Li et al., Biomedicine & Pharmacotherapy, 2024",
+  "doi": "10.1016/j.biopha.2024.116150",
+  "figure": "Graphical Abstract",
+  "is_control": false,
+  "bloc": "pharma",
+  "target_sub": "r/MedicalWriters",
+  "expected_archetype": "Variable",
+  "semantic_references": {
+    "L1": ["GLP-1", "obesity", "semaglutide", "network meta-analysis"],
+    "L2": ["GLP-1 receptor agonists show significant efficacy for weight reduction in obese patients", "Bayesian network meta-analysis compares multiple GLP-1RA drugs for obesity treatment"],
+    "L3": ["Systematic review and Bayesian network meta-analysis evaluating the efficacy and safety of GLP-1 receptor agonists including semaglutide, liraglutide, and tirzepatide for obesity treatment based on randomized controlled trials"]
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "domain": "pharma",
+  "version": "pharma_statin_adverse_reactions_2024",
+  "title": "Advances in statin adverse reactions and the potential mechanisms: A systematic review",
+  "source": "Zeng et al., Journal of Advanced Research, 2025",
+  "doi": "10.1016/j.jare.2024.12.020",
+  "figure": "Graphical Abstract",
+  "is_control": false,
+  "bloc": "pharma",
+  "target_sub": "r/MedicalWriters",
+  "expected_archetype": "Variable",
+  "semantic_references": {
+    "L1": ["statins", "adverse reactions", "cardiovascular", "systematic review"],
+    "L2": ["Statins are the cornerstone of cardiovascular disease prevention but cause adverse reactions through multiple mechanisms", "Systematic review of statin adverse reaction mechanisms including myopathy, hepatotoxicity, and diabetes risk"],
+    "L3": ["Comprehensive systematic review examining the mechanisms underlying statin adverse reactions, including muscle-related symptoms, liver toxicity, new-onset diabetes, and neurological effects, with analysis of genetic and pharmacological factors contributing to individual susceptibility"]
+  }
+}

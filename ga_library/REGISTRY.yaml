@@ -444,3 +444,256 @@ images:
     correct: null
     notes: "Mass-radius scatter with composition lines, temperature color, classification regions, radius histogram. Archetype: desequilibre."
     added: "2026-03-25"
+
+  # ══════════════════════════════════════════════════════════════════
+  # Cristallin Benchmark — High-quality graphical abstracts from
+  # curated mines. Expected archetype: Cristallin (clear in 5s).
+  # ══════════════════════════════════════════════════════════════════
+
+  # ── Mine 1: BMJ Infographics (5 GAs) ──────────────────────────────
+
+  cristallin_bmj_info_beautiful_award_2016:
+    paper: "BMJ Infographics (Will Stahl-Timmins, BMJ 2016)"
+    doi: null
+    domain: med
+    type: cristallin
+    mine_source: bmj
+    expected_archetype: Cristallin
+    notes: "Kantar Information is Beautiful Awards 2016 winner. Professional medical infographic design."
+    added: "2026-03-25"
+
+  cristallin_bmj_rapidrec_infographic_initial_view_2025:
+    paper: "BMJ Rapid Recommendations Infographic — Initial View Layer (BMJ Open 2025)"
+    doi: "10.1136/bmjopen-2024-090913"
+    domain: med
+    type: cristallin
+    mine_source: bmj
+    expected_archetype: Cristallin
+    notes: "Opening layer: population, intervention/comparison, recommendation direction."
+    added: "2026-03-25"
+
+  cristallin_bmj_rapidrec_grade_summary_2025:
+    paper: "BMJ Rapid Recommendations Infographic — GRADE Summary (BMJ Open 2025)"
+    doi: "10.1136/bmjopen-2024-090913"
+    domain: med
+    type: cristallin
+    mine_source: bmj
+    expected_archetype: Cristallin
+    notes: "Deeper layer: magnitude of effects, certainty of evidence ratings."
+    added: "2026-03-25"
+
+  cristallin_bmj_rapidrec_practical_issues_2025:
+    paper: "BMJ Rapid Recommendations Infographic — Practical Issues (BMJ Open 2025)"
+    doi: "10.1136/bmjopen-2024-090913"
+    domain: med
+    type: cristallin
+    mine_source: bmj
+    expected_archetype: Cristallin
+    notes: "Final layer: practical issues, patient values, additional considerations."
+    added: "2026-03-25"
+
+  cristallin_bmj_rapidrec_knee_arthroscopy_2023:
+    paper: "Arthroscopic Surgery for Degenerative Knee Arthritis — BMJ RapidRec (BMJ Open 2023)"
+    doi: "10.1136/bmjopen-2023-071847"
+    domain: med
+    type: cristallin
+    mine_source: bmj
+    expected_archetype: Cristallin
+    notes: "Complete RapidRec infographic for arthroscopic knee surgery. Used in user testing study."
+    added: "2026-03-25"
+
+  # ── Mine 3: MDPI Best Graphic Abstract Award (7 GAs) ──────────────
+
+  cristallin_mdpi_crispr_potato_starch_2022:
+    paper: "CRISPR/Cas9-Mediated Mutagenesis of GBSSI in Potato (Toinga-Villafuerte et al., IJMS 2022)"
+    doi: "10.3390/ijms23094640"
+    domain: biology
+    type: cristallin
+    mine_source: mdpi_award
+    expected_archetype: Cristallin
+    notes: "IJMS 2022 Best Graphic Abstract Award winner. CRISPR gene editing pipeline."
+    added: "2026-03-25"
+
+  cristallin_mdpi_silver_nanoparticle_films_2022:
+    paper: "Self-Standing Bioinspired Polymer Films with Silver NPs (Kukushkina et al., IJMS 2022)"
+    doi: "10.3390/ijms232415818"
+    domain: materials
+    type: cristallin
+    mine_source: mdpi_award
+    expected_archetype: Cristallin
+    notes: "IJMS 2022 Best Graphic Abstract Award winner. Green synthesis antimicrobial material."
+    added: "2026-03-25"
+
+  cristallin_mdpi_porphyrin_photocatalysis_2022:
+    paper: "Sn(IV)-Porphyrin Supramolecular Arrays for Photocatalysis (Shee & Kim, IJMS 2022)"
+    doi: "10.3390/ijms232213702"
+    domain: chemistry
+    type: cristallin
+    mine_source: mdpi_award
+    expected_archetype: Cristallin
+    notes: "IJMS 2022 Best Graphic Abstract Award winner. 2D/3D porphyrin nanostructures."
+    added: "2026-03-25"
+
+  cristallin_mdpi_genomic_selection_forests_2022:
+    paper: "Twelve Years into Genomic Selection in Forest Trees (Grattapaglia, Forests 2022)"
+    doi: "10.3390/f13101554"
+    domain: biology
+    type: cristallin
+    mine_source: mdpi_award
+    expected_archetype: Cristallin
+    notes: "Forests Top Cited with Excellent GA 2022. Hype cycle curve for genomic selection."
+    added: "2026-03-25"
+
+  cristallin_mdpi_water_in_wood_2022:
+    paper: "Water in Wood: Current Understanding and Gaps (Thybring et al., Forests 2022)"
+    doi: "10.3390/f13122051"
+    domain: materials
+    type: cristallin
+    mine_source: mdpi_award
+    expected_archetype: Cristallin
+    notes: "Forests Top Cited with Excellent GA 2022. Comprehensive wood-water interaction review."
+    added: "2026-03-25"
+
+  cristallin_mdpi_oak_decline_biotic_abiotic_2022:
+    paper: "Oak Decline: Biotic and Abiotic Factors in Central Europe (Machackova et al., Forests 2022)"
+    doi: "10.3390/f13081223"
+    domain: ecology
+    type: cristallin
+    mine_source: mdpi_award
+    expected_archetype: Cristallin
+    notes: "Forests Top Cited with Excellent GA 2022. Multifactorial oak decline Czech Republic."
+    added: "2026-03-25"
+
+  cristallin_mdpi_immunotherapy_oncology_2024:
+    paper: "Immunotherapy Technologies in Clinical Oncology (Biomedicines 2024)"
+    doi: "10.3390/biomedicines12010217"
+    domain: med
+    type: cristallin
+    mine_source: mdpi_award
+    expected_archetype: Cristallin
+    notes: "Immunotherapy review: checkpoint inhibitors, CAR-T, cancer vaccines."
+    added: "2026-03-25"
+
+  # ── Mine 6: U-Michigan CEHR Visual Abstracts (5 GAs) ──────────────
+
+  cristallin_umich_hospital_acquired_conditions_2020:
+    paper: "Improving the Hospital-Acquired Condition Reduction Program (U-Michigan CEHR)"
+    doi: null
+    domain: policy
+    type: cristallin
+    mine_source: umich_cehr
+    expected_archetype: Cristallin
+    notes: "CEHR visual abstract. HACRP rulemaking improvement. Twitter-optimized format."
+    added: "2026-03-25"
+
+  cristallin_umich_diff_in_diff_health_policy_2020:
+    paper: "Difference-in-Differences for Health Care Policy Evaluation (U-Michigan CEHR)"
+    doi: null
+    domain: policy
+    type: cristallin
+    mine_source: umich_cehr
+    expected_archetype: Cristallin
+    notes: "CEHR visual abstract. Methodological guidance on DiD analysis in health policy."
+    added: "2026-03-25"
+
+  cristallin_umich_pay_for_performance_uk_mortality_2020:
+    paper: "Pay-for-Performance in Primary Care on Mortality in UK (U-Michigan CEHR)"
+    doi: null
+    domain: policy
+    type: cristallin
+    mine_source: umich_cehr
+    expected_archetype: Cristallin
+    notes: "CEHR visual abstract. P4P effects on patient mortality outcomes."
+    added: "2026-03-25"
+
+  cristallin_umich_hospital_value_based_purchasing_2020:
+    paper: "Hospital Quality Changes from Value-Based Purchasing (U-Michigan CEHR)"
+    doi: null
+    domain: policy
+    type: cristallin
+    mine_source: umich_cehr
+    expected_archetype: Cristallin
+    notes: "CEHR visual abstract. CMS HVBP program effectiveness evaluation."
+    added: "2026-03-25"
+
+  cristallin_umich_medicare_aco_spillover_2020:
+    paper: "Medicare ACO Spillover to Commercial Patients (U-Michigan CEHR)"
+    doi: null
+    domain: policy
+    type: cristallin
+    mine_source: umich_cehr
+    expected_archetype: Cristallin
+    notes: "CEHR visual abstract. Cross-payer impact of ACO physician participation."
+    added: "2026-03-25"
+
+  # ── Mine 7: Jambor & Bornhauser 2024 — Ten Simple Rules (7 figs) ──
+
+  cristallin_jambor_2024_evolution_sketch_to_final:
+    paper: "Ten Simple Rules for Designing Graphical Abstracts (Jambor & Bornhauser, PLOS Comp Biol 2024)"
+    doi: "10.1371/journal.pcbi.1011789"
+    domain: methodology
+    type: cristallin
+    mine_source: jambor_2024
+    expected_archetype: Cristallin
+    notes: "Fig 1: Sketch → BioRender draft → final. Demonstrates iterative GA design."
+    added: "2026-03-25"
+
+  cristallin_jambor_2024_pictogram_consistency:
+    paper: "Ten Simple Rules for Designing Graphical Abstracts (Jambor & Bornhauser, PLOS Comp Biol 2024)"
+    doi: "10.1371/journal.pcbi.1011789"
+    domain: methodology
+    type: cristallin
+    mine_source: jambor_2024
+    expected_archetype: Cristallin
+    notes: "Fig 2: Good vs poor pictogram combinations. Visual consistency principle."
+    added: "2026-03-25"
+
+  cristallin_jambor_2024_chart_types:
+    paper: "Ten Simple Rules for Designing Graphical Abstracts (Jambor & Bornhauser, PLOS Comp Biol 2024)"
+    doi: "10.1371/journal.pcbi.1011789"
+    domain: methodology
+    type: cristallin
+    mine_source: jambor_2024
+    expected_archetype: Cristallin
+    notes: "Fig 3: Bar, pie, line charts for high-level info with few data points."
+    added: "2026-03-25"
+
+  cristallin_jambor_2024_dimensions_text:
+    paper: "Ten Simple Rules for Designing Graphical Abstracts (Jambor & Bornhauser, PLOS Comp Biol 2024)"
+    doi: "10.1371/journal.pcbi.1011789"
+    domain: methodology
+    type: cristallin
+    mine_source: jambor_2024
+    expected_archetype: Cristallin
+    notes: "Fig 4: Dimensions, aspect ratios, text integration."
+    added: "2026-03-25"
+
+  cristallin_jambor_2024_layout_flow:
+    paper: "Ten Simple Rules for Designing Graphical Abstracts (Jambor & Bornhauser, PLOS Comp Biol 2024)"
+    doi: "10.1371/journal.pcbi.1011789"
+    domain: methodology
+    type: cristallin
+    mine_source: jambor_2024
+    expected_archetype: Cristallin
+    notes: "Fig 5: Layout strategies with clear start/end points."
+    added: "2026-03-25"
+
+  cristallin_jambor_2024_arrow_semantics:
+    paper: "Ten Simple Rules for Designing Graphical Abstracts (Jambor & Bornhauser, PLOS Comp Biol 2024)"
+    doi: "10.1371/journal.pcbi.1011789"
+    domain: methodology
+    type: cristallin
+    mine_source: jambor_2024
+    expected_archetype: Cristallin
+    notes: "Fig 6: Arrow types and context-dependent semantic meanings."
+    added: "2026-03-25"
+
+  cristallin_jambor_2024_color_encoding:
+    paper: "Ten Simple Rules for Designing Graphical Abstracts (Jambor & Bornhauser, PLOS Comp Biol 2024)"
+    doi: "10.1371/journal.pcbi.1011789"
+    domain: methodology
+    type: cristallin
+    mine_source: jambor_2024
+    expected_archetype: Cristallin
+    notes: "Fig 7: Color for highlighting, encoding numbers, natural appearance."
+    added: "2026-03-25"

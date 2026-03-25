@@ -1,0 +1,17 @@
+{
+  "domain": "epi",
+  "version": "epi_ntd_global_burden_2025",
+  "title": "Global, regional, and national burden of neglected tropical diseases and malaria in the general population, 1990-2021",
+  "source": "Zheng et al., Journal of Advanced Research, 2026",
+  "doi": "10.1016/j.jare.2025.04.004",
+  "figure": "Graphical Abstract",
+  "is_control": false,
+  "bloc": "epi",
+  "target_sub": "r/epidemiology",
+  "expected_archetype": "Variable",
+  "semantic_references": {
+    "L1": ["neglected tropical diseases", "malaria", "global burden", "epidemiology"],
+    "L2": ["NTDs and malaria continue to disproportionately affect low-income populations globally", "Systematic analysis of GBD 2021 data reveals regional disparities in NTD burden"],
+    "L3": ["Systematic analysis using Global Burden of Disease 2021 data examining the global, regional, and national burden of neglected tropical diseases and malaria from 1990 to 2021, revealing trends in incidence, prevalence, and mortality across populations"]
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "domain": "cristallin",
+  "version": "cristallin_gut_microbiome_probiotics_2025",
+  "title": "Targeting the human gut microbiome: a comparative review of probiotics, prebiotics, synbiotics, and postbiotics",
+  "source": "Sun et al., Journal of Advanced Research, 2025",
+  "doi": "10.1016/j.jare.2025.12.032",
+  "figure": "Graphical Abstract",
+  "is_control": false,
+  "bloc": "cristallin",
+  "target_sub": "r/science",
+  "expected_archetype": "Cristallin",
+  "semantic_references": {
+    "L1": ["gut microbiome", "probiotics", "prebiotics", "synbiotics"],
+    "L2": ["Comparative analysis of probiotics, prebiotics, synbiotics, and postbiotics for gut health modulation", "Gut microbiome composition and systemic organ interactions determine therapeutic efficacy"],
+    "L3": ["Critical comparative review of gut microbiome modulation strategies including probiotics, prebiotics, synbiotics, and postbiotics, examining mechanisms of action, clinical evidence, and therapeutic applications for gastrointestinal and systemic health"]
+  }
+}

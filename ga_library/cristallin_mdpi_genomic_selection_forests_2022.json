@@ -1,0 +1,17 @@
+{
+  "domain": "biology",
+  "version": "cristallin_mdpi_genomic_selection_forests_2022",
+  "title": "Twelve Years into Genomic Selection in Forest Trees: Climbing the Slope of Enlightenment of Marker Assisted Tree Breeding",
+  "source": "Grattapaglia, Forests 2022",
+  "doi": "10.3390/f13101554",
+  "figure": "Graphical Abstract",
+  "is_control": false,
+  "bloc": "cristallin",
+  "mine_source": "mdpi_award",
+  "expected_archetype": "Cristallin",
+  "semantic_references": {
+    "L1": ["genomic selection", "forest trees", "marker assisted breeding", "hype cycle", "tree improvement"],
+    "L2": ["MDPI Forests Top Cited Paper with Excellent Graphical Abstract 2022", "Uses Gartner hype cycle curve to model genomic selection progress in forestry"],
+    "L3": ["Excellent graphical abstract reviewing 12 years of genomic selection in forest tree breeding. Maps progress using the Gartner hype cycle curve from peak of inflated expectations through valley of disappointment to slope of enlightenment. Shows paradigm shift in tree breeding practice worldwide. CC BY 4.0."]
+  }
+}

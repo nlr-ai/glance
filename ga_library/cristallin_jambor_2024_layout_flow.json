@@ -1,0 +1,17 @@
+{
+  "domain": "methodology",
+  "version": "cristallin_jambor_2024_layout_flow",
+  "title": "Layout Strategies for Graphical Abstracts with Clear Start and End Points",
+  "source": "Jambor & Bornhauser, PLOS Computational Biology 2024",
+  "doi": "10.1371/journal.pcbi.1011789",
+  "figure": "Figure 5",
+  "is_control": false,
+  "bloc": "cristallin",
+  "mine_source": "jambor_2024",
+  "expected_archetype": "Cristallin",
+  "semantic_references": {
+    "L1": ["layout", "flow", "reading direction", "start point", "end point", "visual narrative"],
+    "L2": ["Different layouts for graphical abstracts with clear start and end points", "Linear, circular, and branching layout strategies"],
+    "L3": ["Figure 5 from the Ten Simple Rules paper demonstrating different layout strategies for graphical abstracts. Shows various arrangements with clear start and end points, including linear horizontal, linear vertical, and other flow patterns. Essential for guiding the viewer's reading path. CC BY 4.0."]
+  }
+}

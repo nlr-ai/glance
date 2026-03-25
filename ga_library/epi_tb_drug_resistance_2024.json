@@ -1,0 +1,17 @@
+{
+  "domain": "epi",
+  "version": "epi_tb_drug_resistance_2024",
+  "title": "Drug resistance in Mycobacterium tuberculosis: An evolutionary perspective and its adaptation to the lung microenvironment",
+  "source": "Shukla et al., The Microbe, 2024",
+  "doi": "10.1016/j.microb.2024.100189",
+  "figure": "Graphical Abstract",
+  "is_control": false,
+  "bloc": "epi",
+  "target_sub": "r/epidemiology",
+  "expected_archetype": "Variable",
+  "semantic_references": {
+    "L1": ["tuberculosis", "drug resistance", "mycobacterium", "lung microenvironment"],
+    "L2": ["M. tuberculosis drug resistance mechanisms are viewed through an evolutionary lens", "Adaptation to the lung microenvironment shapes drug resistance evolution in TB"],
+    "L3": ["Examination of acquired drug resistance mechanisms in Mycobacterium tuberculosis from an evolutionary perspective, analyzing how adaptation to the lung microenvironment influences resistance to isoniazid, rifampicin, and ethambutol"]
+  }
+}

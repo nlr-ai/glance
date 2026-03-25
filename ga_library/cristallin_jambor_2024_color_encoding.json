@@ -1,0 +1,17 @@
+{
+  "domain": "methodology",
+  "version": "cristallin_jambor_2024_color_encoding",
+  "title": "Color Functions in Graphical Abstracts: Highlight, Encode, and Natural Appearance",
+  "source": "Jambor & Bornhauser, PLOS Computational Biology 2024",
+  "doi": "10.1371/journal.pcbi.1011789",
+  "figure": "Figure 7",
+  "is_control": false,
+  "bloc": "cristallin",
+  "mine_source": "jambor_2024",
+  "expected_archetype": "Cristallin",
+  "semantic_references": {
+    "L1": ["color", "encoding", "highlight", "quantitative color", "natural color", "accessibility"],
+    "L2": ["Color can highlight, encode numbers, or show natural appearance in graphical abstracts", "Three functions of color in scientific visual communication"],
+    "L3": ["Figure 7 from the Ten Simple Rules paper demonstrating three functions of color in graphical abstracts: highlighting key elements, encoding quantitative data, and showing natural appearance of objects. Covers color accessibility considerations. CC BY 4.0."]
+  }
+}

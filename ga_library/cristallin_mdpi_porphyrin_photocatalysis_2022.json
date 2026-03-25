@@ -1,0 +1,17 @@
+{
+  "domain": "chemistry",
+  "version": "cristallin_mdpi_porphyrin_photocatalysis_2022",
+  "title": "Sn(IV)-Porphyrin-Based Nanostructures Featuring Pd(II)-Mediated Supramolecular Arrays and Their Photocatalytic Degradation of Acid Orange 7 Dye",
+  "source": "Shee & Kim, IJMS 2022",
+  "doi": "10.3390/ijms232213702",
+  "figure": "Graphical Abstract",
+  "is_control": false,
+  "bloc": "cristallin",
+  "mine_source": "mdpi_award",
+  "expected_archetype": "Cristallin",
+  "semantic_references": {
+    "L1": ["porphyrin", "supramolecular", "photocatalysis", "nanostructures", "dye degradation", "palladium"],
+    "L2": ["IJMS 2022 Best Graphic Abstract Award winner", "Sn(IV)-porphyrin/Pd(II) supramolecular arrays for photocatalytic dye degradation (86-91% in 90 min)"],
+    "L3": ["Award-winning graphical abstract showing two porphyrin-based supramolecular architectures: 2D tetrameric (from SnP1 + trans-PdCl2) and 3D divergent array (from SnP2 + trans-PdCl2). Photocatalytic degradation of Acid Orange 7 dye achieves 86-91% efficiency in 90 min. CC BY 4.0 license."]
+  }
+}

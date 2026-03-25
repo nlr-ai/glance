@@ -1,0 +1,17 @@
+{
+  "domain": "viral",
+  "version": "viral_microplastics_health_2024",
+  "title": "Human exposure to microplastics: A review on exposure routes and public health impacts",
+  "source": "Nawab et al., Journal of Hazardous Materials Advances, 2024",
+  "doi": "10.1016/j.hazadv.2024.100487",
+  "figure": "Graphical Abstract",
+  "is_control": false,
+  "bloc": "viral",
+  "target_sub": "r/science",
+  "expected_archetype": "Variable",
+  "semantic_references": {
+    "L1": ["microplastics", "human exposure", "public health", "environmental health"],
+    "L2": ["Microplastic exposure occurs through ingestion, inhalation, and dermal contact pathways", "Microplastics accumulate in human organs causing oxidative stress, inflammation, and endocrine disruption"],
+    "L3": ["Comprehensive review of human exposure routes to microplastics including ingestion, inhalation, and skin contact, examining distribution and accumulation in organs, associated health impacts including oxidative stress, inflammation, endocrine disruption, and potential carcinogenesis"]
+  }
+}

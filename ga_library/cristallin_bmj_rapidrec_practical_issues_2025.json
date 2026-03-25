@@ -1,0 +1,17 @@
+{
+  "domain": "med",
+  "version": "cristallin_bmj_rapidrec_practical_issues_2025",
+  "title": "BMJ Rapid Recommendations Infographic - Practical Issues, Values and Preferences",
+  "source": "BMJ Rapid Recommendations / MAGIC Evidence Ecosystem Foundation, BMJ Open 2025",
+  "doi": "10.1136/bmjopen-2024-090913",
+  "figure": "Infographic - Practical Issues",
+  "is_control": false,
+  "bloc": "cristallin",
+  "mine_source": "bmj",
+  "expected_archetype": "Cristallin",
+  "semantic_references": {
+    "L1": ["BMJ", "clinical practice", "patient values", "shared decision-making"],
+    "L2": ["Final infographic layer with panel statements and decision-making factors", "Key practical issues, values and preferences, and additional considerations"],
+    "L3": ["BMJ Rapid Recommendations infographic showing practical clinical issues, patient values and preferences, and additional considerations for clinical decision-making. Designed to support shared decision-making between clinicians and patients."]
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "domain": "methodology",
+  "version": "cristallin_jambor_2024_pictogram_consistency",
+  "title": "Pictogram Consistency in Graphical Abstracts: Good vs Poor Combinations",
+  "source": "Jambor & Bornhauser, PLOS Computational Biology 2024",
+  "doi": "10.1371/journal.pcbi.1011789",
+  "figure": "Figure 2",
+  "is_control": false,
+  "bloc": "cristallin",
+  "mine_source": "jambor_2024",
+  "expected_archetype": "Cristallin",
+  "semantic_references": {
+    "L1": ["pictograms", "visual consistency", "icon design", "graphical abstract", "design principles"],
+    "L2": ["Panel A shows consistent pictograms (similar color, size, design style)", "Panel B shows poor combination with inconsistent pictogram styles"],
+    "L3": ["Figure 2 from the Ten Simple Rules paper demonstrating pictogram consistency. Panel A shows pictograms with similar overall appearance (color, size, design), while Panel B shows a poor combination of inconsistent styles. Key design principle for effective graphical abstracts. CC BY 4.0."]
+  }
+}

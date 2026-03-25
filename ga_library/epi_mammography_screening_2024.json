@@ -1,0 +1,17 @@
+{
+  "domain": "epi",
+  "version": "epi_mammography_screening_2024",
+  "title": "Effect of screening mammography on the risk of breast cancer deaths and of all-cause deaths: a systematic review with meta-analysis of cohort studies",
+  "source": "Autier et al., Journal of Clinical Epidemiology, 2024",
+  "doi": "10.1016/j.jclinepi.2024.111426",
+  "figure": "Graphical Abstract",
+  "is_control": false,
+  "bloc": "epi",
+  "target_sub": "r/epidemiology",
+  "expected_archetype": "Variable",
+  "semantic_references": {
+    "L1": ["mammography", "breast cancer", "screening", "meta-analysis"],
+    "L2": ["Systematic review evaluates the effectiveness of screening mammography on breast cancer and all-cause mortality", "Meta-analysis of cohort studies provides evidence on mammography screening impact"],
+    "L3": ["Systematic review and meta-analysis of observational cohort studies evaluating the effect of screening mammography programs on the risk of breast cancer deaths and all-cause deaths in women offered screening, providing population-level evidence for screening effectiveness"]
+  }
+}

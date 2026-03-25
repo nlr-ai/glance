@@ -1,0 +1,17 @@
+{
+  "domain": "bioinfo",
+  "version": "bioinfo_microbial_genomics_2025",
+  "title": "Advancements and challenges in bioinformatics tools for microbial genomics in the last decade",
+  "source": "Houmenou et al., Infection, Genetics and Evolution, 2025",
+  "doi": "10.1016/j.meegid.2025.105859",
+  "figure": "Graphical Abstract",
+  "is_control": false,
+  "bloc": "bioinfo",
+  "target_sub": "r/bioinformatics",
+  "expected_archetype": "Variable",
+  "semantic_references": {
+    "L1": ["bioinformatics", "microbial genomics", "sequencing tools", "computational biology"],
+    "L2": ["Bioinformatics tools have transformed microbial genomics from sample preparation through genome assembly and annotation", "Smart integration of digital resources and emerging technologies advances complex biological data analysis"],
+    "L3": ["Comprehensive review of bioinformatics tool advancements for microbial genomics over the past decade, covering next-generation sequencing pipelines, genome assembly, functional annotation, and the integration of AI with traditional computational approaches"]
+  }
+}

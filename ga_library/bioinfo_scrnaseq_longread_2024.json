@@ -1,0 +1,17 @@
+{
+  "domain": "bioinfo",
+  "version": "bioinfo_scrnaseq_longread_2024",
+  "title": "Systematic evaluation of single-cell RNA-seq analyses performance based on long-read sequencing platforms",
+  "source": "Deng et al., Journal of Advanced Research, 2025",
+  "doi": "10.1016/j.jare.2024.05.020",
+  "figure": "Graphical Abstract",
+  "is_control": false,
+  "bloc": "bioinfo",
+  "target_sub": "r/bioinformatics",
+  "expected_archetype": "Variable",
+  "semantic_references": {
+    "L1": ["scRNA-seq", "long-read sequencing", "single-cell", "transcriptomics"],
+    "L2": ["Systematic comparison of single-cell RNA-seq performance across long-read sequencing platforms", "Long-read sequencing enables improved transcript-level analysis in single-cell genomics"],
+    "L3": ["Comprehensive systematic evaluation comparing single-cell RNA sequencing analysis performance across long-read sequencing platforms including PacBio and Oxford Nanopore, assessing accuracy, throughput, and analytical capabilities for transcriptome profiling at single-cell resolution"]
+  }
+}

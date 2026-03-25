@@ -1,0 +1,17 @@
+{
+  "domain": "policy",
+  "version": "cristallin_umich_diff_in_diff_health_policy_2020",
+  "title": "Difference-in-Differences for Evaluating Changes in Health Care Policy",
+  "source": "U-Michigan CEHR, School of Public Health",
+  "doi": null,
+  "figure": "Visual Abstract",
+  "is_control": false,
+  "bloc": "cristallin",
+  "mine_source": "umich_cehr",
+  "expected_archetype": "Cristallin",
+  "semantic_references": {
+    "L1": ["difference-in-differences", "causal inference", "health policy", "methodology", "quasi-experimental"],
+    "L2": ["Methodological visual abstract on difference-in-differences analysis in health policy evaluation", "Addresses non-parallel trends in policy evaluation"],
+    "L3": ["U-Michigan CEHR visual abstract explaining the difference-in-differences methodology for evaluating changes in health care policy. Addresses coping with non-parallel trends. Part of CEHR's methodological guidance for health policy researchers."]
+  }
+}

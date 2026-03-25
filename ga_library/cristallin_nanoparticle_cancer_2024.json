@@ -1,0 +1,17 @@
+{
+  "domain": "cristallin",
+  "version": "cristallin_nanoparticle_cancer_2024",
+  "title": "Nanoparticles in cancer theragnostic and drug delivery: A comprehensive review",
+  "source": "Al-Thani et al., Life Sciences, 2024",
+  "doi": "10.1016/j.lfs.2024.122899",
+  "figure": "Graphical Abstract",
+  "is_control": false,
+  "bloc": "cristallin",
+  "target_sub": "r/science",
+  "expected_archetype": "Cristallin",
+  "semantic_references": {
+    "L1": ["nanoparticles", "cancer", "theragnostic", "drug delivery"],
+    "L2": ["Nanoparticle-based systems enable simultaneous cancer diagnosis and treatment", "Gold, iron oxide, silica nanoparticles and liposomes offer distinct therapeutic advantages in oncology"],
+    "L3": ["Comprehensive review of nanoparticle platforms for cancer theragnostics and drug delivery, examining gold, iron oxide, silica, quantum dots, carbon nanotubes, and liposomal systems for diagnostic imaging and targeted therapeutic delivery"]
+  }
+}

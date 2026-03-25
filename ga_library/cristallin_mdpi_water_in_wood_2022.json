@@ -1,0 +1,17 @@
+{
+  "domain": "materials",
+  "version": "cristallin_mdpi_water_in_wood_2022",
+  "title": "Water in Wood: A Review of Current Understanding and Knowledge Gaps",
+  "source": "Thybring, Fredriksson, Zelinka & Glass, Forests 2022",
+  "doi": "10.3390/f13122051",
+  "figure": "Graphical Abstract",
+  "is_control": false,
+  "bloc": "cristallin",
+  "mine_source": "mdpi_award",
+  "expected_archetype": "Cristallin",
+  "semantic_references": {
+    "L1": ["wood", "water", "sorption", "cell wall", "fiber saturation", "hygroscopy"],
+    "L2": ["MDPI Forests Top Cited Paper with Excellent Graphical Abstract 2022", "Comprehensive review of wood-water interactions central to wood utilization"],
+    "L3": ["Excellent graphical abstract for a comprehensive review covering locations of water in wood, phase changes, equilibrium states, thermodynamics of sorption, shrinkage/swelling, sorption hysteresis, transport, and kinetics. Central to wood science and utilization. CC BY 4.0."]
+  }
+}

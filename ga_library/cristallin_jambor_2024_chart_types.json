@@ -1,0 +1,17 @@
+{
+  "domain": "methodology",
+  "version": "cristallin_jambor_2024_chart_types",
+  "title": "Common Chart Types for Graphical Abstracts: Bar, Pie, and Line Charts",
+  "source": "Jambor & Bornhauser, PLOS Computational Biology 2024",
+  "doi": "10.1371/journal.pcbi.1011789",
+  "figure": "Figure 3",
+  "is_control": false,
+  "bloc": "cristallin",
+  "mine_source": "jambor_2024",
+  "expected_archetype": "Cristallin",
+  "semantic_references": {
+    "L1": ["chart types", "bar chart", "pie chart", "line chart", "data visualization", "few data points"],
+    "L2": ["Common chart types (bar, pie, line) that convey high-level information with few data points", "Appropriate data encoding for graphical abstracts"],
+    "L3": ["Figure 3 from the Ten Simple Rules paper showing common chart types suitable for graphical abstracts: bar charts, pie charts, and line charts. Emphasizes that these should convey high-level information with few data points, appropriate for the summary nature of graphical abstracts. CC BY 4.0."]
+  }
+}

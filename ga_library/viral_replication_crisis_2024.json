@@ -1,0 +1,17 @@
+{
+  "domain": "viral",
+  "version": "viral_replication_crisis_2024",
+  "title": "The replication crisis and its relevance to Earth Science studies: Case studies and recommendations",
+  "source": "Puetz et al., Geoscience Frontiers, 2024",
+  "doi": "10.1016/j.gsf.2024.101821",
+  "figure": "Graphical Abstract",
+  "is_control": false,
+  "bloc": "viral",
+  "target_sub": "r/science",
+  "expected_archetype": "Variable",
+  "semantic_references": {
+    "L1": ["replication crisis", "reproducibility", "scientific method", "data quality"],
+    "L2": ["Poor data quality and omissions significantly affect research replicability across Earth sciences", "Recommendations for improving reproducibility include transparent data sharing and methodological documentation"],
+    "L3": ["Analysis of the replication crisis and its relevance to Earth Science research, presenting case studies demonstrating how data quality issues and methodological challenges affect replicability, with concrete recommendations for improving research reproducibility"]
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "domain": "pharma",
+  "version": "pharma_immune_checkpoint_beyond_2025",
+  "title": "A comprehensive review on targeting diverse immune cells for anticancer therapy: Beyond immune checkpoint inhibitors",
+  "source": "Liu et al., Critical Reviews in Oncology/Hematology, 2025",
+  "doi": "10.1016/j.critrevonc.2025.104702",
+  "figure": "Graphical Abstract",
+  "is_control": false,
+  "bloc": "pharma",
+  "target_sub": "r/MedicalWriters",
+  "expected_archetype": "Variable",
+  "semantic_references": {
+    "L1": ["immunotherapy", "checkpoint inhibitors", "cancer", "immune cells"],
+    "L2": ["Anticancer immunotherapy extends beyond checkpoint inhibitors to target diverse immune cell populations", "Comprehensive review of emerging immunotherapeutic strategies targeting multiple immune cell types"],
+    "L3": ["Review covering therapeutic strategies targeting diverse immune cell populations for cancer treatment beyond traditional immune checkpoint inhibitors, including approaches targeting NK cells, macrophages, dendritic cells, and other innate and adaptive immune components"]
+  }
+}

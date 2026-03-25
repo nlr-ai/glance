@@ -1,0 +1,17 @@
+{
+  "domain": "epi",
+  "version": "epi_wastewater_surveillance_2025",
+  "title": "From wastewater to epidemiological insights: A systematic review of modeling strategies for infectious disease surveillance",
+  "source": "Wang et al., Water Research, 2026",
+  "doi": "10.1016/j.watres.2025.124977",
+  "figure": "Graphical Abstract",
+  "is_control": false,
+  "bloc": "epi",
+  "target_sub": "r/epidemiology",
+  "expected_archetype": "Variable",
+  "semantic_references": {
+    "L1": ["wastewater surveillance", "infectious disease", "epidemiology", "modeling"],
+    "L2": ["Wastewater-based epidemiology has emerged as a key surveillance approach for infectious diseases since 2021", "Modeling strategies translate wastewater pathogen concentrations into population-level disease estimates"],
+    "L3": ["Systematic review of computational modeling strategies for wastewater-based epidemiological surveillance of infectious diseases, examining approaches to translate pathogen concentrations in wastewater into actionable public health intelligence"]
+  }
+}

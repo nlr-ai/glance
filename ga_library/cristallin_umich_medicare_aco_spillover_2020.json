@@ -1,0 +1,17 @@
+{
+  "domain": "policy",
+  "version": "cristallin_umich_medicare_aco_spillover_2020",
+  "title": "Do Effects of Medicare ACOs Spill Over to Commercial Patients?",
+  "source": "U-Michigan CEHR, School of Public Health",
+  "doi": null,
+  "figure": "Visual Abstract",
+  "is_control": false,
+  "bloc": "cristallin",
+  "mine_source": "umich_cehr",
+  "expected_archetype": "Cristallin",
+  "semantic_references": {
+    "L1": ["Medicare ACO", "spillover effects", "commercial insurance", "physician participation", "spending"],
+    "L2": ["Visual abstract on Medicare ACO spillover effects to commercial patients", "Physician participation in Medicare Accountable Care Organizations and impact on commercial spending"],
+    "L3": ["U-Michigan CEHR visual abstract examining whether physician participation in Medicare Accountable Care Organizations produces spillover effects in commercial patient spending. Evaluates cross-payer impact of ACO participation."]
+  }
+}

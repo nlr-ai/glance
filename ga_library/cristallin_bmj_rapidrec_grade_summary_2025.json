@@ -1,0 +1,17 @@
+{
+  "domain": "med",
+  "version": "cristallin_bmj_rapidrec_grade_summary_2025",
+  "title": "BMJ Rapid Recommendations Infographic - GRADE Summary of Findings",
+  "source": "BMJ Rapid Recommendations / MAGIC Evidence Ecosystem Foundation, BMJ Open 2025",
+  "doi": "10.1136/bmjopen-2024-090913",
+  "figure": "Infographic - GRADE Summary",
+  "is_control": false,
+  "bloc": "cristallin",
+  "mine_source": "bmj",
+  "expected_archetype": "Cristallin",
+  "semantic_references": {
+    "L1": ["BMJ", "GRADE", "evidence summary", "certainty of evidence", "clinical outcomes"],
+    "L2": ["Deeper layer showing magnitude of effects and certainty of evidence ratings", "GRADE summary of findings for patient-important outcomes"],
+    "L3": ["BMJ Rapid Recommendations infographic showing strength of recommendation and GRADE summary of findings. Displays magnitude of effects and certainty of evidence ratings for patient-important outcomes. Designed for clinicians to rapidly assess evidence quality."]
+  }
+}

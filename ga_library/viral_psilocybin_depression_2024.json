@@ -1,0 +1,17 @@
+{
+  "domain": "viral",
+  "version": "viral_psilocybin_depression_2024",
+  "title": "Psilocybin-assisted psychotherapy for treatment resistant depression: A randomized clinical trial evaluating repeated doses of psilocybin",
+  "source": "Rosenblat et al., Med, 2024",
+  "doi": "10.1016/j.medj.2024.01.005",
+  "figure": "Graphical Abstract",
+  "is_control": false,
+  "bloc": "viral",
+  "target_sub": "r/science",
+  "expected_archetype": "Polished",
+  "semantic_references": {
+    "L1": ["psilocybin", "depression", "psychotherapy", "clinical trial"],
+    "L2": ["Repeated doses of psilocybin showed greater antidepressant effects in treatment-resistant depression", "Psilocybin-assisted psychotherapy demonstrates significant efficacy with adequate safety profile"],
+    "L3": ["Randomized clinical trial evaluating repeated 25mg psilocybin doses for treatment-resistant depression, including participants with major depressive disorder and bipolar II disorder, demonstrating significant antidepressant effects with preparation and integration psychotherapy sessions"]
+  }
+}

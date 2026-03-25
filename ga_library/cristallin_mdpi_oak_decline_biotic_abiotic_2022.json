@@ -1,0 +1,17 @@
+{
+  "domain": "ecology",
+  "version": "cristallin_mdpi_oak_decline_biotic_abiotic_2022",
+  "title": "Oak Decline Caused by Biotic and Abiotic Factors in Central Europe: A Case Study from the Czech Republic",
+  "source": "Machackova et al., Forests 2022",
+  "doi": "10.3390/f13081223",
+  "figure": "Graphical Abstract",
+  "is_control": false,
+  "bloc": "cristallin",
+  "mine_source": "mdpi_award",
+  "expected_archetype": "Cristallin",
+  "semantic_references": {
+    "L1": ["oak decline", "Phytophthora", "Ophiostoma", "subcortical insects", "tracheomycosis", "climate"],
+    "L2": ["MDPI Forests Top Cited Paper with Excellent Graphical Abstract 2022", "Multifactorial oak decline in Czech Republic: biotic agents and abiotic stress"],
+    "L3": ["Excellent graphical abstract showing investigation of biotic agents (subcortical insects, Ophiostoma spp., Phytophthora spp.) in six declining oak stands in mesophytic and thermophytic zones in Czech Republic, following five dry years (2015-2019). Demonstrates multifactorial decline process. CC BY 4.0."]
+  }
+}

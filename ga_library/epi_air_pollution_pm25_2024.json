@@ -1,0 +1,17 @@
+{
+  "domain": "epi",
+  "version": "epi_air_pollution_pm25_2024",
+  "title": "An update on adverse health effects from exposure to PM2.5",
+  "source": "Sangkham et al., Environmental Advances, 2024",
+  "doi": "10.1016/j.envadv.2024.100603",
+  "figure": "Graphical Abstract",
+  "is_control": false,
+  "bloc": "epi",
+  "target_sub": "r/epidemiology",
+  "expected_archetype": "Variable",
+  "semantic_references": {
+    "L1": ["PM2.5", "air pollution", "respiratory health", "particulate matter"],
+    "L2": ["PM2.5 exposure increases innate immune responses including IL-6, TNF-alpha, and IFN-gamma", "Respiratory tract is the primary pathway connecting the immune system and PM2.5 particles"],
+    "L3": ["Updated review of adverse health effects from PM2.5 exposure covering respiratory, cardiovascular, neurological, and immunological impacts, including mechanistic pathways from nasal passage through airways to alveolar gas exchange units"]
+  }
+}

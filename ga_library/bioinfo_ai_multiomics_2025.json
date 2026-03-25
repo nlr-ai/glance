@@ -1,0 +1,17 @@
+{
+  "domain": "bioinfo",
+  "version": "bioinfo_ai_multiomics_2025",
+  "title": "AI-driven multi-omics integration for multi-scale predictive modeling of genotype-environment-phenotype relationships",
+  "source": "Wu et al., Computational and Structural Biotechnology Journal, 2025",
+  "doi": "10.1016/j.csbj.2024.12.030",
+  "figure": "Graphical Abstract",
+  "is_control": false,
+  "bloc": "bioinfo",
+  "target_sub": "r/bioinformatics",
+  "expected_archetype": "Variable",
+  "semantic_references": {
+    "L1": ["AI", "multi-omics", "genotype-phenotype", "predictive modeling"],
+    "L2": ["AI-driven integration of multi-omics data enables predictive modeling of complex genotype-environment-phenotype relationships", "Multi-scale approaches bridge molecular measurements to organism-level phenotypic predictions"],
+    "L3": ["Review of AI approaches for integrating multi-omics datasets across scales to build predictive models linking genotype and environmental factors to phenotypic outcomes, advancing precision medicine and systems biology"]
+  }
+}

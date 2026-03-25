@@ -1,0 +1,17 @@
+{
+  "domain": "biology",
+  "version": "cristallin_mdpi_crispr_potato_starch_2022",
+  "title": "CRISPR/Cas9-Mediated Mutagenesis of the Granule-Bound Starch Synthase Gene in the Potato Variety Yukon Gold to Obtain Amylose-Free Starch in Tubers",
+  "source": "Toinga-Villafuerte et al., IJMS 2022",
+  "doi": "10.3390/ijms23094640",
+  "figure": "Graphical Abstract",
+  "is_control": false,
+  "bloc": "cristallin",
+  "mine_source": "mdpi_award",
+  "expected_archetype": "Cristallin",
+  "semantic_references": {
+    "L1": ["CRISPR", "Cas9", "potato", "starch", "amylose", "gene editing", "Agrobacterium"],
+    "L2": ["IJMS 2022 Best Graphic Abstract Award winner", "CRISPR/Cas9 disruption of gbssI gene to eliminate amylose from potato tuber starch"],
+    "L3": ["Award-winning graphical abstract showing CRISPR/Cas9-mediated mutagenesis pipeline: Agrobacterium-mediated transformation delivers CRISPR/Cas9 reagents to potato Yukon Gold cells, targeting granule-bound starch synthase (gbssI) gene to produce amylose-free starch in tubers. CC BY 4.0 license."]
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "domain": "pharma",
+  "version": "pharma_mrna_therapeutics_2025",
+  "title": "mRNA therapeutics: Transforming medicine through innovation in design, delivery, and disease treatment",
+  "source": "Ige et al., Molecular Therapy Nucleic Acids, 2025",
+  "doi": "10.1016/j.omtn.2025.102721",
+  "figure": "Graphical Abstract",
+  "is_control": false,
+  "bloc": "pharma",
+  "target_sub": "r/MedicalWriters",
+  "expected_archetype": "Variable",
+  "semantic_references": {
+    "L1": ["mRNA", "therapeutics", "vaccine", "drug delivery"],
+    "L2": ["mRNA therapeutics have revolutionized medicine following COVID-19 vaccine success", "Innovations in mRNA design, delivery systems, and disease applications are expanding the therapeutic landscape"],
+    "L3": ["Comprehensive review of mRNA therapeutic technologies covering design innovations, lipid nanoparticle delivery systems, and expanding applications beyond vaccines into cancer immunotherapy, protein replacement, and gene editing"]
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "domain": "bioinfo",
+  "version": "bioinfo_alphafold_deep_learning_2022",
+  "title": "Deep learning for protein secondary structure prediction: Pre and post-AlphaFold",
+  "source": "Ismi et al., Computational and Structural Biotechnology Journal, 2022",
+  "doi": "10.1016/j.csbj.2022.11.012",
+  "figure": "Graphical Abstract",
+  "is_control": false,
+  "bloc": "bioinfo",
+  "target_sub": "r/bioinformatics",
+  "expected_archetype": "Variable",
+  "semantic_references": {
+    "L1": ["AlphaFold", "deep learning", "protein structure", "prediction"],
+    "L2": ["Deep learning methods for protein structure prediction have been transformed by AlphaFold", "Review compares pre- and post-AlphaFold approaches to secondary structure prediction"],
+    "L3": ["Comprehensive review of deep learning approaches for protein secondary structure prediction, comparing methodologies before and after AlphaFold's breakthrough, examining neural network architectures and their impact on structural bioinformatics"]
+  }
+}

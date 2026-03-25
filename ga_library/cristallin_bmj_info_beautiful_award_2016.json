@@ -1,0 +1,17 @@
+{
+  "domain": "med",
+  "version": "cristallin_bmj_info_beautiful_award_2016",
+  "title": "BMJ Infographics - Information is Beautiful Awards Winner 2016",
+  "source": "Will Stahl-Timmins, BMJ (British Medical Journal), 2016",
+  "doi": null,
+  "figure": "Graphical Abstract / Infographic",
+  "is_control": false,
+  "bloc": "cristallin",
+  "mine_source": "bmj",
+  "expected_archetype": "Cristallin",
+  "semantic_references": {
+    "L1": ["BMJ", "infographic", "clinical guideline", "visual communication"],
+    "L2": ["Award-winning medical infographic design by BMJ", "Kantar Information is Beautiful Awards 2016 winner"],
+    "L3": ["Professional BMJ infographic designed by Will Stahl-Timmins to help busy health professionals quickly find clinical information. Won the Kantar Information is Beautiful Awards 2016. Exemplifies clear visual communication of medical treatment pathways."]
+  }
+}

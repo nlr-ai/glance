@@ -1,0 +1,17 @@
+{
+  "domain": "med",
+  "version": "cristallin_mdpi_immunotherapy_oncology_2024",
+  "title": "Current Technologies and Future Perspectives in Immunotherapy towards a Clinical Oncology Approach",
+  "source": "Biomedicines 2024",
+  "doi": "10.3390/biomedicines12010217",
+  "figure": "Graphical Abstract",
+  "is_control": false,
+  "bloc": "cristallin",
+  "mine_source": "mdpi_award",
+  "expected_archetype": "Cristallin",
+  "semantic_references": {
+    "L1": ["immunotherapy", "oncology", "checkpoint inhibitors", "CAR-T", "cancer vaccines", "clinical trials"],
+    "L2": ["Comprehensive review of immunotherapy technologies for clinical oncology", "Covers checkpoint inhibitors, CAR-T cells, cancer vaccines, and combination strategies"],
+    "L3": ["Graphical abstract reviewing current and future immunotherapy technologies in clinical oncology. Covers immune checkpoint inhibitors, CAR-T cell therapy, cancer vaccines, and combination strategies. Published in MDPI Biomedicines. CC BY 4.0."]
+  }
+}

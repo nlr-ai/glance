@@ -1,0 +1,17 @@
+{
+  "domain": "methodology",
+  "version": "cristallin_jambor_2024_dimensions_text",
+  "title": "Graphical Abstract Dimensions and Text Integration",
+  "source": "Jambor & Bornhauser, PLOS Computational Biology 2024",
+  "doi": "10.1371/journal.pcbi.1011789",
+  "figure": "Figure 4",
+  "is_control": false,
+  "bloc": "cristallin",
+  "mine_source": "jambor_2024",
+  "expected_archetype": "Cristallin",
+  "semantic_references": {
+    "L1": ["dimensions", "aspect ratio", "text placement", "layout", "readability"],
+    "L2": ["Different dimensions and how they merge with text on a page", "Format and sizing guidelines for graphical abstracts"],
+    "L3": ["Figure 4 from the Ten Simple Rules paper showing different graphical abstract dimensions and how they integrate with text on a page. Covers aspect ratio considerations and text placement for optimal readability across different display contexts. CC BY 4.0."]
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "domain": "viral",
+  "version": "viral_ai_pharmacology_2025",
+  "title": "Revolutionizing pharmacology: AI-powered approaches in molecular modeling and ADMET prediction",
+  "source": "Pathan et al., Medicine in Drug Discovery, 2025",
+  "doi": "10.1016/j.medidd.2025.100223",
+  "figure": "Graphical Abstract",
+  "is_control": false,
+  "bloc": "viral",
+  "target_sub": "r/science",
+  "expected_archetype": "Variable",
+  "semantic_references": {
+    "L1": ["AI", "machine learning", "drug discovery", "ADMET prediction"],
+    "L2": ["AI-powered molecular modeling has revolutionized drug discovery by enhancing compound optimization and predictive analytics", "Machine learning approaches improve ADMET prediction for more efficient pharmaceutical development"],
+    "L3": ["Review of artificial intelligence approaches in computational pharmacology covering molecular modeling, ADMET prediction, and drug candidate optimization, examining how AI and machine learning are transforming pharmaceutical development pipelines"]
+  }
+}

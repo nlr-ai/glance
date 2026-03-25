@@ -1,0 +1,17 @@
+{
+  "domain": "policy",
+  "version": "cristallin_umich_hospital_value_based_purchasing_2020",
+  "title": "Changes in Hospital Quality Associated with Hospital Value-Based Purchasing",
+  "source": "U-Michigan CEHR, School of Public Health",
+  "doi": null,
+  "figure": "Visual Abstract",
+  "is_control": false,
+  "bloc": "cristallin",
+  "mine_source": "umich_cehr",
+  "expected_archetype": "Cristallin",
+  "semantic_references": {
+    "L1": ["value-based purchasing", "hospital quality", "Medicare", "CMS", "quality metrics", "reimbursement"],
+    "L2": ["Visual abstract on hospital quality changes from value-based purchasing programs", "Evaluation of CMS Hospital Value-Based Purchasing program effectiveness"],
+    "L3": ["U-Michigan CEHR visual abstract examining changes in hospital quality associated with the Hospital Value-Based Purchasing (HVBP) program. Evaluates whether CMS payment incentives tied to quality metrics drive meaningful improvements in hospital care."]
+  }
+}

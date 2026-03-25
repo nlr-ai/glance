@@ -1,0 +1,17 @@
+{
+  "domain": "methodology",
+  "version": "cristallin_jambor_2024_evolution_sketch_to_final",
+  "title": "Evolution of a Graphical Abstract: From Sketch to Final Implementation",
+  "source": "Jambor & Bornhauser, PLOS Computational Biology 2024",
+  "doi": "10.1371/journal.pcbi.1011789",
+  "figure": "Figure 1",
+  "is_control": false,
+  "bloc": "cristallin",
+  "mine_source": "jambor_2024",
+  "expected_archetype": "Cristallin",
+  "semantic_references": {
+    "L1": ["graphical abstract", "design process", "sketch", "BioRender", "scientific communication"],
+    "L2": ["Three-stage evolution from sketch (A) to rapid BioRender draft (B) to final implementation in graphical software (C)", "Demonstrates iterative design process for graphical abstracts"],
+    "L3": ["Figure 1 from the Ten Simple Rules paper showing the evolution of a graphical abstract through three stages: initial sketch (A), rapid draft in BioRender (B), and final polished implementation in a graphical software program (C). Demonstrates the iterative refinement process. CC BY 4.0."]
+  }
+}

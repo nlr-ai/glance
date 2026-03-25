@@ -1,0 +1,17 @@
+{
+  "domain": "materials",
+  "version": "cristallin_mdpi_silver_nanoparticle_films_2022",
+  "title": "Self-Standing Bioinspired Polymer Films Doped with Ultrafine Silver Nanoparticles as Innovative Antimicrobial Material",
+  "source": "Kukushkina et al., IJMS 2022",
+  "doi": "10.3390/ijms232415818",
+  "figure": "Graphical Abstract",
+  "is_control": false,
+  "bloc": "cristallin",
+  "mine_source": "mdpi_award",
+  "expected_archetype": "Cristallin",
+  "semantic_references": {
+    "L1": ["silver nanoparticles", "antimicrobial", "polymer films", "bioinspired", "green synthesis"],
+    "L2": ["IJMS 2022 Best Graphic Abstract Award winner", "Self-standing antimicrobial films with ultrafine ~25nm silver nanophases"],
+    "L3": ["Award-winning graphical abstract showing green chemical synthesis of self-standing polymer films doped with ultrafine silver nanoparticles (~25nm). Antimicrobial composite material produced by overnight thermal treatment. Demonstrates synergistic antimicrobial activity. CC BY 4.0 license."]
+  }
+}

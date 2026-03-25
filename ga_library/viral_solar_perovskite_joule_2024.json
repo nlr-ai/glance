@@ -1,0 +1,17 @@
+{
+  "domain": "viral",
+  "version": "viral_solar_perovskite_joule_2024",
+  "title": "Room-temperature-processed perovskite solar cells surpassing 24% efficiency",
+  "source": "Yi et al., Joule, 2024",
+  "doi": "10.1016/j.joule.2024.04.002",
+  "figure": "Graphical Abstract",
+  "is_control": false,
+  "bloc": "viral",
+  "target_sub": "r/science",
+  "expected_archetype": "Polished",
+  "semantic_references": {
+    "L1": ["perovskite", "solar cell", "room temperature", "efficiency"],
+    "L2": ["Room-temperature fabrication of perovskite solar cells achieves over 24% power conversion efficiency", "Low-temperature processing opens new possibilities for diverse solar cell applications"],
+    "L3": ["Research demonstrating room-temperature processed perovskite solar cells surpassing 24% efficiency, establishing new possibilities for low-cost, scalable manufacturing of high-performance photovoltaic devices without high-temperature annealing steps"]
+  }
+}

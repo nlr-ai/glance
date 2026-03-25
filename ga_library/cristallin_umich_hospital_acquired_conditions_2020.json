@@ -1,0 +1,17 @@
+{
+  "domain": "policy",
+  "version": "cristallin_umich_hospital_acquired_conditions_2020",
+  "title": "Improving the Hospital-Acquired Condition Reduction Program through Rulemaking",
+  "source": "U-Michigan CEHR, School of Public Health",
+  "doi": null,
+  "figure": "Visual Abstract",
+  "is_control": false,
+  "bloc": "cristallin",
+  "mine_source": "umich_cehr",
+  "expected_archetype": "Cristallin",
+  "semantic_references": {
+    "L1": ["hospital-acquired conditions", "HACRP", "CMS", "patient safety", "Medicare", "quality improvement"],
+    "L2": ["Visual abstract on Hospital-Acquired Condition Reduction Program rulemaking improvements", "CEHR research on CMS penalty program effectiveness"],
+    "L3": ["U-Michigan CEHR visual abstract examining the Hospital-Acquired Condition Reduction Program (HACRP) and recommendations for improvement through rulemaking. Part of the CEHR health policy research portfolio. 1024-format, Twitter-optimized visual abstract design."]
+  }
+}

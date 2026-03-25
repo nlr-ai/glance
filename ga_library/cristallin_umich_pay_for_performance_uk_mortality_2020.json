@@ -1,0 +1,17 @@
+{
+  "domain": "policy",
+  "version": "cristallin_umich_pay_for_performance_uk_mortality_2020",
+  "title": "Effect of Pay-for-Performance in Primary Care on Mortality in the UK",
+  "source": "U-Michigan CEHR, School of Public Health",
+  "doi": null,
+  "figure": "Visual Abstract",
+  "is_control": false,
+  "bloc": "cristallin",
+  "mine_source": "umich_cehr",
+  "expected_archetype": "Cristallin",
+  "semantic_references": {
+    "L1": ["pay-for-performance", "primary care", "mortality", "UK", "quality incentives", "NHS"],
+    "L2": ["Visual abstract on pay-for-performance effects on mortality in UK primary care", "Evaluation of financial incentives for healthcare quality"],
+    "L3": ["U-Michigan CEHR visual abstract examining the effect of pay-for-performance programs in UK primary care on patient mortality outcomes. Evaluates whether financial incentives for healthcare providers improve patient survival."]
+  }
+}

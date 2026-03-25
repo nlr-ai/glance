@@ -1,0 +1,17 @@
+{
+  "domain": "cristallin",
+  "version": "cristallin_alzheimer_mitochondria_2025",
+  "title": "Mitochondrial dysfunction in Alzheimer's disease",
+  "source": "D'Alessandro et al., Ageing Research Reviews, 2025",
+  "doi": "10.1016/j.arr.2025.102713",
+  "figure": "Graphical Abstract",
+  "is_control": false,
+  "bloc": "cristallin",
+  "target_sub": "r/science",
+  "expected_archetype": "Cristallin",
+  "semantic_references": {
+    "L1": ["Alzheimer's disease", "mitochondria", "neurodegeneration", "oxidative stress"],
+    "L2": ["Mitochondrial dysfunction is a key pathological mechanism in Alzheimer's disease progression", "Review examines the relationship between mitochondrial impairment and neurodegeneration"],
+    "L3": ["Comprehensive review of mitochondrial dysfunction as a central mechanism in Alzheimer's disease pathogenesis, covering oxidative stress, energy metabolism impairment, mitochondrial dynamics, and therapeutic targeting strategies"]
+  }
+}

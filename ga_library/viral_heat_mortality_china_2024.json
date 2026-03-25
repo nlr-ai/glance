@@ -1,0 +1,17 @@
+{
+  "domain": "viral",
+  "version": "viral_heat_mortality_china_2024",
+  "title": "Quantifying the historical and future heat-related mortality above the heat alert thresholds of the inaugural Chinese national heat-health action plan",
+  "source": "Yi et al., Environmental Research, 2024",
+  "doi": "10.1016/j.envres.2024.119869",
+  "figure": "Graphical Abstract",
+  "is_control": false,
+  "bloc": "viral",
+  "target_sub": "r/science",
+  "expected_archetype": "Variable",
+  "semantic_references": {
+    "L1": ["heat mortality", "climate change", "public health", "China"],
+    "L2": ["Temperatures above 35C were associated with 0.51% of mortality in China between 2016-2019", "Heat-health action plans require evidence-based threshold calibration for effective mortality prevention"],
+    "L3": ["Study quantifying historical and projected heat-related mortality burden in China above the heat alert thresholds defined by the 2023 national heat-health action plan, providing epidemiological evidence for climate adaptation policy"]
+  }
+}
