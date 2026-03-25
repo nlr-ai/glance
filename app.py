@@ -14,16 +14,20 @@ from fastapi.templating import Jinja2Templates
 from db import get_db, init_db, create_participant, get_participant_by_token
 from db import get_next_image, save_test, get_test, get_stats
 from db import get_all_tests, get_image_count, get_all_images, add_ga_image
-from db import update_test_system2, get_image_by_id, get_control_pair, get_tests_for_image
-from db import get_landing_stats
-from scoring import (score_test, classify_speed_accuracy,
-                     chunk_transcript, score_node_coverage, compute_system2_coverage)
-from analytics import (  # noqa: E501
-    compute_aggregate_stats, compute_profile_quadrant,
-    compute_stats_by_quadrant, compute_speed_accuracy_distribution,
-    compute_ab_delta, compute_ab_fluency_delta, compute_s10_rate,
-    compute_fluency_score, get_leaderboard_data, get_domain_leaderboard,
-    get_ga_detail_stats)
+from scoring import score_test, classify_speed_accuracy
+from analytics import (
+    compute_aggregate_stats,
+    compute_profile_quadrant,
+    compute_stats_by_quadrant,
+    compute_speed_accuracy_distribution,
+    compute_ab_delta,
+    compute_ab_fluency_delta,
+    compute_s10_rate,
+    compute_fluency_score,
+    get_leaderboard_data,
+    get_domain_leaderboard,
+    get_ga_detail_stats,
+)
 from config_loader import get_constant
 
 BASE = os.path.dirname(__file__)
@@ -85,17 +89,7 @@ def _get_participant(request: Request):
 
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request):
-    landing = get_landing_stats()
-    # Build domain list with labels from config
-    domain_list = []
-    for domain_key, n_gas in landing["domain_counts"].items():
-        label = CONFIG["domains"].get(domain_key, {}).get("label", domain_key)
-        domain_list.append({"key": domain_key, "label": label, "n_gas": n_gas})
-    return templates.TemplateResponse("index.html", {
-        "request": request,
-        "landing": landing,
-        "domain_list": domain_list,
-    })
+    return templates.TemplateResponse("index.html", {"request": request})
 
 
 @app.get("/onboard", response_class=HTMLResponse)
@@ -252,6 +246,15 @@ def test_page(request: Request):
     _db.close()
     first_test = test_count == 0
 
+    # Load OCR words from sidecar JSON for STT keyword hints
+    ocr_words = []
+    meta_path = os.path.join(BASE, "ga_library",
+                             image["filename"].rsplit(".", 1)[0] + ".json")
+    if os.path.exists(meta_path):
+        with open(meta_path, encoding="utf-8") as mf:
+            sidecar_meta = json.load(mf)
+            ocr_words = sidecar_meta.get("ocr_words", [])
+
     # Check if flux mode is enabled
     flux_config = CONFIG.get("flux", {})
     if flux_config.get("enabled", False):
@@ -288,6 +291,7 @@ def test_page(request: Request):
             "input_mode": participant.get("input_mode", "text"),
             "first_test": first_test,
             "show_title": flux_config.get("show_title", True),
+            "ocr_words": ocr_words,
         })
 
     # Focused mode (original)
@@ -299,6 +303,7 @@ def test_page(request: Request):
         "timer_ms": CONFIG["timer"]["exposure_ms"],
         "countdown_s": CONFIG["timer"]["countdown_seconds"],
         "input_mode": participant.get("input_mode", "text"),
+        "ocr_words": ocr_words,
     })
 
 
@@ -398,90 +403,6 @@ def submit_test(
         q1_filter_ratio=scores.get("q1_filter_ratio"),
         stream_show_title=stream_show_title,
     )
-    # Route to System 2 deep analysis before reveal
-    return RedirectResponse(url=f"/system2/{test_id}", status_code=303)
-
-
-@app.get("/system2/{test_id}", response_class=HTMLResponse)
-def system2_page(request: Request, test_id: int):
-    """System 2 Deep Analysis — deliberate free recall of the GA image."""
-    participant = _get_participant(request)
-    if not participant:
-        return RedirectResponse(url="/onboard")
-
-    test = get_test(test_id)
-    if not test:
-        raise HTTPException(status_code=404, detail="Test not found")
-
-    # If System 2 already completed (page refresh), go to reveal
-    if test.get("s2_transcript") is not None:
-        return RedirectResponse(url=f"/reveal/{test_id}")
-
-    s2_max_ms = get_constant("s2_max_duration_ms", 90000)
-    s2_silence_ms = get_constant("s2_silence_timeout_ms", 5000)
-
-    return templates.TemplateResponse("system2.html", {
-        "request": request,
-        "test": test,
-        "test_id": test_id,
-        "ga_image_path": f"/ga/{test['filename']}",
-        "ga_title": test.get("title", ""),
-        "s2_max_ms": s2_max_ms,
-        "s2_silence_ms": s2_silence_ms,
-    })
-
-
-@app.post("/submit_system2/{test_id}")
-def submit_system2(
-    request: Request,
-    test_id: int,
-    s2_transcript: str = Form(""),
-    s2_duration_ms: int = Form(0),
-):
-    """Process and store System 2 deep analysis results."""
-    participant = _get_participant(request)
-    if not participant:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-
-    test = get_test(test_id)
-    if not test:
-        raise HTTPException(status_code=404, detail="Test not found")
-
-    # Chunk the transcript
-    chunks = chunk_transcript(s2_transcript)
-
-    # Build GA metadata for node coverage scoring
-    image_row = None
-    db = get_db()
-    image_row = db.execute("SELECT * FROM ga_images WHERE id = ?",
-                           (test["ga_image_id"],)).fetchone()
-    db.close()
-
-    node_coverage = {}
-    if image_row and chunks:
-        ga_metadata = dict(image_row)
-        if ga_metadata.get("products") and isinstance(ga_metadata["products"], str):
-            ga_metadata["products"] = json.loads(ga_metadata["products"])
-
-        # Load sidecar JSON for semantic_references
-        meta_path = os.path.join(BASE, "ga_library",
-                                 image_row["filename"].rsplit(".", 1)[0] + ".json")
-        if os.path.exists(meta_path):
-            with open(meta_path, encoding="utf-8") as mf:
-                sidecar = json.load(mf)
-                ga_metadata.update(sidecar)
-
-        node_coverage = score_node_coverage(chunks, ga_metadata)
-
-    # Store in DB
-    update_test_system2(
-        test_id,
-        s2_transcript=s2_transcript,
-        s2_duration_ms=s2_duration_ms,
-        s2_chunks=json.dumps(chunks, ensure_ascii=False),
-        s2_node_coverage=json.dumps(node_coverage, ensure_ascii=False),
-    )
-
     return RedirectResponse(url=f"/reveal/{test_id}", status_code=303)
 
 
@@ -527,34 +448,6 @@ def reveal(request: Request, test_id: int):
     # Compute fluency score for display
     fluency = compute_fluency_score(bool(test.get("s9b_pass")), test.get("q2_time_ms", 0))
 
-    # System 2 data for reveal display
-    s2_node_coverage = {}
-    s2_coverage_score = 0.0
-    s2_has_data = False
-    if test.get("s2_node_coverage"):
-        try:
-            s2_node_coverage = json.loads(test["s2_node_coverage"])
-            s2_coverage_score = compute_system2_coverage(s2_node_coverage)
-            s2_has_data = True
-        except (json.JSONDecodeError, Exception):
-            pass
-
-    # Load semantic_references for node labels in reveal
-    s2_node_labels = {}
-    if s2_has_data:
-        meta_path = os.path.join(BASE, "ga_library",
-                                 test["filename"].rsplit(".", 1)[0] + ".json")
-        if os.path.exists(meta_path):
-            with open(meta_path, encoding="utf-8") as mf:
-                sidecar = json.load(mf)
-                sem_refs = sidecar.get("semantic_references", {})
-                for level_key in ("L1_broad", "L2_specific", "L3_detailed"):
-                    level_texts = sem_refs.get(level_key, [])
-                    if isinstance(level_texts, list):
-                        for i, text in enumerate(level_texts):
-                            ref_id = f"{level_key}_{i}"
-                            s2_node_labels[ref_id] = text
-
     return templates.TemplateResponse("reveal.html", {
         "request": request,
         "test": test,
@@ -566,10 +459,6 @@ def reveal(request: Request, test_id: int):
         "s9a_score": round(float(s9a_score), 3),
         "s10_hit": s10_hit,
         "fluency_score": round(fluency, 4),
-        "s2_has_data": s2_has_data,
-        "s2_coverage_score": round(s2_coverage_score, 2),
-        "s2_node_coverage": s2_node_coverage,
-        "s2_node_labels": s2_node_labels,
     })
 
 
@@ -626,132 +515,6 @@ def spin_page(request: Request):
         "vec": vec,
         "products": products,
         "q2_text": questions["q2"],
-    })
-
-
-@app.get("/leaderboard", response_class=HTMLResponse)
-def leaderboard(request: Request):
-    """Public leaderboard — all domains with top GAs."""
-    data = get_leaderboard_data(CONFIG["domains"])
-    # Sort domains: those with tests first (by top_score desc), then empty
-    domains_with_data = sorted(
-        [(k, v) for k, v in data.items() if v["top_score"] is not None],
-        key=lambda x: x[1]["top_score"],
-        reverse=True,
-    )
-    domains_no_data = [(k, v) for k, v in data.items() if v["top_score"] is None]
-    sorted_domains = domains_with_data + domains_no_data
-
-    return templates.TemplateResponse("leaderboard.html", {
-        "request": request,
-        "domains": sorted_domains,
-    })
-
-
-@app.get("/leaderboard/{domain}", response_class=HTMLResponse)
-def leaderboard_domain(request: Request, domain: str):
-    """Public leaderboard — detailed ranking for one domain."""
-    if domain not in CONFIG["domains"]:
-        raise HTTPException(status_code=404, detail=f"Domain '{domain}' not found")
-
-    data = get_domain_leaderboard(domain, CONFIG["domains"])
-    if data is None:
-        raise HTTPException(status_code=404, detail=f"No images for domain '{domain}'")
-
-    return templates.TemplateResponse("leaderboard_domain.html", {
-        "request": request,
-        "data": data,
-    })
-
-
-@app.get("/ga-detail/{ga_id}", response_class=HTMLResponse)
-def ga_detail(request: Request, ga_id: int):
-    """Public GA detail page -- score breakdown, recommendations, comparisons."""
-    image = get_image_by_id(ga_id)
-    if not image:
-        raise HTTPException(status_code=404, detail="GA image not found")
-
-    # Compute all stats for this GA
-    detail = get_ga_detail_stats(ga_id)
-
-    # Enrich detail with derived values for the template
-    tests_list = detail.get("tests", [])
-    detail["n_participants"] = len(set(
-        t.get("participant_id") for t in tests_list if t.get("participant_id")
-    ))
-    detail["s9b_vs_chance"] = round(detail.get("avg_s9b", 0.0) - 0.25, 4)
-    detail["s9b_above_chance"] = detail.get("avg_s9b", 0.0) > 0.25
-    detail["s2_has_data"] = bool(detail.get("s2_node_means"))
-
-    # Compute median RT2
-    rt2_vals = [t["q2_time_ms"] for t in tests_list if t.get("q2_time_ms")]
-    if rt2_vals:
-        rt2_vals_sorted = sorted(rt2_vals)
-        mid = len(rt2_vals_sorted) // 2
-        detail["median_rt2"] = rt2_vals_sorted[mid] if len(rt2_vals_sorted) % 2 else (
-            rt2_vals_sorted[mid - 1] + rt2_vals_sorted[mid]) / 2
-    else:
-        detail["median_rt2"] = 0.0
-    from scoring import classify_rt2
-    detail["rt2_class"] = classify_rt2(detail["median_rt2"])
-
-    # Load sidecar JSON for metadata (semantic_references, description, etc.)
-    ga_metadata = dict(image)
-    if ga_metadata.get("products") and isinstance(ga_metadata["products"], str):
-        ga_metadata["products"] = json.loads(ga_metadata["products"])
-    meta_path = os.path.join(BASE, "ga_library",
-                             image["filename"].rsplit(".", 1)[0] + ".json")
-    sidecar = {}
-    if os.path.exists(meta_path):
-        with open(meta_path, encoding="utf-8") as mf:
-            sidecar = json.load(mf)
-            ga_metadata.update(sidecar)
-
-    # Load S2 node labels from semantic_references
-    s2_node_labels = {}
-    sem_refs = ga_metadata.get("semantic_references", {})
-    for level_key in ("L1_broad", "L2_specific", "L3_detailed"):
-        level_texts = sem_refs.get(level_key, [])
-        if isinstance(level_texts, list):
-            for i, text in enumerate(level_texts):
-                ref_id = f"{level_key}_{i}"
-                s2_node_labels[ref_id] = text
-
-    # Run recommender if L3 graph YAML exists
-    recommendations = None
-    ga_graph_path = os.path.join(BASE, "data",
-                                 "auto_" + image["filename"].rsplit(".", 1)[0] + "_ga_graph.yaml")
-    if not os.path.exists(ga_graph_path):
-        # Try without auto_ prefix
-        ga_graph_path = os.path.join(BASE, "data",
-                                     image["filename"].rsplit(".", 1)[0] + "_ga_graph.yaml")
-    if os.path.exists(ga_graph_path):
-        try:
-            from recommender import analyze_ga
-            recommendations = analyze_ga(ga_graph_path)
-        except Exception:
-            pass
-
-    # Find control pair for comparison section
-    pair_image = get_control_pair(image)
-    pair_stats = None
-    if pair_image:
-        pair_stats = get_ga_detail_stats(pair_image["id"])
-
-    # GLANCE pass threshold
-    glance_threshold = get_constant("glance_pass_threshold", 0.70)
-
-    return templates.TemplateResponse("ga_detail.html", {
-        "request": request,
-        "image": image,
-        "ga_metadata": ga_metadata,
-        "sidecar": sidecar,
-        "detail": detail,
-        "s2_node_labels": s2_node_labels,
-        "recommendations": recommendations,
-        "pair_image": pair_image,
-        "pair_stats": pair_stats,
-        "glance_threshold": glance_threshold,
     })
 
 

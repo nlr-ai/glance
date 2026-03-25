@@ -1,413 +1,379 @@
 {% extends "base.html" %}
-{% block title %}{{ image.title or image.filename }} — GLANCE{% endblock %}
+{% block title %}{{ image.title or image.filename }} -- GLANCE{% endblock %}
 
 {% block head %}
-<meta property="og:title" content="{{ image.title or image.filename }} — GLANCE Score">
-<meta property="og:description" content="GLANCE Score: {{ (detail.avg_glance * 100) | round(0) }}% | {{ detail.n_tests }} tests">
-<meta property="og:image" content="/ga/{{ image.filename }}">
+<style>
+:root {
+    --gd-navy:#1a2332; --gd-teal:#0d9488; --gd-teal-light:rgba(13,148,136,0.12);
+    --gd-amber:#f59e0b; --gd-amber-light:rgba(245,158,11,0.12);
+    --gd-bg:#f8fafc; --gd-card:#ffffff; --gd-border:#e2e8f0;
+    --gd-text:#1a2332; --gd-text-dim:#64748b; --gd-text-muted:#94a3b8;
+    --gd-pass:#10b981; --gd-pass-bg:rgba(16,185,129,0.08);
+    --gd-fail:#ef4444; --gd-fail-bg:rgba(239,68,68,0.08);
+    --gd-shadow-sm:0 1px 3px rgba(26,35,50,0.06);
+    --gd-shadow-md:0 4px 12px rgba(26,35,50,0.08);
+    --gd-radius:12px; --gd-radius-sm:8px;
+    --gd-font-mono:'SF Mono','Cascadia Code','Fira Code','Consolas',monospace;
+    --gd-priority-critical:#dc2626; --gd-priority-high:#ea580c;
+    --gd-priority-medium:#d97706; --gd-priority-low:#0d9488;
+}
+.gd-page{max-width:1100px;margin:0 auto;padding:0 1.5rem 4rem;background:var(--gd-bg);min-height:100vh}
+.gd-hero{position:relative;margin:-2rem -1.5rem 2.5rem;padding:3rem 2rem 2.5rem;overflow:hidden;border-radius:0 0 24px 24px}
+.gd-hero-backdrop{position:absolute;inset:0;background-size:cover;background-position:center;filter:blur(40px) brightness(0.4);transform:scale(1.2);z-index:0}
+.gd-hero-overlay{position:absolute;inset:0;background:linear-gradient(180deg,rgba(26,35,50,0.85) 0%,rgba(26,35,50,0.95) 100%);z-index:1}
+.gd-hero-content{position:relative;z-index:2;display:flex;gap:2.5rem;align-items:center;max-width:1100px;margin:0 auto}
+.gd-hero-image-wrap{flex-shrink:0;width:280px}
+.gd-hero-image{width:100%;height:auto;border-radius:var(--gd-radius);box-shadow:0 8px 32px rgba(0,0,0,0.3);display:block}
+.gd-hero-info{flex:1;min-width:0}
+.gd-hero-title{font-size:1.75rem;font-weight:700;color:#fff;letter-spacing:-0.02em;margin-bottom:0.5rem;line-height:1.2}
+.gd-hero-meta{display:flex;gap:0.625rem;flex-wrap:wrap;margin-bottom:1.5rem}
+.gd-hero-tag{font-size:0.75rem;color:rgba(255,255,255,0.7);background:rgba(255,255,255,0.08);padding:0.25rem 0.75rem;border-radius:100px;font-weight:500;letter-spacing:0.02em}
+.gd-gauge-wrap{display:flex;align-items:center;gap:2rem}
+.gd-gauge{flex-shrink:0}
+.gd-gauge-text{font-family:var(--gd-font-mono);font-weight:800;fill:#fff}
+.gd-gauge-label-text{font-size:0.8125rem;fill:rgba(255,255,255,0.5);font-weight:400}
+.gd-gauge-ring-bg{fill:none;stroke:rgba(255,255,255,0.1);stroke-width:8}
+.gd-gauge-ring-fill{fill:none;stroke-width:8;stroke-linecap:round;transition:stroke-dashoffset 1.2s cubic-bezier(0.22,1,0.36,1)}
+.gd-gauge-verdict{color:rgba(255,255,255,0.9);font-size:1rem;font-weight:500;line-height:1.4}
+.gd-gauge-sub{color:rgba(255,255,255,0.5);font-size:0.8125rem;margin-top:0.25rem}
+.gd-nav{display:flex;gap:0.5rem;align-items:center;margin-bottom:2rem;flex-wrap:wrap}
+.gd-nav a{color:var(--gd-text-muted);text-decoration:none;font-size:0.875rem;padding:0.375rem 0.75rem;border-radius:6px;transition:color 0.2s,background 0.2s}
+.gd-nav a:hover{color:var(--gd-teal);background:var(--gd-teal-light)}
+.gd-nav .sep{color:var(--gd-border);font-size:0.75rem}
+.gd-section{margin-bottom:2.5rem}
+.gd-section-title{font-size:1.125rem;font-weight:700;color:var(--gd-navy);margin-bottom:1rem;letter-spacing:-0.01em;display:flex;align-items:center;gap:0.5rem}
+.gd-section-title::before{content:'';display:inline-block;width:4px;height:1.125em;background:var(--gd-teal);border-radius:2px}
+.gd-radar-wrap{display:flex;gap:2rem;align-items:flex-start;flex-wrap:wrap}
+.gd-radar-svg-wrap{flex-shrink:0}
+.gd-radar-text{font-size:11px;fill:var(--gd-text-dim);font-weight:600;text-anchor:middle}
+.gd-radar-grid{fill:none;stroke:var(--gd-border);stroke-width:0.5}
+.gd-radar-axis{stroke:var(--gd-border);stroke-width:0.5}
+.gd-radar-shape{fill:rgba(13,148,136,0.15);stroke:var(--gd-teal);stroke-width:2}
+.gd-radar-dot{fill:var(--gd-teal)}
+.gd-scores-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:1rem}
+.gd-score-card{background:var(--gd-card);border:1px solid var(--gd-border);border-radius:var(--gd-radius-sm);padding:1.25rem;box-shadow:var(--gd-shadow-sm);opacity:0;animation:gdCardIn 0.5s ease forwards}
+.gd-score-card:nth-child(1){animation-delay:0.1s}.gd-score-card:nth-child(2){animation-delay:0.15s}.gd-score-card:nth-child(3){animation-delay:0.2s}.gd-score-card:nth-child(4){animation-delay:0.25s}.gd-score-card:nth-child(5){animation-delay:0.3s}
+@keyframes gdCardIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.gd-score-name{font-size:0.6875rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--gd-text-muted);font-weight:600;margin-bottom:0.5rem}
+.gd-score-value{font-family:var(--gd-font-mono);font-size:1.75rem;font-weight:800;color:var(--gd-navy);line-height:1;margin-bottom:0.625rem}
+.gd-score-bar-wrap{display:flex;align-items:center;gap:0.5rem}
+.gd-score-bar{flex:1;height:6px;background:#f1f5f9;border-radius:3px;overflow:hidden}
+.gd-score-bar-fill{height:100%;border-radius:3px;transition:width 0.8s cubic-bezier(0.22,1,0.36,1)}
+.gd-bar-green{background:linear-gradient(90deg,#34d399,#10b981)}.gd-bar-yellow{background:linear-gradient(90deg,#fbbf24,#eab308)}.gd-bar-orange{background:linear-gradient(90deg,#fb923c,#f97316)}.gd-bar-red{background:linear-gradient(90deg,#f87171,#ef4444)}
+.gd-score-bench{font-size:0.6875rem;color:var(--gd-text-muted);font-family:var(--gd-font-mono);min-width:2.5em;text-align:right}
+.gd-recs{display:flex;flex-direction:column;gap:0.75rem}
+.gd-rec-card{background:var(--gd-card);border:1px solid var(--gd-border);border-radius:var(--gd-radius-sm);padding:1.25rem 1.25rem 1.25rem 1.5rem;box-shadow:var(--gd-shadow-sm);position:relative;opacity:0;animation:gdCardIn 0.5s ease forwards}
+.gd-rec-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:var(--gd-radius-sm) 0 0 var(--gd-radius-sm)}
+.gd-rec-critical::before{background:var(--gd-priority-critical)}.gd-rec-high::before{background:var(--gd-priority-high)}.gd-rec-medium::before{background:var(--gd-priority-medium)}.gd-rec-low::before{background:var(--gd-priority-low)}
+.gd-rec-header{display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem}
+.gd-rec-badge{font-size:0.625rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;padding:0.2rem 0.5rem;border-radius:4px;flex-shrink:0}
+.gd-badge-critical{background:rgba(220,38,38,0.1);color:var(--gd-priority-critical)}.gd-badge-high{background:rgba(234,88,12,0.1);color:var(--gd-priority-high)}.gd-badge-medium{background:rgba(217,119,6,0.1);color:var(--gd-priority-medium)}.gd-badge-low{background:rgba(13,148,136,0.1);color:var(--gd-priority-low)}
+.gd-rec-node{font-weight:700;font-size:0.9375rem;color:var(--gd-navy)}
+.gd-rec-issue{font-size:0.8125rem;color:var(--gd-text-dim);margin-bottom:0.375rem;line-height:1.5}
+.gd-rec-fix{font-size:0.8125rem;color:var(--gd-text);line-height:1.5}
+.gd-rec-impact{display:inline-block;font-size:0.75rem;font-weight:600;color:var(--gd-pass);background:var(--gd-pass-bg);padding:0.125rem 0.5rem;border-radius:100px;margin-top:0.5rem}
+.gd-strengths{display:flex;flex-wrap:wrap;gap:0.75rem}
+.gd-strength-chip{background:var(--gd-pass-bg);border:1px solid rgba(16,185,129,0.15);border-radius:100px;padding:0.375rem 1rem;font-size:0.8125rem;color:#047857;font-weight:500}
+.gd-warnings{display:flex;flex-direction:column;gap:0.5rem}
+.gd-warning-item{background:var(--gd-amber-light);border:1px solid rgba(245,158,11,0.15);border-radius:var(--gd-radius-sm);padding:1rem 1.25rem;font-size:0.8125rem;color:var(--gd-text);line-height:1.5}
+.gd-warning-title{font-weight:700;color:#92400e;margin-bottom:0.25rem}
+.gd-warning-fix{color:var(--gd-text-dim)}
+.gd-nodes-grid{display:flex;flex-wrap:wrap;gap:0.75rem;padding:0.5rem 0}
+.gd-node-bubble{position:relative;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:default;transition:transform 0.2s;box-shadow:var(--gd-shadow-sm)}
+.gd-node-bubble:hover{transform:scale(1.15);z-index:2}
+.gd-node-hit{background:var(--gd-pass);border:2px solid #059669}
+.gd-node-miss{background:var(--gd-fail);border:2px solid #dc2626}
+.gd-node-tooltip{display:none;position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:var(--gd-navy);color:#fff;padding:0.5rem 0.75rem;border-radius:6px;font-size:0.75rem;white-space:nowrap;z-index:10;box-shadow:0 4px 12px rgba(0,0,0,0.2);pointer-events:none}
+.gd-node-tooltip::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:var(--gd-navy)}
+.gd-node-bubble:hover .gd-node-tooltip{display:block}
+.gd-node-legend{display:flex;gap:1.5rem;margin-top:1rem;font-size:0.75rem;color:var(--gd-text-dim)}
+.gd-node-legend-dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:0.375rem;vertical-align:middle}
+.gd-pair-compare{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+.gd-pair-card{background:var(--gd-card);border:1px solid var(--gd-border);border-radius:var(--gd-radius-sm);padding:1.25rem;box-shadow:var(--gd-shadow-sm);text-align:center}
+.gd-pair-label{font-size:0.6875rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--gd-text-muted);font-weight:600;margin-bottom:0.5rem}
+.gd-pair-thumb{width:100%;max-width:200px;height:auto;border-radius:var(--gd-radius-sm);margin-bottom:0.75rem}
+.gd-pair-score{font-family:var(--gd-font-mono);font-size:1.5rem;font-weight:800;color:var(--gd-navy)}
+.gd-share-btn{display:inline-flex;align-items:center;gap:0.5rem;background:var(--gd-card);border:1px solid var(--gd-border);border-radius:100px;padding:0.5rem 1.25rem;font-size:0.8125rem;font-weight:500;color:var(--gd-text-dim);cursor:pointer;transition:all 0.2s;box-shadow:var(--gd-shadow-sm)}
+.gd-share-btn:hover{border-color:var(--gd-teal);color:var(--gd-teal);box-shadow:var(--gd-shadow-md)}
+.gd-toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(100px);background:var(--gd-navy);color:#fff;padding:0.75rem 1.5rem;border-radius:100px;font-size:0.875rem;font-weight:500;box-shadow:0 8px 32px rgba(0,0,0,0.25);z-index:1000;opacity:0;transition:opacity 0.3s,transform 0.3s;pointer-events:none}
+.gd-toast.gd-toast-show{opacity:1;transform:translateX(-50%) translateY(0)}
+.gd-empty{text-align:center;padding:3rem 2rem;background:var(--gd-card);border:1px solid var(--gd-border);border-radius:var(--gd-radius);box-shadow:var(--gd-shadow-sm)}
+.gd-empty-icon{width:64px;height:64px;margin:0 auto 1rem;display:block;opacity:0.3}
+.gd-empty p{color:var(--gd-text-dim);font-size:0.9375rem;margin:0}
+@media(max-width:768px){.gd-hero-content{flex-direction:column;text-align:center;gap:1.5rem}.gd-hero-image-wrap{width:200px;margin:0 auto}.gd-hero-meta{justify-content:center}.gd-gauge-wrap{flex-direction:column;align-items:center;gap:1rem}.gd-gauge-verdict{text-align:center}.gd-scores-row{grid-template-columns:1fr 1fr}.gd-radar-wrap{flex-direction:column;align-items:center}.gd-pair-compare{grid-template-columns:1fr}}
+@media(max-width:480px){.gd-page{padding:0 1rem 3rem}.gd-hero{margin:-2rem -1rem 2rem;padding:2rem 1rem}.gd-hero-title{font-size:1.375rem}.gd-scores-row{grid-template-columns:1fr}.gd-nodes-grid{justify-content:center}}
+@media print{body{background:#fff!important;color:#000!important}.gd-page{max-width:100%;padding:0}.gd-hero{margin:0 0 1.5rem;padding:1.5rem;border-radius:0;background:#f0f4f8!important}.gd-hero-backdrop,.gd-hero-overlay{display:none!important}.gd-hero-title,.gd-gauge-verdict,.gd-gauge-sub{color:#000!important}.gd-hero-tag{color:#333!important;background:#e2e8f0!important}.gd-share-btn,.gd-nav,.gd-toast{display:none!important}.gd-score-card,.gd-rec-card,.gd-pair-card,.gd-warning-item{break-inside:avoid;box-shadow:none;border:1px solid #ccc}.gd-gauge-text{fill:#000!important}.gd-gauge-label-text{fill:#666!important}}
+</style>
 {% endblock %}
 
 {% block content %}
-<div class="ga-detail">
-    <a href="/leaderboard" class="back-link">&larr; Leaderboard</a>
-
-    {# ══════════════════════════════════════════════════════════════════
-       SECTION 1: GA Identity
-       ══════════════════════════════════════════════════════════════════ #}
-    <div class="ga-identity card">
-        <div class="ga-identity-layout">
-            <div class="ga-identity-image">
-                <img src="/ga/{{ image.filename }}" alt="{{ image.title or image.filename }}" class="ga-hero-img">
-                {% if image.is_control %}
-                <span class="badge badge-control">Control</span>
+<div class="gd-page">
+    <!-- Hero -->
+    <div class="gd-hero">
+        <div class="gd-hero-backdrop" style="background-image:url('/ga/{{ image.filename }}');"></div>
+        <div class="gd-hero-overlay"></div>
+        <div class="gd-hero-content">
+            <div class="gd-hero-image-wrap">
+                <img src="/ga/{{ image.filename }}" alt="{{ image.title or image.filename }}" class="gd-hero-image" loading="eager">
+            </div>
+            <div class="gd-hero-info">
+                <h1 class="gd-hero-title">{{ image.title or image.filename }}</h1>
+                <div class="gd-hero-meta">
+                    <span class="gd-hero-tag">{{ image.domain | upper }}</span>
+                    <span class="gd-hero-tag">{{ detail.n_tests }} test{{ 's' if detail.n_tests != 1 else '' }}</span>
+                    {% if image.is_control %}<span class="gd-hero-tag">Control</span>{% else %}<span class="gd-hero-tag">VEC</span>{% endif %}
+                    {% if sidecar.get('description') %}<span class="gd-hero-tag">{{ sidecar.description[:60] }}{% if sidecar.description|length > 60 %}...{% endif %}</span>{% endif %}
+                </div>
+                {% if detail.n_tests > 0 %}
+                {% set pct = (detail.avg_glance * 100) | round(0) | int %}
+                {% set circ = 251.2 %}
+                {% set offset = circ - (circ * pct / 100) %}
+                {% if pct >= 70 %}{% set gauge_color = "#10b981" %}{% set verdict = "Decodage reussi" %}
+                {% elif pct >= 50 %}{% set gauge_color = "#eab308" %}{% set verdict = "Partiellement decode" %}
+                {% else %}{% set gauge_color = "#ef4444" %}{% set verdict = "Le design n'a pas survecu au transfert" %}{% endif %}
+                <div class="gd-gauge-wrap">
+                    <svg class="gd-gauge" width="130" height="130" viewBox="0 0 130 130">
+                        <circle class="gd-gauge-ring-bg" cx="65" cy="65" r="52"/>
+                        <circle class="gd-gauge-ring-fill" cx="65" cy="65" r="52" stroke="{{ gauge_color }}" stroke-dasharray="{{ circ }}" stroke-dashoffset="{{ circ }}" data-target-offset="{{ offset }}" transform="rotate(-90 65 65)"/>
+                        <text x="65" y="60" class="gd-gauge-text" text-anchor="middle" font-size="32">{{ pct }}</text>
+                        <text x="65" y="80" class="gd-gauge-label-text" text-anchor="middle">GLANCE</text>
+                    </svg>
+                    <div>
+                        <div class="gd-gauge-verdict">{{ verdict }}</div>
+                        <div class="gd-gauge-sub">Seuil de passage : {{ (glance_threshold * 100) | round(0) | int }}%</div>
+                    </div>
+                </div>
                 {% else %}
-                <span class="badge badge-vec">VEC</span>
+                <div class="gd-gauge-verdict" style="margin-top:1rem;">En attente de donnees</div>
+                <div class="gd-gauge-sub">Aucun test soumis pour cette GA</div>
                 {% endif %}
             </div>
-            <div class="ga-identity-info">
-                <h1>{{ image.title or image.filename }}</h1>
-                {% if image.description %}
-                <p class="ga-description">{{ image.description }}</p>
-                {% endif %}
-                <div class="ga-meta-tags">
-                    <span class="meta-tag">{{ image.domain }}</span>
-                    {% if image.version %}
-                    <span class="meta-tag">{{ image.version }}</span>
-                    {% endif %}
-                    {% if image.correct_product %}
-                    <span class="meta-tag">Correct: {{ image.correct_product }}</span>
-                    {% endif %}
+        </div>
+    </div>
+
+    <!-- Nav -->
+    <div class="gd-nav">
+        <a href="/">Accueil</a><span class="sep">&#8250;</span>
+        <a href="/leaderboard">Leaderboard</a><span class="sep">&#8250;</span>
+        <a href="/leaderboard/{{ image.domain }}">{{ image.domain | upper }}</a><span class="sep">&#8250;</span>
+        <span style="color:var(--gd-teal);font-weight:600;padding:0.375rem 0.75rem;font-size:0.875rem;">{{ (image.title or image.filename)[:40] }}</span>
+        <button class="gd-share-btn" onclick="shareGA()" style="margin-left:auto;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+            Partager
+        </button>
+    </div>
+
+    {% if detail.n_tests > 0 %}
+    <!-- Radar + Score Cards -->
+    <div class="gd-section">
+        <h2 class="gd-section-title">Profil perceptuel</h2>
+        <div class="gd-radar-wrap">
+            <div class="gd-radar-svg-wrap" id="radarWrap"></div>
+        </div>
+        <div class="gd-scores-row" style="margin-top:1.5rem;">
+            {% set metrics = [
+                {"name": "S9a Recall", "value": detail.avg_s9a, "desc": "Identification du sujet"},
+                {"name": "S9b Hierarchie", "value": detail.avg_s9b, "desc": "Produit le mieux documente"},
+                {"name": "S9c Actionabilite", "value": detail.avg_s9c, "desc": "Changement de perception"},
+                {"name": "Fluence", "value": detail.fluency_normalized, "desc": "Rapidite x precision"},
+                {"name": "Couverture S2", "value": detail.avg_s2_coverage, "desc": "Noeuds restitues (System 2)"}
+            ] %}
+            {% for m in metrics %}
+            {% set mpct = (m.value * 100) | round(0) | int %}
+            {% if mpct >= 80 %}{% set bar_class = "gd-bar-green" %}
+            {% elif mpct >= 60 %}{% set bar_class = "gd-bar-yellow" %}
+            {% elif mpct >= 40 %}{% set bar_class = "gd-bar-orange" %}
+            {% else %}{% set bar_class = "gd-bar-red" %}{% endif %}
+            <div class="gd-score-card">
+                <div class="gd-score-name">{{ m.name }}</div>
+                <div class="gd-score-value">{{ mpct }}%</div>
+                <div class="gd-score-bar-wrap">
+                    <div class="gd-score-bar"><div class="gd-score-bar-fill {{ bar_class }}" data-width="{{ mpct }}%" style="width:0%;"></div></div>
+                    <span class="gd-score-bench">{{ mpct }}%</span>
                 </div>
+                <div style="font-size:0.6875rem;color:var(--gd-text-muted);margin-top:0.5rem;">{{ m.desc }}</div>
             </div>
-        </div>
-    </div>
-
-    {# ══════════════════════════════════════════════════════════════════
-       SECTION 2: Score Breakdown
-       ══════════════════════════════════════════════════════════════════ #}
-    <h2>Score Breakdown</h2>
-
-    {% if detail.n_tests == 0 %}
-    <div class="card card-empty">
-        <p>Aucun test enregistre pour ce GA. Partagez le lien du test pour collecter des donnees.</p>
-    </div>
-    {% else %}
-
-    {# GLANCE Composite — hero display #}
-    <div class="card score-hero-card">
-        <div class="score-hero-row">
-            <div class="score-hero-label">Score GLANCE</div>
-            <div class="score-hero-value {{ 'pass' if detail.avg_glance >= glance_threshold else 'fail' }}">
-                {{ (detail.avg_glance * 100) | round(0) }}%
-            </div>
-        </div>
-        <div class="score-hero-bar">
-            <div class="score-hero-fill {{ 'pass' if detail.avg_glance >= glance_threshold else 'fail' }}"
-                 style="width: {{ (detail.avg_glance * 100) | round(0) }}%"></div>
-            <div class="score-hero-threshold" style="left: {{ (glance_threshold * 100) | round(0) }}%"
-                 title="Seuil de reussite: {{ (glance_threshold * 100) | round(0) }}%"></div>
-        </div>
-        <div class="score-hero-meta">
-            {{ detail.n_tests }} test{{ 's' if detail.n_tests != 1 else '' }} |
-            {{ detail.n_participants }} participant{{ 's' if detail.n_participants != 1 else '' }}
-        </div>
-    </div>
-
-    {# Sub-scores grid #}
-    <div class="scores-grid">
-        {# S9a — Subject Identification #}
-        <div class="card score-card">
-            <div class="score-card-header">
-                <span class="score-card-title">S9a — Sujet identifie</span>
-                <span class="score-card-badge {{ 'badge-pass' if detail.avg_s9a >= 0.5 else 'badge-fail' }}">
-                    {{ 'PASS' if detail.avg_s9a >= 0.5 else 'FAIL' }}
-                </span>
-            </div>
-            <div class="score-card-value">{{ (detail.avg_s9a * 100) | round(0) }}%</div>
-            <div class="score-bar-wrap">
-                <div class="score-bar">
-                    <div class="score-fill {{ 'pass' if detail.avg_s9a >= 0.5 else 'fail' }}"
-                         style="width: {{ (detail.avg_s9a * 100) | round(0) }}%"></div>
-                </div>
-            </div>
-        </div>
-
-        {# S9b — Evidence Hierarchy #}
-        <div class="card score-card">
-            <div class="score-card-header">
-                <span class="score-card-title">S9b — Hierarchie des preuves</span>
-                <span class="score-card-badge {{ 'badge-pass' if detail.avg_s9b > 0.25 else 'badge-fail' }}">
-                    {{ 'PASS' if detail.avg_s9b > 0.25 else 'FAIL' }}
-                </span>
-            </div>
-            <div class="score-card-value">{{ (detail.avg_s9b * 100) | round(0) }}%</div>
-            <div class="score-bar-wrap">
-                <div class="score-bar">
-                    <div class="score-fill {{ 'pass' if detail.avg_s9b > 0.25 else 'fail' }}"
-                         style="width: {{ (detail.avg_s9b * 100) | round(0) }}%"></div>
-                </div>
-                <div class="chance-marker" style="left: 25%;" title="Niveau chance (25%)"></div>
-            </div>
-            <div class="score-card-detail">
-                vs hasard (25%):
-                <span class="{{ 'pass' if detail.s9b_above_chance else 'fail' }}">
-                    {{ '%+.0f' | format(detail.s9b_vs_chance * 100) }}pp
-                </span>
-            </div>
-        </div>
-
-        {# S9c — Actionability #}
-        <div class="card score-card">
-            <div class="score-card-header">
-                <span class="score-card-title">S9c — Actionnabilite</span>
-            </div>
-            <div class="score-card-value">{{ (detail.avg_s9c * 100) | round(0) }}%</div>
-            <div class="score-bar-wrap">
-                <div class="score-bar">
-                    <div class="score-fill {{ 'pass' if detail.avg_s9c >= 0.5 else 'fail' }}"
-                         style="width: {{ (detail.avg_s9c * 100) | round(0) }}%"></div>
-                </div>
-            </div>
-        </div>
-
-        {# Fluency #}
-        <div class="card score-card">
-            <div class="score-card-header">
-                <span class="score-card-title">Fluency</span>
-                <span class="score-card-sub">S9b / log(RT2)</span>
-            </div>
-            <div class="score-card-value">{{ (detail.avg_fluency * 1000) | round(1) }}</div>
-            <div class="score-card-detail">
-                Mediane RT2: {{ (detail.median_rt2 / 1000) | round(1) }}s
-                ({{ detail.rt2_class }})
-            </div>
-        </div>
-    </div>
-
-    {# Speed-Accuracy Distribution #}
-    <div class="card">
-        <h3>Speed-Accuracy Distribution</h3>
-        <div class="speed-acc-grid">
-            <div class="speed-acc-cell speed-acc-pass">
-                <div class="speed-acc-value">{{ detail.speed_dist.fast_right }}</div>
-                <div class="speed-acc-label">Fast & Right</div>
-            </div>
-            <div class="speed-acc-cell">
-                <div class="speed-acc-value">{{ detail.speed_dist.slow_right }}</div>
-                <div class="speed-acc-label">Slow & Right</div>
-            </div>
-            <div class="speed-acc-cell speed-acc-fail">
-                <div class="speed-acc-value">{{ detail.speed_dist.fast_wrong }}</div>
-                <div class="speed-acc-label">Fast & Wrong</div>
-            </div>
-            <div class="speed-acc-cell">
-                <div class="speed-acc-value">{{ detail.speed_dist.slow_wrong }}</div>
-                <div class="speed-acc-label">Slow & Wrong</div>
-            </div>
-        </div>
-    </div>
-
-    {# System 2 Coverage #}
-    {% if detail.s2_has_data %}
-    <div class="card">
-        <h3>System 2 — Analyse approfondie</h3>
-        <div class="s2-header-row">
-            <span class="s2-coverage-label">Couverture</span>
-            <span class="s2-coverage-value {{ 'pass' if detail.avg_s2_coverage >= 0.50 else 'fail' }}">
-                {{ (detail.avg_s2_coverage * 100) | round(0) }}%
-            </span>
-        </div>
-        <div class="score-bar-wrap" style="margin-bottom: var(--sp-4);">
-            <div class="score-bar">
-                <div class="score-fill {{ 'pass' if detail.avg_s2_coverage >= 0.50 else 'fail' }}"
-                     style="width: {{ (detail.avg_s2_coverage * 100) | round(0) }}%"></div>
-            </div>
-        </div>
-
-        {% if detail.avg_s9b > 0 %}
-        <div class="score-card-detail" style="margin-bottom: var(--sp-4);">
-            Delta_system = S2_coverage - S1_S9b =
-            <span class="{{ 'pass' if (detail.avg_s2_coverage - detail.avg_s9b) > 0 else 'fail' }}">
-                {{ '%+.0f' | format((detail.avg_s2_coverage - detail.avg_s9b) * 100) }}pp
-            </span>
-        </div>
-        {% endif %}
-
-        {# Node-by-node coverage #}
-        {% if detail.s2_node_means %}
-        <table class="data-table s2-node-table">
-            <thead>
-                <tr>
-                    <th>Noeud</th>
-                    <th>Score moyen</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for node_id, score in detail.s2_node_means.items() %}
-                <tr>
-                    <td title="{{ s2_node_labels.get(node_id, node_id) }}">
-                        {{ s2_node_labels.get(node_id, node_id)|truncate(50) }}
-                    </td>
-                    <td class="{{ 'pass' if score >= 0.40 else 'fail' }}">
-                        {{ (score * 100) | round(0) }}%
-                    </td>
-                    <td>
-                        {% if score >= 0.40 %}
-                        <span style="color: var(--pass);">&#10003; Recu</span>
-                        {% else %}
-                        <span style="color: var(--fail);">&#10007; Manque</span>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% endif %}
-    </div>
-    {% endif %}
-
-    {% endif %}{# end n_tests > 0 #}
-
-
-    {# ══════════════════════════════════════════════════════════════════
-       SECTION 3: Recommendations
-       ══════════════════════════════════════════════════════════════════ #}
-    {% if recommendations %}
-    <h2>Recommandations</h2>
-
-    {% if recommendations.recommendations %}
-    <div class="reco-list">
-        {% for rec in recommendations.recommendations %}
-        <div class="card reco-card reco-{{ rec.priority | lower }}">
-            <div class="reco-header">
-                <span class="reco-priority-badge reco-badge-{{ rec.priority | lower }}">{{ rec.priority }}</span>
-                <span class="reco-node">{{ rec.node }}</span>
-            </div>
-            <div class="reco-issue">{{ rec.issue }}</div>
-            <div class="reco-fix">{{ rec.fix }}</div>
-            <div class="reco-impact">{{ rec.impact }}</div>
-        </div>
-        {% endfor %}
-    </div>
-    {% endif %}
-
-    {% if recommendations.strengths %}
-    <h3 style="margin-top: var(--sp-6);">Points forts</h3>
-    <div class="strengths-list">
-        {% for s in recommendations.strengths %}
-        <div class="card strength-card">
-            <span class="strength-node">{{ s.node }}</span>
-            <span class="strength-reason">{{ s.reason }}</span>
-        </div>
-        {% endfor %}
-    </div>
-    {% endif %}
-
-    {% if recommendations.accessibility_warnings %}
-    <h3 style="margin-top: var(--sp-6);">Accessibilite</h3>
-    <div class="a11y-list">
-        {% for w in recommendations.accessibility_warnings %}
-        <div class="card a11y-card">
-            <div class="a11y-test">{{ w.test }}</div>
-            <div class="a11y-fix">{{ w.fix }}</div>
-            <div class="a11y-ref">{{ w.reference }}</div>
-        </div>
-        {% endfor %}
-    </div>
-    {% endif %}
-
-    {# Channel Upgrade Paths #}
-    {% if recommendations.upgrade_paths %}
-    <h3 style="margin-top: var(--sp-6);">Chemins d'amelioration des canaux visuels</h3>
-    <table class="data-table">
-        <thead>
-            <tr>
-                <th>Canal actuel</th>
-                <th>Upgrade vers</th>
-                <th>Raison</th>
-                <th>Delta S9b attendu</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for ch, up in recommendations.upgrade_paths.items() %}
-            <tr>
-                <td><strong>{{ ch }}</strong></td>
-                <td class="pass">{{ up.upgrade_to }}</td>
-                <td>{{ up.reason[:80] }}{% if up.reason|length > 80 %}...{% endif %}</td>
-                <td class="pass">{{ up.expected_improvement }}</td>
-            </tr>
             {% endfor %}
-        </tbody>
-    </table>
+        </div>
+    </div>
+
+    <!-- Node Coverage -->
+    {% if detail.s2_node_means %}
+    <div class="gd-section">
+        <h2 class="gd-section-title">Couverture nodale (System 2)</h2>
+        <div class="gd-nodes-grid">
+            {% for node_id, score in detail.s2_node_means.items() %}
+            {% set is_hit = score >= 0.4 %}
+            {% set label = s2_node_labels.get(node_id, node_id) %}
+            {% if node_id.startswith("L1") %}{% set sz = 52 %}{% elif node_id.startswith("L2") %}{% set sz = 42 %}{% else %}{% set sz = 34 %}{% endif %}
+            <div class="gd-node-bubble {{ 'gd-node-hit' if is_hit else 'gd-node-miss' }}" style="width:{{ sz }}px;height:{{ sz }}px;">
+                <div class="gd-node-tooltip">{{ label[:50] }}{% if label|length > 50 %}...{% endif %}<br>Score: {{ (score * 100) | round(0) }}%</div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="gd-node-legend">
+            <span><span class="gd-node-legend-dot" style="background:var(--gd-pass);"></span>Recu (&gt;40%)</span>
+            <span><span class="gd-node-legend-dot" style="background:var(--gd-fail);"></span>Manque (&lt;40%)</span>
+            <span style="color:var(--gd-text-muted);">Taille = niveau hierarchique</span>
+        </div>
+    </div>
     {% endif %}
     {% endif %}
 
+    <!-- Recommendations -->
+    {% if recommendations %}
+    <div class="gd-section">
+        <h2 class="gd-section-title">Recommandations</h2>
+        {% if recommendations.recommendations %}
+        <div class="gd-recs">
+            {% for rec in recommendations.recommendations %}
+            {% set p = rec.priority | lower %}
+            <div class="gd-rec-card gd-rec-{{ p }}" style="animation-delay:{{ loop.index * 0.08 }}s;">
+                <div class="gd-rec-header">
+                    <span class="gd-rec-badge gd-badge-{{ p }}">{{ rec.priority }}</span>
+                    <span class="gd-rec-node">{{ rec.node }}</span>
+                </div>
+                <div class="gd-rec-issue">{{ rec.issue }}</div>
+                <div class="gd-rec-fix">{{ rec.fix }}</div>
+                {% if rec.impact %}<div class="gd-rec-impact">{{ rec.impact }}</div>{% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% if recommendations.strengths %}
+        <h3 style="font-size:0.9375rem;font-weight:600;color:var(--gd-navy);margin:1.5rem 0 0.75rem;">Points forts</h3>
+        <div class="gd-strengths">
+            {% for s in recommendations.strengths %}<span class="gd-strength-chip" title="{{ s.reason }}">{{ s.node }}</span>{% endfor %}
+        </div>
+        {% endif %}
+        {% if recommendations.accessibility_warnings %}
+        <h3 style="font-size:0.9375rem;font-weight:600;color:var(--gd-navy);margin:1.5rem 0 0.75rem;">Accessibilite</h3>
+        <div class="gd-warnings">
+            {% for w in recommendations.accessibility_warnings %}
+            <div class="gd-warning-item">
+                <div class="gd-warning-title">{{ w.test }}</div>
+                <div class="gd-warning-fix">{{ w.fix }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
 
-    {# ══════════════════════════════════════════════════════════════════
-       SECTION 4: Comparison (Control vs VEC pair)
-       ══════════════════════════════════════════════════════════════════ #}
+    <!-- A/B Pair -->
     {% if pair_image and pair_stats %}
-    <h2>Comparaison {{ 'VEC' if image.is_control else 'Control' }}</h2>
-    <div class="comparison-grid">
-        {# Current GA #}
-        <div class="card comparison-card">
-            <div class="comparison-thumb-wrap">
-                <img src="/ga/{{ image.filename }}" alt="{{ image.title }}" class="comparison-thumb">
+    <div class="gd-section">
+        <h2 class="gd-section-title">Comparaison A/B</h2>
+        <div class="gd-pair-compare">
+            <div class="gd-pair-card">
+                <div class="gd-pair-label">{{ 'Control' if image.is_control else 'VEC' }} (cette GA)</div>
+                <img src="/ga/{{ image.filename }}" alt="{{ image.title }}" class="gd-pair-thumb" loading="lazy">
+                {% if detail.n_tests > 0 %}<div class="gd-pair-score">{{ (detail.avg_glance * 100) | round(0) | int }}%</div><div style="font-size:0.75rem;color:var(--gd-text-dim);">{{ detail.n_tests }} tests</div>
+                {% else %}<div class="gd-pair-score" style="color:var(--gd-text-muted);">--</div>{% endif %}
             </div>
-            <div class="comparison-label">
-                {{ 'Control' if image.is_control else 'VEC' }}
+            <div class="gd-pair-card">
+                <div class="gd-pair-label">{{ 'VEC' if image.is_control else 'Control' }} (paire)</div>
+                <img src="/ga/{{ pair_image.filename }}" alt="{{ pair_image.title }}" class="gd-pair-thumb" loading="lazy">
+                {% if pair_stats.n_tests > 0 %}<div class="gd-pair-score">{{ (pair_stats.avg_glance * 100) | round(0) | int }}%</div><div style="font-size:0.75rem;color:var(--gd-text-dim);">{{ pair_stats.n_tests }} tests</div>
+                {% else %}<div class="gd-pair-score" style="color:var(--gd-text-muted);">--</div>{% endif %}
             </div>
-            <div class="comparison-title">{{ image.title or image.filename }}</div>
-            {% if detail.n_tests > 0 %}
-            <div class="comparison-score {{ 'pass' if detail.avg_glance >= glance_threshold else 'fail' }}">
-                {{ (detail.avg_glance * 100) | round(0) }}%
-            </div>
-            <div class="comparison-detail">
-                S9b: {{ (detail.avg_s9b * 100) | round(0) }}% |
-                N={{ detail.n_tests }}
-            </div>
-            {% else %}
-            <div class="comparison-score" style="color: var(--text-dim);">--</div>
-            <div class="comparison-detail">Pas de tests</div>
-            {% endif %}
         </div>
-
-        {# Pair GA #}
-        <div class="card comparison-card">
-            <div class="comparison-thumb-wrap">
-                <img src="/ga/{{ pair_image.filename }}" alt="{{ pair_image.title }}" class="comparison-thumb">
-            </div>
-            <div class="comparison-label">
-                {{ 'VEC' if image.is_control else 'Control' }}
-            </div>
-            <div class="comparison-title">{{ pair_image.title or pair_image.filename }}</div>
-            {% if pair_stats.n_tests > 0 %}
-            <div class="comparison-score {{ 'pass' if pair_stats.avg_glance >= glance_threshold else 'fail' }}">
-                {{ (pair_stats.avg_glance * 100) | round(0) }}%
-            </div>
-            <div class="comparison-detail">
-                S9b: {{ (pair_stats.avg_s9b * 100) | round(0) }}% |
-                N={{ pair_stats.n_tests }}
-            </div>
-            {% else %}
-            <div class="comparison-score" style="color: var(--text-dim);">--</div>
-            <div class="comparison-detail">Pas de tests</div>
-            {% endif %}
-        </div>
-    </div>
-
-    {# Delta values #}
-    {% if detail.n_tests > 0 and pair_stats.n_tests > 0 %}
-    <div class="card delta-card">
-        <table class="result-table">
-            <tr>
-                <td class="label">Delta GLANCE</td>
-                <td>
-                    {% set d_glance = detail.avg_glance - pair_stats.avg_glance %}
-                    <span class="{{ 'pass' if d_glance > 0 else ('fail' if d_glance < 0 else '') }}">
-                        {{ '%+.0f' | format(d_glance * 100) }}pp
-                    </span>
-                </td>
-            </tr>
-            <tr>
-                <td class="label">Delta S9b</td>
-                <td>
-                    {% set d_s9b = detail.avg_s9b - pair_stats.avg_s9b %}
-                    <span class="{{ 'pass' if d_s9b > 0 else ('fail' if d_s9b < 0 else '') }}">
-                        {{ '%+.0f' | format(d_s9b * 100) }}pp
-                    </span>
-                </td>
-            </tr>
-            <tr>
-                <td class="label">Delta S9c</td>
-                <td>
-                    {% set d_s9c = detail.avg_s9c - pair_stats.avg_s9c %}
-                    <span class="{{ 'pass' if d_s9c > 0 else ('fail' if d_s9c < 0 else '') }}">
-                        {{ '%+.0f' | format(d_s9c * 100) }}pp
-                    </span>
-                </td>
-            </tr>
-            <tr>
-                <td class="label">Delta Fluency</td>
-                <td>
-                    {% set d_flu = detail.avg_fluency - pair_stats.avg_fluency %}
-                    <span class="{{ 'pass' if d_flu > 0 else ('fail' if d_flu < 0 else '') }}">
-                        {{ '%+.1f' | format(d_flu * 1000) }} (x1000)
-                    </span>
-                </td>
-            </tr>
-        </table>
     </div>
     {% endif %}
 
-    {# Link to pair detail page #}
-    <div style="text-align: center; margin-top: var(--sp-4);">
-        <a href="/ga-detail/{{ pair_image.id }}" class="btn btn-secondary">
-            Voir le detail {{ 'VEC' if image.is_control else 'Control' }}
-        </a>
+    <!-- Speed-Accuracy -->
+    {% if detail.n_tests > 0 %}
+    <div class="gd-section">
+        <h2 class="gd-section-title">Distribution Vitesse-Precision</h2>
+        <div class="gd-scores-row" style="grid-template-columns:repeat(4,1fr);">
+            {% set sa = detail.speed_dist %}
+            {% set total = sa.fast_right + sa.slow_right + sa.fast_wrong + sa.slow_wrong %}
+            {% set pairs = [
+                {"name": "Rapide + Correct", "val": sa.fast_right, "color": "#10b981"},
+                {"name": "Lent + Correct", "val": sa.slow_right, "color": "#eab308"},
+                {"name": "Rapide + Faux", "val": sa.fast_wrong, "color": "#f97316"},
+                {"name": "Lent + Faux", "val": sa.slow_wrong, "color": "#ef4444"}
+            ] %}
+            {% for p in pairs %}
+            <div class="gd-score-card" style="text-align:center;animation-delay:{{ 0.35 + loop.index * 0.05 }}s;">
+                <div class="gd-score-name">{{ p.name }}</div>
+                <div class="gd-score-value" style="color:{{ p.color }};">{{ p.val }}</div>
+                <div style="font-size:0.6875rem;color:var(--gd-text-muted);">{% if total > 0 %}{{ ((p.val / total) * 100) | round(0) | int }}%{% else %}0%{% endif %}</div>
+            </div>
+            {% endfor %}
+        </div>
     </div>
     {% endif %}
 
+    <!-- Empty state -->
+    {% if detail.n_tests == 0 %}
+    <div class="gd-empty">
+        <svg class="gd-empty-icon" viewBox="0 0 24 24" fill="none" stroke="var(--gd-text-muted)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        <p>En attente de donnees</p>
+        <p style="font-size:0.8125rem;margin-top:0.5rem;">Les scores apparaitront apres le premier test.</p>
+    </div>
+    {% endif %}
 </div>
+<div class="gd-toast" id="gdToast">Lien copie !</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function(){
+    var DIMS=[
+        {label:'S9a',value:{{ detail.avg_s9a or 0 }}},
+        {label:'S9b',value:{{ detail.avg_s9b or 0 }}},
+        {label:'S9c',value:{{ detail.avg_s9c or 0 }}},
+        {label:'Fluence',value:{{ detail.fluency_normalized or 0 }}},
+        {label:'S2',value:{{ detail.avg_s2_coverage or 0 }}}
+    ];
+    var cx=160,cy=140,R=110,n=5;
+    var START=-Math.PI/2,STEP=2*Math.PI/n;
+    function pt(i,r){var a=START+i*STEP;return[cx+r*Math.cos(a),cy+r*Math.sin(a)];}
+    function poly(pts){return pts.map(function(p){return p[0].toFixed(1)+','+p[1].toFixed(1);}).join(' ');}
+    var wrap=document.getElementById('radarWrap');
+    if(wrap && {{ detail.n_tests }}){
+        var svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+        svg.setAttribute('width','320');svg.setAttribute('height','300');svg.setAttribute('viewBox','0 0 320 300');
+        [0.25,0.5,0.75,1.0].forEach(function(lv){
+            var pts=[];for(var i=0;i<n;i++)pts.push(pt(i,R*lv));
+            var pg=document.createElementNS('http://www.w3.org/2000/svg','polygon');
+            pg.setAttribute('points',poly(pts));pg.setAttribute('class','gd-radar-grid');svg.appendChild(pg);
+        });
+        for(var i=0;i<n;i++){
+            var p2=pt(i,R);
+            var ln=document.createElementNS('http://www.w3.org/2000/svg','line');
+            ln.setAttribute('x1',cx);ln.setAttribute('y1',cy);
+            ln.setAttribute('x2',p2[0].toFixed(1));ln.setAttribute('y2',p2[1].toFixed(1));
+            ln.setAttribute('class','gd-radar-axis');svg.appendChild(ln);
+        }
+        var dpts=[];for(var i=0;i<n;i++){var v=Math.max(0,Math.min(1,DIMS[i].value));dpts.push(pt(i,R*v));}
+        var shape=document.createElementNS('http://www.w3.org/2000/svg','polygon');
+        shape.setAttribute('points',poly(dpts));shape.setAttribute('class','gd-radar-shape');svg.appendChild(shape);
+        for(var i=0;i<n;i++){
+            var v=Math.max(0,Math.min(1,DIMS[i].value));var dp=pt(i,R*v);
+            var c=document.createElementNS('http://www.w3.org/2000/svg','circle');
+            c.setAttribute('cx',dp[0].toFixed(1));c.setAttribute('cy',dp[1].toFixed(1));
+            c.setAttribute('r','4');c.setAttribute('class','gd-radar-dot');svg.appendChild(c);
+            var lp=pt(i,R+22);
+            var t=document.createElementNS('http://www.w3.org/2000/svg','text');
+            t.setAttribute('x',lp[0].toFixed(1));t.setAttribute('y',(lp[1]+4).toFixed(1));
+            t.setAttribute('class','gd-radar-text');t.textContent=DIMS[i].label;svg.appendChild(t);
+        }
+        wrap.appendChild(svg);
+    }
+    document.addEventListener('DOMContentLoaded',function(){
+        var ring=document.querySelector('.gd-gauge-ring-fill');
+        if(ring){var target=ring.getAttribute('data-target-offset');requestAnimationFrame(function(){requestAnimationFrame(function(){ring.style.strokeDashoffset=target;});});}
+        var bars=document.querySelectorAll('.gd-score-bar-fill[data-width]');
+        bars.forEach(function(bar,i){setTimeout(function(){bar.style.width=bar.getAttribute('data-width');},200+i*80);});
+    });
+    window.shareGA=function(){
+        var url=window.location.href;
+        if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(url).then(showToast);}
+        else{var ta=document.createElement('textarea');ta.value=url;ta.style.position='fixed';ta.style.left='-9999px';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');showToast();}catch(e){}document.body.removeChild(ta);}
+    };
+    function showToast(){var t=document.getElementById('gdToast');t.classList.add('gd-toast-show');setTimeout(function(){t.classList.remove('gd-toast-show');},2000);}
+})();
+</script>
 {% endblock %}

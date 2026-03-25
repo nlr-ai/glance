@@ -370,6 +370,108 @@ def compute_ab_fluency_delta(tests_control: list[dict], tests_vec: list[dict]) -
     }
 
 
+# ── GA Detail analytics ────────────────────────────────────────────────
+
+
+def get_ga_detail_stats(ga_image_id: int) -> dict:
+    """Compute detailed aggregate stats for a single GA image.
+
+    Queries all tests for this GA and computes:
+    - avg/individual S9a, S9b, S9c, composite, fluency scores
+    - S2 node coverage aggregates
+    - speed-accuracy distribution
+    - test count and timing
+
+    Returns dict with all computed aggregates, safe for 0-test case.
+    """
+    from db import get_tests_for_image
+    import json
+
+    tests = get_tests_for_image(ga_image_id)
+    n = len(tests)
+
+    if n == 0:
+        return {
+            "n_tests": 0,
+            "avg_s9a": 0.0,
+            "avg_s9b": 0.0,
+            "avg_s9c": 0.0,
+            "avg_glance": 0.0,
+            "avg_fluency": 0.0,
+            "fluency_normalized": 0.0,
+            "avg_s2_coverage": 0.0,
+            "s2_node_means": {},
+            "speed_dist": {"fast_right": 0, "slow_right": 0, "fast_wrong": 0, "slow_wrong": 0},
+            "tests": [],
+        }
+
+    # S9a: use s9a_score (continuous) if available, else binary pass
+    s9a_scores = [float(t.get("s9a_score") or 0.0) for t in tests]
+    avg_s9a = sum(s9a_scores) / n
+
+    # S9b: binary pass rate
+    s9b_passes = [1 if t.get("s9b_pass") else 0 for t in tests]
+    avg_s9b = sum(s9b_passes) / n
+
+    # S9c: graduated score
+    s9c_scores = [float(t.get("s9c_score") or 0.0) for t in tests]
+    avg_s9c = sum(s9c_scores) / n
+
+    # GLANCE composite
+    glance_scores = [float(t.get("glance_score") or 0.0) for t in tests]
+    avg_glance = sum(glance_scores) / n
+
+    # Fluency
+    fluency_scores = [
+        compute_fluency_score(bool(t.get("s9b_pass")), t.get("q2_time_ms", 0))
+        for t in tests
+    ]
+    avg_fluency = sum(fluency_scores) / n
+
+    # Normalize fluency to 0-1 range for radar chart (max theoretical ~ 0.22 at 100ms)
+    # Use 0.15 as practical max for normalization
+    fluency_normalized = min(1.0, avg_fluency / 0.15) if avg_fluency > 0 else 0.0
+
+    # Speed-accuracy distribution
+    speed_dist = compute_speed_accuracy_distribution(tests)
+
+    # S2 node coverage aggregates
+    s2_coverages = []
+    s2_node_aggregates = {}  # node_id -> list of scores across tests
+    for t in tests:
+        if t.get("s2_node_coverage"):
+            try:
+                cov = json.loads(t["s2_node_coverage"])
+                from scoring import compute_system2_coverage
+                s2_coverages.append(compute_system2_coverage(cov))
+                for node_id, score in cov.items():
+                    s2_node_aggregates.setdefault(node_id, []).append(score)
+            except (json.JSONDecodeError, Exception):
+                pass
+
+    avg_s2_coverage = (sum(s2_coverages) / len(s2_coverages)) if s2_coverages else 0.0
+
+    # Average per-node scores
+    s2_node_means = {
+        nid: sum(scores) / len(scores)
+        for nid, scores in s2_node_aggregates.items()
+    }
+
+    return {
+        "n_tests": n,
+        "avg_s9a": round(avg_s9a, 4),
+        "avg_s9b": round(avg_s9b, 4),
+        "avg_s9c": round(avg_s9c, 4),
+        "avg_glance": round(avg_glance, 4),
+        "avg_fluency": round(avg_fluency, 4),
+        "fluency_normalized": round(fluency_normalized, 4),
+        "avg_s2_coverage": round(avg_s2_coverage, 4),
+        "s2_node_means": s2_node_means,
+        "speed_dist": speed_dist,
+        "tests": tests,
+    }
+
+
 # ── Leaderboard analytics ──────────────────────────────────────────────
 
 
