@@ -1844,8 +1844,8 @@ async def analyze_tool(tool_name: str, ga_slug: str, request: Request, pwd: str 
     Freemium: 3 free tool calls per GA. After that, payment or email required.
     Free tools (no Gemini cost): health, reader_sim — always free.
     """
-    FREE_TOOLS = {"health", "reader_sim"}  # pure math, no API cost
-    FREE_CALLS_PER_GA = 3
+    FREE_TOOLS = {"health", "reader_sim", "reader_sim_s2"}  # pure math, no API cost
+    FREE_CALLS_PER_GA = 6
 
     image = get_image_by_slug(ga_slug)
     if not image:
@@ -1995,6 +1995,26 @@ async def analyze_tool(tool_name: str, ga_slug: str, request: Request, pwd: str 
             narrative = generate_reading_narrative(sim, graph)
             return JSONResponse({
                 "tool": "reader_sim",
+                "verdict": sim["stats"]["complexity_verdict"],
+                "pressure": sim["stats"]["budget_pressure"],
+                "visited": sim["stats"]["unique_nodes_visited"],
+                "total": sim["stats"]["total_things"],
+                "skipped": sim["stats"]["nodes_skipped"],
+                "narrative_coverage": sim["stats"]["narrative_coverage"],
+                "dead_spaces": sim["stats"]["dead_space_count"],
+                "orphan_narratives": sim["stats"]["orphan_narrative_count"],
+                "narrative_text": narrative,
+                "recommendations": sim.get("recommendations", []),
+            })
+
+        elif tool_name == "reader_sim_s2":
+            if not graph:
+                raise HTTPException(status_code=400, detail="No graph yet — run vision first")
+            from reader_sim import simulate_reading, generate_reading_narrative
+            sim = simulate_reading(graph, total_ticks=900, mode="system2")
+            narrative = generate_reading_narrative(sim, graph)
+            return JSONResponse({
+                "tool": "reader_sim_s2",
                 "verdict": sim["stats"]["complexity_verdict"],
                 "pressure": sim["stats"]["budget_pressure"],
                 "visited": sim["stats"]["unique_nodes_visited"],
