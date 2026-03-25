@@ -245,16 +245,19 @@ def _regex_extract_channel(block):
 
 
 def analyze_batch(image_bytes, mime_type, graph_yaml, channels, model,
-                  max_retries=2, abstract=None):
+                  max_retries=2, abstract=None, prior_graph=True):
     """Send one batch of channels to Gemini for analysis. Self-healing on failure.
 
     Args:
         abstract: Optional paper abstract. When provided, Gemini judges whether
                   channels encode the RIGHT information, not just effectiveness.
+        prior_graph: When True (default), includes graph_yaml in the prompt as
+                     context. When False, omits the graph from the prompt.
     """
     channel_list = format_channel_batch(channels)
+    effective_graph_yaml = graph_yaml if prior_graph else "(no prior graph provided)"
     prompt = CHANNEL_PROMPT_TEMPLATE.format(
-        graph_yaml=graph_yaml,
+        graph_yaml=effective_graph_yaml,
         n_channels=len(channels),
         channel_list=channel_list,
         channel_id=channels[0]["id"],
@@ -291,10 +294,12 @@ def analyze_batch(image_bytes, mime_type, graph_yaml, channels, model,
             logger.info(f"  Retrying with smaller batch ({len(channels)}→{len(channels)//2})...")
             mid = len(channels) // 2
             r1 = analyze_batch(image_bytes, mime_type, graph_yaml,
-                               channels[:mid], model, max_retries=0, abstract=abstract)
+                               channels[:mid], model, max_retries=0, abstract=abstract,
+                               prior_graph=prior_graph)
             time.sleep(3)
             r2 = analyze_batch(image_bytes, mime_type, graph_yaml,
-                               channels[mid:], model, max_retries=0, abstract=abstract)
+                               channels[mid:], model, max_retries=0, abstract=abstract,
+                               prior_graph=prior_graph)
             merged = r1.get("channels", []) + r2.get("channels", [])
             return {"channels": merged}
 
@@ -477,7 +482,8 @@ def enrich_graph(graph, all_channel_results):
 
 # ── Main ────────────────────────────────────────────────────────────
 
-def analyze_ga_channels(image_path, graph_path, output_path=None, abstract=None):
+def analyze_ga_channels(image_path, graph_path, output_path=None, abstract=None,
+                        prior_graph=True):
     """Full pipeline: load image + graph, batch-analyze channels, enrich graph.
 
     Args:
@@ -486,6 +492,9 @@ def analyze_ga_channels(image_path, graph_path, output_path=None, abstract=None)
         output_path: Optional output path for enriched graph.
         abstract: Optional paper abstract text. When provided, Gemini judges
                   whether channels encode the RIGHT information.
+        prior_graph: When True (default), the existing graph YAML is included
+                     in the Gemini prompt as context. Set False to analyze
+                     channels without prior graph context.
     """
     import google.generativeai as genai
 
@@ -517,7 +526,8 @@ def analyze_ga_channels(image_path, graph_path, output_path=None, abstract=None)
     for i, batch in enumerate(batches):
         logger.info(f"Analyzing batch {i+1}/{len(batches)} ({len(batch)} channels)...")
         try:
-            result = analyze_batch(image_bytes, mime_type, graph_yaml, batch, model, abstract=abstract)
+            result = analyze_batch(image_bytes, mime_type, graph_yaml, batch, model, abstract=abstract,
+                                      prior_graph=prior_graph)
             all_results.append(result)
             n_ch = len(result.get('channels', []))
             logger.info(f"  Got {n_ch} channel results")
@@ -620,7 +630,8 @@ delta:
 """
 
 
-def compare_channels(image_paths: list, graph_paths: list, output_path=None, abstract=None) -> dict:
+def compare_channels(image_paths: list, graph_paths: list, output_path=None, abstract=None,
+                     prior_graph=True) -> dict:
     """Run channel analysis on each image independently, then generate a DELTA report.
 
     Args:
@@ -628,6 +639,8 @@ def compare_channels(image_paths: list, graph_paths: list, output_path=None, abs
         graph_paths: list of 2 or 3 corresponding graph YAML paths
         output_path: Optional output path for the comparison report.
         abstract: Optional paper abstract text for scientific accuracy context.
+        prior_graph: When True (default), includes existing graph YAML in
+                     the Gemini prompt as context for iterative enrichment.
 
     Returns:
         dict with keys: per_image (list of enriched graphs), delta (comparison dict)
@@ -651,7 +664,8 @@ def compare_channels(image_paths: list, graph_paths: list, output_path=None, abs
     for i, (img_path, grp_path) in enumerate(zip(image_paths, graph_paths)):
         label = chr(65 + i)
         logger.info(f"Analyzing channels for image {label}: {img_path}")
-        enriched = analyze_ga_channels(img_path, grp_path, abstract=abstract)
+        enriched = analyze_ga_channels(img_path, grp_path, abstract=abstract,
+                                          prior_graph=prior_graph)
         per_image.append(enriched)
         if i < n - 1:
             time.sleep(2)

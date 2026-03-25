@@ -192,7 +192,7 @@ def _build_intent_from_diagnosis(turn_data):
 
 def auto_improve(image_path, abstract=None, max_turns=5,
                  target_archetype="cristallin", output_dir=None,
-                 ga_image_id=None):
+                 ga_image_id=None, prior_graph=True):
     """Run the autonomous improvement loop.
 
     Args:
@@ -201,6 +201,9 @@ def auto_improve(image_path, abstract=None, max_turns=5,
         max_turns: Maximum iterations (default 5)
         target_archetype: Stop when this archetype is reached
         output_dir: Where to save turn logs (default: data/auto_improve/)
+        prior_graph: When True (default), each turn's Gemini calls receive the
+                     previous turn's graph as context, making the loop iterative.
+                     The graph from turn N becomes the prior_graph for turn N+1.
 
     Returns:
         dict with turn history and final state
@@ -225,6 +228,7 @@ def auto_improve(image_path, abstract=None, max_turns=5,
     history = []
     prev_score = None
     plateau_count = 0
+    prev_graph = None  # Graph from previous turn for iterative building
 
     for turn in range(1, max_turns + 1):
         logger.info(f"\n{'='*60}")
@@ -236,7 +240,10 @@ def auto_improve(image_path, abstract=None, max_turns=5,
         # ── Step 1: Analyze ──
         logger.info("Step 1: Vision analysis...")
         try:
-            result = analyze_ga_image(image_bytes, filename=f"auto_t{turn}.png")
+            # Pass previous turn's graph as prior_graph for iterative building
+            pg = prev_graph if (prior_graph and prev_graph) else prior_graph
+            result = analyze_ga_image(image_bytes, filename=f"auto_t{turn}.png",
+                                      prior_graph=pg)
             meta = result["metadata"]
             graph_path = result["saved_path"]
             turn_data["graph_path"] = graph_path
@@ -260,7 +267,8 @@ def auto_improve(image_path, abstract=None, max_turns=5,
         logger.info("Step 2: Channel analysis...")
         time.sleep(3)
         try:
-            enriched = analyze_ga_channels(image_path, graph_path)
+            enriched = analyze_ga_channels(image_path, graph_path,
+                                             prior_graph=prior_graph)
             ca = enriched.get("metadata", {}).get("channel_analysis", {})
             turn_data["channels_used"] = ca.get("channels_used", 0)
             turn_data["avg_effectiveness"] = ca.get("avg_effectiveness", 0)
@@ -354,7 +362,8 @@ def auto_improve(image_path, abstract=None, max_turns=5,
         time.sleep(3)
         try:
             advised = advise(image_path, graph_path, intent,
-                             output_path=os.path.join(output_dir, f"turn_{turn}_advised.yaml"))
+                             output_path=os.path.join(output_dir, f"turn_{turn}_advised.yaml"),
+                             prior_graph=prior_graph)
             if advised:
                 # Count changes
                 changes = [n for n in advised.get("nodes", []) if n.get("_change")]
@@ -432,6 +441,9 @@ def auto_improve(image_path, abstract=None, max_turns=5,
             logger.warning(f"  DB logging failed (non-blocking): {e}")
 
         prev_score = current_score
+        # Store current graph for next turn's prior_graph
+        if prior_graph:
+            prev_graph = result["graph"]
 
         # Rate limit between turns
         if turn < max_turns:

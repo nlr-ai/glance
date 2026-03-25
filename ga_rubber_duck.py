@@ -260,7 +260,8 @@ def _load_image(path):
     return data, mime
 
 
-def rubber_duck(image_path, graph_path, component_name, output_path=None, abstract=None):
+def rubber_duck(image_path, graph_path, component_name, output_path=None, abstract=None,
+                prior_graph=True):
     """Ask synesthetic questions about one component across all channel families.
 
     Args:
@@ -269,6 +270,8 @@ def rubber_duck(image_path, graph_path, component_name, output_path=None, abstra
         component_name: Name of the component to explore.
         output_path: Optional output path.
         abstract: Optional paper abstract text for scientific grounding.
+        prior_graph: When True (default), includes the existing graph YAML in
+                     the Gemini prompt as context for iterative exploration.
     """
     model = _load_gemini()
     image_bytes, mime = _load_image(image_path)
@@ -293,8 +296,9 @@ def rubber_duck(image_path, graph_path, component_name, output_path=None, abstra
 
     questions_text = "\n".join(f"{i+1}. {q}" for i, q in enumerate(all_questions))
 
+    effective_graph_yaml = graph_yaml[:3000] if prior_graph else "(no prior graph provided)"
     prompt = DUCK_PROMPT.format(
-        graph_yaml=graph_yaml[:3000],
+        graph_yaml=effective_graph_yaml,
         component=component_name,
         node_info=node_info,
         questions=questions_text,
@@ -335,7 +339,8 @@ def rubber_duck(image_path, graph_path, component_name, output_path=None, abstra
     return parsed
 
 
-def sandbox(image_path, graph_path, concept, output_path=None, abstract=None):
+def sandbox(image_path, graph_path, concept, output_path=None, abstract=None,
+            prior_graph=True):
     """Decline a concept across ALL possible visual encodings.
 
     Args:
@@ -344,6 +349,8 @@ def sandbox(image_path, graph_path, concept, output_path=None, abstract=None):
         concept: The concept to explore encodings for.
         output_path: Optional output path.
         abstract: Optional paper abstract text for scientific grounding.
+        prior_graph: When True (default), includes the existing graph YAML in
+                     the Gemini prompt as context for iterative exploration.
     """
     model = _load_gemini()
     image_bytes, mime = _load_image(image_path)
@@ -352,8 +359,9 @@ def sandbox(image_path, graph_path, concept, output_path=None, abstract=None):
         graph = yaml.safe_load(f)
     graph_yaml = yaml.dump(graph, default_flow_style=False, allow_unicode=True)
 
+    effective_graph_yaml = graph_yaml[:3000] if prior_graph else "(no prior graph provided)"
     prompt = SANDBOX_PROMPT.format(
-        graph_yaml=graph_yaml[:3000],
+        graph_yaml=effective_graph_yaml,
         concept=concept,
     )
 
@@ -405,7 +413,8 @@ def sandbox(image_path, graph_path, concept, output_path=None, abstract=None):
     return parsed
 
 
-def full_duck(image_path, graph_path, output_path=None, abstract=None):
+def full_duck(image_path, graph_path, output_path=None, abstract=None,
+              prior_graph=True):
     """Rubber duck ALL nodes × all channel families. Expensive but comprehensive.
 
     Args:
@@ -413,6 +422,7 @@ def full_duck(image_path, graph_path, output_path=None, abstract=None):
         graph_path: Path to L3 graph YAML file.
         output_path: Optional output path.
         abstract: Optional paper abstract text for scientific grounding.
+        prior_graph: When True (default), includes graph context in each call.
     """
     model = _load_gemini()
     image_bytes, mime = _load_image(image_path)
@@ -427,7 +437,8 @@ def full_duck(image_path, graph_path, output_path=None, abstract=None):
     for i, node in enumerate(nodes):
         name = node["name"]
         logger.info(f"  [{i+1}/{len(nodes)}] {name}...")
-        result = rubber_duck(image_path, graph_path, name, abstract=abstract)
+        result = rubber_duck(image_path, graph_path, name, abstract=abstract,
+                             prior_graph=prior_graph)
         if result:
             results[name] = result
         if i < len(nodes) - 1:
@@ -498,7 +509,8 @@ Return ONLY the YAML. No markdown fences. No explanation.
 """
 
 
-def sandbox_compare(image_paths: list, graph_paths: list, concept: str, output_path=None, abstract=None) -> dict:
+def sandbox_compare(image_paths: list, graph_paths: list, concept: str, output_path=None,
+                    abstract=None, prior_graph=True) -> dict:
     """Compare how 2-3 GAs encode a specific concept across all visual channels.
 
     Args:
@@ -507,6 +519,8 @@ def sandbox_compare(image_paths: list, graph_paths: list, concept: str, output_p
         concept: the concept to compare encoding of
         output_path: Optional output path for the comparison.
         abstract: Optional paper abstract text for scientific grounding.
+        prior_graph: When True (default), includes existing graph YAML in
+                     the Gemini prompt as context for iterative comparison.
 
     Returns:
         dict with per_channel comparison, winner per channel, and overall recommendation
@@ -535,11 +549,17 @@ def sandbox_compare(image_paths: list, graph_paths: list, concept: str, output_p
         label = chr(65 + i)
         with open(graph_paths[i], "r", encoding="utf-8") as f:
             graph = yaml.safe_load(f)
-        graph_yaml = yaml.dump(graph, default_flow_style=False, allow_unicode=True)
-        graph_sections.append(
-            f"--- GA {label} ({os.path.basename(image_paths[i])}) ---\n"
-            f"```yaml\n{graph_yaml[:3000]}\n```\n"
-        )
+        if prior_graph:
+            graph_yaml = yaml.dump(graph, default_flow_style=False, allow_unicode=True)
+            graph_sections.append(
+                f"--- GA {label} ({os.path.basename(image_paths[i])}) ---\n"
+                f"```yaml\n{graph_yaml[:3000]}\n```\n"
+            )
+        else:
+            graph_sections.append(
+                f"--- GA {label} ({os.path.basename(image_paths[i])}) ---\n"
+                f"(no prior graph provided)\n"
+            )
 
     per_ga_c = ""
     clarity_c = ""

@@ -326,7 +326,8 @@ Return ONLY the YAML. No markdown fences. No explanation before or after.
 """
 
 
-def compare_ga_images(images: list, filenames: list, abstract: str = None) -> dict:
+def compare_ga_images(images: list, filenames: list, abstract: str = None,
+                      prior_graph=True) -> dict:
     """Compare 2 or 3 GA images side-by-side via a single Gemini call.
 
     Args:
@@ -334,6 +335,10 @@ def compare_ga_images(images: list, filenames: list, abstract: str = None) -> di
         filenames: list of filenames corresponding to each image
         abstract: Optional paper abstract text. When provided, Gemini judges
                   which GA most faithfully represents the paper's findings.
+        prior_graph: When True and prior graphs exist (passed as dict mapping
+                     labels to graph dicts), includes them as context so Gemini
+                     builds on previous analysis. Accepts True/False or a dict
+                     like {"A": graph_a, "B": graph_b}.
 
     Returns:
         dict with keys: graphs (dict of A/B/C -> graph), ranking (list),
@@ -375,6 +380,16 @@ def compare_ga_images(images: list, filenames: list, abstract: str = None) -> di
         ranking_c_placeholder=ranking_c_placeholder,
         extra_comparisons=extra_comparisons,
     )
+
+    if isinstance(prior_graph, dict):
+        prior_yaml = yaml.dump(prior_graph, default_flow_style=False, allow_unicode=True)
+        prompt += (
+            "\n\n## Current Graphs (starting point)\n"
+            "Use these as your base. Modify/extend them rather than starting from scratch.\n"
+            "```yaml\n"
+            f"{prior_yaml}"
+            "```\n"
+        )
 
     if abstract:
         prompt += (
@@ -451,7 +466,8 @@ def compare_ga_images(images: list, filenames: list, abstract: str = None) -> di
     }
 
 
-def analyze_ga_image(image_bytes: bytes, filename: str = "", abstract: str = None) -> dict:
+def analyze_ga_image(image_bytes: bytes, filename: str = "", abstract: str = None,
+                     prior_graph=True) -> dict:
     """Send GA image to Gemini Vision, get L3 graph + analysis.
 
     Args:
@@ -460,6 +476,10 @@ def analyze_ga_image(image_bytes: bytes, filename: str = "", abstract: str = Non
         abstract: Optional paper abstract text. When provided, Gemini compares
                   what the GA communicates vs what the paper actually found,
                   detecting Spin and missed key findings.
+        prior_graph: When a dict is passed, includes it as context so Gemini
+                     extends/modifies rather than starting from scratch.
+                     True (default) is accepted but has no effect when no dict
+                     is provided. False disables prior graph injection.
 
     Returns:
         dict with keys: graph (validated L3), metadata, raw_response, saved_path
@@ -486,8 +506,17 @@ def analyze_ga_image(image_bytes: bytes, filename: str = "", abstract: str = Non
     }
     mime_type = mime_map.get(ext, "image/png")
 
-    # Build prompt with optional abstract context
+    # Build prompt with optional prior graph context
     prompt = VISION_PROMPT
+    if isinstance(prior_graph, dict):
+        prior_yaml = yaml.dump(prior_graph, default_flow_style=False, allow_unicode=True)
+        prompt += (
+            "\n\n## Current Graph (starting point)\n"
+            "Use this as your base. Modify/extend it rather than starting from scratch.\n"
+            "```yaml\n"
+            f"{prior_yaml}"
+            "```\n"
+        )
     if abstract:
         prompt += (
             f"\n\nPAPER ABSTRACT: {abstract}\n\n"

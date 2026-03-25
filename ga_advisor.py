@@ -139,7 +139,8 @@ def _resilient_yaml_parse(raw_text):
     return None
 
 
-def advise(image_path, graph_path, intent, output_path=None, abstract=None):
+def advise(image_path, graph_path, intent, output_path=None, abstract=None,
+           prior_graph=True):
     """Send GA + graph + intent to Gemini, get modified graph back.
 
     Args:
@@ -149,6 +150,9 @@ def advise(image_path, graph_path, intent, output_path=None, abstract=None):
         output_path: Optional output path for the advised graph.
         abstract: Optional paper abstract text. When provided, Gemini ensures
                   modifications are scientifically grounded.
+        prior_graph: When True (default), includes the existing graph YAML in
+                     the Gemini prompt as context so modifications build on the
+                     current graph rather than starting from scratch.
     """
     import google.generativeai as genai
 
@@ -167,8 +171,9 @@ def advise(image_path, graph_path, intent, output_path=None, abstract=None):
         graph = yaml.safe_load(f)
     graph_yaml = yaml.dump(graph, default_flow_style=False, allow_unicode=True)
 
-    # Build prompt
-    prompt = ADVISOR_PROMPT.format(graph_yaml=graph_yaml, intent=intent)
+    # Build prompt — when prior_graph=True, include existing graph as context
+    effective_graph_yaml = graph_yaml if prior_graph else "(no prior graph provided)"
+    prompt = ADVISOR_PROMPT.format(graph_yaml=effective_graph_yaml, intent=intent)
 
     if abstract:
         prompt += (
@@ -319,7 +324,8 @@ Return ONLY the YAML. No markdown fences. No explanation before or after.
 """
 
 
-def advise_merge(image_paths: list, graph_paths: list, intent: str, output_path=None, abstract=None) -> dict:
+def advise_merge(image_paths: list, graph_paths: list, intent: str, output_path=None,
+                 abstract=None, prior_graph=True) -> dict:
     """Merge the best elements from 2-3 GA versions into a single optimal graph.
 
     Args:
@@ -329,6 +335,8 @@ def advise_merge(image_paths: list, graph_paths: list, intent: str, output_path=
         output_path: Optional output path for the merged graph.
         abstract: Optional paper abstract text. When provided, Gemini ensures
                   merged elements are scientifically accurate.
+        prior_graph: When True (default), includes existing graphs in the Gemini
+                     prompt as context for iterative merging.
 
     Returns:
         dict: merged graph with _source annotations on each node
@@ -357,11 +365,17 @@ def advise_merge(image_paths: list, graph_paths: list, intent: str, output_path=
         label = chr(65 + i)
         with open(graph_paths[i], "r", encoding="utf-8") as f:
             graph = yaml.safe_load(f)
-        graph_yaml = yaml.dump(graph, default_flow_style=False, allow_unicode=True)
-        section_texts.append(
-            f"--- Version {label} ({os.path.basename(image_paths[i])}) ---\n"
-            f"Graph:\n```yaml\n{graph_yaml[:3000]}\n```\n"
-        )
+        if prior_graph:
+            graph_yaml = yaml.dump(graph, default_flow_style=False, allow_unicode=True)
+            section_texts.append(
+                f"--- Version {label} ({os.path.basename(image_paths[i])}) ---\n"
+                f"Graph:\n```yaml\n{graph_yaml[:3000]}\n```\n"
+            )
+        else:
+            section_texts.append(
+                f"--- Version {label} ({os.path.basename(image_paths[i])}) ---\n"
+                f"Graph: (no prior graph provided)\n"
+            )
 
     elements_from_c = "    elements_from_c: <count>\n" if n == 3 else ""
 
