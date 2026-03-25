@@ -1,0 +1,95 @@
+{# ── Reusable macros for GA score badges, verdict labels, and archetype badges ── #}
+
+{# ── Verdict label: returns the French verdict word for a 0-1 score ── #}
+{% macro verdict_label(score) %}{% if score >= 0.8 %}Limpide{% elif score >= 0.6 %}Fluide{% elif score >= 0.4 %}Accessible{% elif score >= 0.2 %}Brumeux{% elif score >= 0.1 %}Opaque{% else %}Illisible{% endif %}{% endmacro %}
+
+{# ── Verdict color: returns hex color for a 0-1 score ── #}
+{% macro verdict_color(score) %}{% if score >= 0.8 %}#10B981{% elif score >= 0.6 %}#2A9D8F{% elif score >= 0.4 %}#F59E0B{% elif score >= 0.2 %}#F97316{% elif score >= 0.1 %}#EF4444{% else %}#991B1B{% endif %}{% endmacro %}
+
+{# ── Score color class: returns CSS class suffix for a percentage (0-100) ── #}
+{% macro score_color_class(pct) %}{% if pct >= 80 %}limpide{% elif pct >= 60 %}fluide{% elif pct >= 40 %}accessible{% elif pct >= 20 %}brumeux{% elif pct >= 10 %}opaque{% else %}illisible{% endif %}{% endmacro %}
+
+{# ── Score badge: big number + donut ring + verdict pill ── #}
+{# score: float 0-1, size: 'lg' (80px gauge) | 'md' (56px) | 'sm' (40px) #}
+{% macro score_badge(score, size='md') %}
+{% if score is not none and score > 0 %}
+    {% set pct = (score * 100) | round(0) | int %}
+    {% set color = verdict_color(score) | trim %}
+    {% set label = verdict_label(score) | trim %}
+    {% set cls = score_color_class(pct) | trim %}
+    {% if size == 'lg' %}
+        {% set svg_size = 80 %}
+        {% set r = 32 %}
+        {% set sw = 6 %}
+        {% set font_size = 22 %}
+        {% set label_size = 10 %}
+    {% elif size == 'sm' %}
+        {% set svg_size = 40 %}
+        {% set r = 15 %}
+        {% set sw = 4 %}
+        {% set font_size = 12 %}
+        {% set label_size = 0 %}
+    {% else %}
+        {% set svg_size = 56 %}
+        {% set r = 22 %}
+        {% set sw = 5 %}
+        {% set font_size = 16 %}
+        {% set label_size = 8 %}
+    {% endif %}
+    {% set circ = 2 * 3.14159 * r %}
+    {% set offset = circ - (circ * pct / 100) %}
+    <div class="ga-score-badge ga-score-{{ cls }}">
+        <svg class="ga-score-ring" width="{{ svg_size }}" height="{{ svg_size }}" viewBox="0 0 {{ svg_size }} {{ svg_size }}">
+            <circle cx="{{ svg_size // 2 }}" cy="{{ svg_size // 2 }}" r="{{ r }}"
+                    fill="none" stroke="currentColor" stroke-width="{{ sw }}" opacity="0.15"/>
+            <circle cx="{{ svg_size // 2 }}" cy="{{ svg_size // 2 }}" r="{{ r }}"
+                    fill="none" stroke="{{ color }}" stroke-width="{{ sw }}"
+                    stroke-linecap="round"
+                    stroke-dasharray="{{ circ | round(1) }}"
+                    stroke-dashoffset="{{ offset | round(1) }}"
+                    transform="rotate(-90 {{ svg_size // 2 }} {{ svg_size // 2 }})"/>
+            <text x="{{ svg_size // 2 }}" y="{{ svg_size // 2 + font_size * 0.35 }}"
+                  text-anchor="middle" fill="{{ color }}"
+                  font-family="var(--font-mono, 'SF Mono', 'Cascadia Code', monospace)"
+                  font-weight="800" font-size="{{ font_size }}">{{ pct }}</text>
+        </svg>
+        {% if size != 'sm' %}
+        <span class="ga-verdict-pill" style="background:{{ color }}20;color:{{ color }};">{{ label }}</span>
+        {% endif %}
+    </div>
+{% else %}
+    <div class="ga-score-badge ga-score-none">
+        <span class="ga-score-dash">&mdash;</span>
+        {% if size != 'sm' %}
+        <span class="ga-verdict-pill ga-verdict-none">Pas de score</span>
+        {% endif %}
+    </div>
+{% endif %}
+{% endmacro %}
+
+{# ── Archetype badge: icon + name in archetype color ── #}
+{# arch: dict with keys archetype, archetype_info, source (optional) #}
+{% macro archetype_badge(arch, size='sm') %}
+{% if arch and arch.archetype_info %}
+    {% set info = arch.archetype_info %}
+    {% set key = arch.archetype %}
+    {% if size == 'lg' %}
+        {% set icon_size = 24 %}
+    {% else %}
+        {% set icon_size = 16 %}
+    {% endif %}
+    <span class="ga-archetype-badge" style="background:{{ info.color }}15;color:{{ info.color }};border-color:{{ info.color }}30;">
+        <span class="ga-archetype-icon" style="width:{{ icon_size }}px;height:{{ icon_size }}px;">
+            {% if key in archetype_svgs %}
+                {{ archetype_svgs[key] | safe }}
+            {% else %}
+                {{ info.emoji }}
+            {% endif %}
+        </span>
+        <span class="ga-archetype-name">{{ info.name_fr }}</span>
+        {% if arch.source == 'predicted' %}
+            <span class="ga-archetype-predicted">IA</span>
+        {% endif %}
+    </span>
+{% endif %}
+{% endmacro %}

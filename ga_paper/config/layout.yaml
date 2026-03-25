@@ -1,0 +1,143 @@
+# Layout — GLANCE Paper Graphical Abstract V6
+# Two-zone architecture: Left = Le Fossé, Right = La Mesure
+# Dimensions: 2400x1256 working, 1200x628 delivery (1.91:1 ratio)
+
+canvas:
+  width: 2400
+  height: 1256
+  delivery_width: 1200
+  delivery_height: 628
+
+# Zone splits
+zones:
+  left:
+    x_pct: 0.0
+    width_pct: 0.43
+  fracture:
+    x_pct: 0.43
+    width_pct: 0.0
+  right:
+    x_pct: 0.43
+    width_pct: 0.57
+
+# Title (centered at top)
+title:
+  text: "GLANCE"
+  y_pct: 0.065
+  font_size: 68
+  font_weight: "800"
+
+# --- LEFT ZONE: "Le Fossé" ---
+
+# Scissors graph (two diverging lines)
+scissors:
+  y_start_pct: 0.14
+  y_end_pct: 0.58
+  x_margin_pct: 0.10
+
+  engagement:
+    stroke_width: 8
+    points:
+      - [0.05, 0.88]
+      - [0.25, 0.72]
+      - [0.45, 0.50]
+      - [0.65, 0.30]
+      - [0.82, 0.10]
+    label: "Engagement"
+    label_offset: [-10, -22]
+
+  comprehension:
+    stroke_width: 2.5
+    points:
+      - [0.05, 0.76]
+      - [0.25, 0.78]
+      - [0.45, 0.76]
+      - [0.65, 0.77]
+      - [0.82, 0.76]
+    label: "Comprehension"
+    label_offset: [-10, 28]
+
+  multiplier_label: "×7.7"
+  grid_lines: true
+  grid_line_count: 4
+
+  annotation:
+    text: "6 RCTs · 538 participants"
+    y_offset_pct: 0.06
+    font_size: 20
+
+# Magnifying lens (Visual Spin)
+lens:
+  cx_pct: 0.52
+  cy_pct: 0.76
+  radius_pct: 0.20
+  stroke_width: 6
+  handle_length_pct: 0.10
+  handle_angle_deg: 135
+  label: "Visual Spin"
+  label_font_size: 22
+  inner_bars: 5
+  inner_bar_stretch: 2.2
+  inner_bar_width_pct: 0.55
+  inner_bar_gap_pct: 0.12
+
+# --- FRACTURE (vertical divider) ---
+
+fracture:
+  stroke_width: 2.5
+  dash: "10,6"
+  jitter_amplitude: 5
+
+  chrono:
+    cy_pct: 0.48
+    radius: 50
+    frame_width: 5.0
+    minute_angle_deg: 0
+    minute_length_pct: 0.60
+    second_angle_deg: 90
+    second_length_pct: 0.78
+    label: "5.0s"
+    label_font_size: 22
+    label_y_offset: 28
+
+# --- RIGHT ZONE: "La Mesure" ---
+
+# Three horizontal bars
+bars:
+  x_margin_pct: 0.05
+  right_margin_pct: 0.05
+  y_start_pct: 0.24
+  bar_height: 72
+  bar_gap: 70
+  border_radius: 8
+
+  axis:
+    y_offset: -40
+    tick_height: 10
+    ticks: [0, 25, 50, 75, 100]
+    font_size: 20
+    label: "%"
+
+  items:
+    - key: "glance"
+      width_pct: 1.0
+      label: "GLANCE Comprehension (≥80%)"
+      show_check: true
+      gradient_shine: true
+    - key: "grade"
+      width_pct: 0.68
+      label: "GRADE Symbols (68%)"
+      show_check: false
+      gradient_shine: false
+    - key: "vanity"
+      width_pct: 0.03
+      label: "Vanity Metrics (~0%)"
+      show_check: false
+      gradient_shine: false
+
+  label_font_size: 22
+  label_gap: 14
+
+font:
+  family: "Helvetica, Arial, sans-serif"
+  min_size: 16

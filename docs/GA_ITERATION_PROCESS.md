@@ -80,4 +80,17 @@ For each version iteration:
 - Thumbnail of the GA
 - GLANCE archetype badge + score
 - Delta table (what changed)
-- Key recommendation that drove the next iteration
+- **Top recommendation** that drove the next iteration (the proof that analysis guides development)
+
+### Narrative arc for the GLANCE paper GA:
+
+| Version | Top Reco (from graph) | What it triggered |
+|---------|----------------------|-------------------|
+| V1 | "No visual hierarchy — bars alone don't communicate the problem" | V2: add scissors graph (engagement vs comprehension) |
+| V2 | "No methodological context — reader doesn't know what this measures" | V3: add magnifying lens (Visual Spin) + 5.0s chronometer |
+| V3 | "Labels overflow — text competes with visual elements" | V4: move labels below bars, fix spacing |
+| V4 | "Low contrast on pink background — Comprehension label barely visible" | V5: boost contrast, add annotation "6 RCTs · 538 participants" |
+| V5 | "S9b=0.70 (target ≥0.80), 6/11 nodes high energy (not resolved)" | V6: gradient shine on GLANCE bar, ×7.7 multiplier, grid lines, bigger chrono |
+| V6 | "Word count 31, Comprehension label still flagged, Engagement energy 0.9" | V7: ... |
+
+This narrative proves GLANCE is not just a score — it's an **iterative design tool**. The graph tells you exactly what to fix next.

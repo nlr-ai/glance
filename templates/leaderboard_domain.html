@@ -1,16 +1,17 @@
 {% extends "base.html" %}
+{% from "_ga_score_macros.html" import score_badge, archetype_badge, verdict_label, verdict_color %}
 {% block title %}Leaderboard {{ data.label }} — GLANCE{% endblock %}
 
 {% block head %}
 <style>
 /* ===== GLANCE Leaderboard — Domain Detail Page =====
-   Uses app-wide dark blue theme from style.css variables.
-   All styles self-contained — no style.css modifications.
+   Visual card layout with GA thumbnails, sort controls,
+   inter-domain navigation pills, and responsive grid.
    ===================================================== */
 
 /* --- Layout --- */
 .lb-page {
-    max-width: 900px;
+    max-width: 1000px;
     margin: 0 auto;
     padding: var(--sp-8) 0 var(--sp-16);
 }
@@ -40,6 +41,62 @@
     font-weight: 600;
 }
 
+/* --- Domain Pills Bar --- */
+.lb-pills {
+    display: flex;
+    gap: var(--sp-2);
+    overflow-x: auto;
+    padding: var(--sp-1) 0 var(--sp-6);
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-subtle) transparent;
+    flex-wrap: wrap;
+}
+.lb-pills::-webkit-scrollbar {
+    height: 4px;
+}
+.lb-pills::-webkit-scrollbar-thumb {
+    background: var(--border-subtle);
+    border-radius: 2px;
+}
+.lb-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-2);
+    padding: var(--sp-2) var(--sp-4);
+    background: var(--surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 999px;
+    font-size: var(--text-xs);
+    font-weight: 500;
+    color: var(--text-muted);
+    text-decoration: none;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+}
+.lb-pill:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+    background: rgba(20, 184, 166, 0.08);
+}
+.lb-pill.active {
+    border-color: var(--primary);
+    color: var(--primary);
+    background: rgba(20, 184, 166, 0.12);
+    font-weight: 600;
+}
+.lb-pill-count {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    background: var(--bg-subtle);
+    padding: 1px 6px;
+    border-radius: 999px;
+    color: var(--text-dim);
+}
+.lb-pill.active .lb-pill-count {
+    background: rgba(20, 184, 166, 0.15);
+    color: var(--primary);
+}
+
 /* --- Header --- */
 .lb-header {
     margin-bottom: var(--sp-6);
@@ -56,7 +113,7 @@
 .lb-summary {
     display: flex;
     gap: var(--sp-3);
-    margin-bottom: var(--sp-8);
+    margin-bottom: var(--sp-6);
 }
 .lb-stat {
     flex: 1;
@@ -82,110 +139,195 @@
     font-weight: 500;
 }
 
-/* --- Ranking list --- */
-.lb-rank-list {
+/* --- Sort controls --- */
+.lb-sort-bar {
     display: flex;
-    flex-direction: column;
+    align-items: center;
     gap: var(--sp-3);
+    margin-bottom: var(--sp-5);
+    font-size: var(--text-sm);
+}
+.lb-sort-label {
+    color: var(--text-dim);
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 500;
+    flex-shrink: 0;
+}
+.lb-sort-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-1);
+    padding: var(--sp-2) var(--sp-4);
+    background: var(--surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    font-size: var(--text-xs);
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.lb-sort-btn:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+.lb-sort-btn.active {
+    border-color: var(--primary);
+    color: var(--primary);
+    background: rgba(20, 184, 166, 0.1);
+    font-weight: 600;
+}
+.lb-sort-btn svg {
+    width: 14px;
+    height: 14px;
 }
 
-.lb-rank-item {
+/* --- GA Cards Grid --- */
+.lb-card-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--sp-4);
+}
+
+/* --- Individual GA Card --- */
+.lb-ga-card {
     background: var(--surface);
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-lg);
-    padding: var(--sp-5) var(--sp-6);
-    display: grid;
-    grid-template-columns: 48px 1fr;
-    gap: var(--sp-5);
-    align-items: center;
-    transition: border-color 0.15s ease, box-shadow 0.2s ease;
+    overflow: hidden;
+    display: flex;
+    flex-direction: row;
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.15s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
-.lb-rank-item:hover {
+.lb-ga-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.25);
     border-color: var(--border);
-    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
 }
 
 /* --- Top 3 accents --- */
-.lb-rank-item.top-1 {
-    border-color: rgba(245, 158, 11, 0.4);
-    box-shadow: inset 0 0 0 1px rgba(245, 158, 11, 0.08);
+.lb-ga-card.top-1 {
+    border-color: rgba(245, 158, 11, 0.45);
+    box-shadow: inset 0 0 0 1px rgba(245, 158, 11, 0.1);
 }
-.lb-rank-item.top-2 {
-    border-color: rgba(156, 163, 175, 0.35);
-    box-shadow: inset 0 0 0 1px rgba(156, 163, 175, 0.08);
+.lb-ga-card.top-2 {
+    border-color: rgba(156, 163, 175, 0.4);
+    box-shadow: inset 0 0 0 1px rgba(156, 163, 175, 0.1);
 }
-.lb-rank-item.top-3 {
-    border-color: rgba(217, 119, 6, 0.35);
-    box-shadow: inset 0 0 0 1px rgba(217, 119, 6, 0.08);
+.lb-ga-card.top-3 {
+    border-color: rgba(217, 119, 6, 0.4);
+    box-shadow: inset 0 0 0 1px rgba(217, 119, 6, 0.1);
 }
 
-/* --- Rank number --- */
-.lb-rank-num {
+/* --- Thumbnail area --- */
+.lb-ga-thumb {
+    width: 200px;
+    min-width: 200px;
+    height: 105px;  /* ~1.9:1 ratio — matches GA format */
+    flex-shrink: 0;
+    overflow: hidden;
+    background: var(--bg-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+.lb-ga-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.lb-ga-thumb-placeholder {
+    width: 40px;
+    height: 40px;
+    opacity: 0.15;
+}
+
+/* --- Rank badge (overlaid on thumbnail) --- */
+.lb-ga-rank-badge {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-family: var(--font-mono);
     font-weight: 800;
-    font-size: var(--text-xl);
+    font-size: var(--text-xs);
     color: var(--text-dim);
-    text-align: center;
     line-height: 1;
 }
-.lb-rank-num.rank-1 { color: #f59e0b; font-size: var(--text-2xl); }
-.lb-rank-num.rank-2 { color: #9ca3af; font-size: var(--text-2xl); }
-.lb-rank-num.rank-3 { color: #d97706; font-size: var(--text-2xl); }
+.lb-ga-rank-badge.rank-1 { color: #f59e0b; background: rgba(245, 158, 11, 0.2); }
+.lb-ga-rank-badge.rank-2 { color: #9ca3af; background: rgba(156, 163, 175, 0.2); }
+.lb-ga-rank-badge.rank-3 { color: #d97706; background: rgba(217, 119, 6, 0.2); }
 
-/* --- Rank content (right side) --- */
-.lb-rank-content {
+/* --- Card body (right side) --- */
+.lb-ga-body {
+    flex: 1;
+    min-width: 0;
+    padding: var(--sp-4);
     display: flex;
     flex-direction: column;
+    justify-content: space-between;
+    gap: var(--sp-2);
+}
+
+/* --- Title row --- */
+.lb-ga-title-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
     gap: var(--sp-3);
+}
+.lb-ga-title {
+    font-weight: 600;
+    font-size: var(--text-sm);
+    color: var(--text);
+    line-height: 1.3;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
     min-width: 0;
 }
 
-/* Title row: name + score on same line */
-.lb-rank-top {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: var(--sp-4);
-}
-.lb-rank-title {
-    font-weight: 600;
-    font-size: var(--text-base);
-    color: var(--text);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    min-width: 0;
-}
-.lb-rank-title a {
-    color: inherit;
-    text-decoration: none;
-}
-.lb-rank-title a:hover {
-    color: var(--primary);
-}
-.lb-rank-pct {
+/* --- Score badge pill --- */
+.lb-score-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 999px;
     font-family: var(--font-mono);
     font-weight: 800;
-    font-size: var(--text-lg);
+    font-size: var(--text-sm);
     flex-shrink: 0;
+    line-height: 1.2;
 }
+.lb-score-badge.bg-green  { background: rgba(34, 197, 94, 0.15); color: #22c55e; }
+.lb-score-badge.bg-yellow { background: rgba(234, 179, 8, 0.15); color: #eab308; }
+.lb-score-badge.bg-orange { background: rgba(249, 115, 22, 0.15); color: #f97316; }
+.lb-score-badge.bg-red    { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+.lb-score-badge.bg-none   { background: var(--bg-subtle); color: var(--text-dim); }
 
-/* Score colors */
-.score-green  { color: #22c55e; }
-.score-yellow { color: #eab308; }
-.score-orange { color: #f97316; }
-.score-red    { color: #ef4444; }
-
-/* --- Wide score bar --- */
-.lb-bar {
-    height: 12px;
+/* --- Score bar (thin) --- */
+.lb-bar-thin {
+    height: 6px;
     background: var(--bg-subtle);
-    border-radius: 6px;
+    border-radius: 3px;
     overflow: hidden;
 }
-.lb-bar-fill {
+.lb-bar-thin-fill {
     height: 100%;
-    border-radius: 6px;
+    border-radius: 3px;
     transition: width 0.6s ease-out;
 }
 .bar-green  { background: #22c55e; }
@@ -194,24 +336,59 @@
 .bar-red    { background: #ef4444; }
 
 /* --- Meta line --- */
-.lb-rank-meta {
+.lb-ga-meta {
     display: flex;
-    gap: var(--sp-4);
+    align-items: center;
+    gap: var(--sp-3);
     font-size: var(--text-xs);
     color: var(--text-dim);
 }
-.lb-rank-meta a {
+.lb-ga-meta-archetype {
+    font-size: var(--text-sm);
+}
+/* Verdict pill for individual GA cards */
+.lb-ga-verdict {
+    display: inline-block;
+    font-size: 0.5625rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 0.1rem 0.5rem;
+    border-radius: 100px;
+    margin-left: 0.25rem;
+    vertical-align: middle;
+}
+/* Score ring in GA card */
+.lb-ga-score-area {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    flex-shrink: 0;
+}
+/* Archetype badge in meta line */
+.lb-ga-meta .ga-archetype-badge {
+    font-size: 0.625rem;
+    padding: 0.1rem 0.5rem;
+}
+.lb-ga-meta-link {
     color: var(--primary);
     text-decoration: none;
     font-weight: 500;
+    margin-left: auto;
 }
-.lb-rank-meta a:hover {
+.lb-ga-meta-link:hover {
     text-decoration: underline;
 }
 
-/* --- No data row --- */
-.lb-rank-nodata {
-    font-size: var(--text-sm);
+/* --- No data card state --- */
+.lb-ga-card-nodata {
+    opacity: 0.6;
+}
+.lb-ga-card-nodata:hover {
+    opacity: 0.8;
+}
+.lb-ga-nodata-label {
+    font-size: var(--text-xs);
     color: var(--text-dim);
     font-style: italic;
 }
@@ -228,15 +405,9 @@
     color: var(--text-dim);
     font-size: var(--text-sm);
 }
-.lb-empty .ga-list {
-    margin-top: var(--sp-4);
-    color: var(--text-dim);
-    font-size: var(--text-xs);
-    opacity: 0.6;
-}
 
 /* --- Responsive --- */
-@media (max-width: 680px) {
+@media (max-width: 760px) {
     .lb-page {
         padding: var(--sp-6) 0 var(--sp-12);
     }
@@ -247,31 +418,33 @@
         flex-wrap: wrap;
     }
     .lb-stat {
-        flex: 1 1 calc(33.333% - var(--sp-3));
-        min-width: calc(33.333% - var(--sp-3));
+        flex: 1 1 calc(50% - var(--sp-3));
+        min-width: calc(50% - var(--sp-3));
     }
-    .lb-rank-item {
-        grid-template-columns: 40px 1fr;
-        gap: var(--sp-3);
-        padding: var(--sp-4) var(--sp-4);
+    .lb-card-grid {
+        grid-template-columns: 1fr;
     }
-    .lb-rank-top {
-        flex-direction: column;
-        gap: var(--sp-1);
+    .lb-ga-thumb {
+        width: 160px;
+        min-width: 160px;
+        height: 84px;
     }
-    .lb-rank-title {
-        white-space: normal;
-        font-size: var(--text-sm);
-    }
-    .lb-rank-num.rank-1,
-    .lb-rank-num.rank-2,
-    .lb-rank-num.rank-3 {
-        font-size: var(--text-xl);
+    .lb-pills {
+        flex-wrap: nowrap;
+        justify-content: flex-start;
     }
 }
 @media (max-width: 400px) {
     .lb-summary {
         flex-direction: column;
+    }
+    .lb-ga-thumb {
+        width: 140px;
+        min-width: 140px;
+        height: 74px;
+    }
+    .lb-ga-title {
+        font-size: var(--text-xs);
     }
 }
 </style>
@@ -285,6 +458,19 @@
         <span class="current">{{ data.label }}</span>
     </nav>
 
+    {# --- Inter-domain navigation pills --- #}
+    {% if all_domains %}
+    <div class="lb-pills">
+        {% for d in all_domains %}
+        <a href="/leaderboard/{{ d.key }}" class="lb-pill {{ 'active' if d.key == domain else '' }}">
+            {{ d.label }}
+            <span class="lb-pill-count">{{ d.n_gas }}</span>
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {# --- Stats header --- #}
     <div class="lb-header">
         <h1>{{ data.label }}</h1>
     </div>
@@ -320,8 +506,28 @@
         </div>
     </div>
 
+    {# --- Sort controls --- #}
     {% if data.gas %}
-    <div class="lb-rank-list">
+    <div class="lb-sort-bar">
+        <span class="lb-sort-label">Trier</span>
+        <button class="lb-sort-btn active" data-sort="best" onclick="sortCards('best')">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                <path d="M8 3v10M4 7l4-4 4 4"/>
+            </svg>
+            Meilleur score
+        </button>
+        <button class="lb-sort-btn" data-sort="worst" onclick="sortCards('worst')">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                <path d="M8 13V3M4 9l4 4 4-4"/>
+            </svg>
+            Pire score
+        </button>
+    </div>
+    {% endif %}
+
+    {# --- GA Cards --- #}
+    {% if data.gas %}
+    <div class="lb-card-grid" id="cardGrid">
         {% for ga in data.gas %}
         {% set rank = loop.index %}
         {% set has_data = ga.avg_glance is not none %}
@@ -340,41 +546,73 @@
             {% endif %}
         {% endif %}
 
-        <div class="lb-rank-item {{ 'top-1' if rank == 1 and has_data else ('top-2' if rank == 2 and has_data else ('top-3' if rank == 3 and has_data else '')) }}">
-            <div class="lb-rank-num {{ 'rank-' ~ rank if rank <= 3 and has_data else '' }}">
-                {{ rank }}
+        <a href="/ga-detail/{{ ga.slug or ga.ga_image_id }}"
+           class="lb-ga-card {{ 'top-1' if rank == 1 and has_data else ('top-2' if rank == 2 and has_data else ('top-3' if rank == 3 and has_data else '')) }} {{ 'lb-ga-card-nodata' if not has_data else '' }}"
+           data-score="{{ pct if has_data else -1 }}"
+           data-has-data="{{ '1' if has_data else '0' }}">
+
+            {# --- Thumbnail --- #}
+            <div class="lb-ga-thumb">
+                {% if ga.filename %}
+                <img src="/ga/{{ ga.filename }}" alt="{{ ga.title }}" loading="lazy">
+                {% else %}
+                <svg class="lb-ga-thumb-placeholder" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <rect x="3" y="3" width="18" height="18" rx="2"/>
+                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                    <polyline points="21 15 16 10 5 21"/>
+                </svg>
+                {% endif %}
+                <div class="lb-ga-rank-badge {{ 'rank-' ~ rank if rank <= 3 and has_data else '' }}">{{ rank }}</div>
             </div>
 
-            <div class="lb-rank-content">
-                <div class="lb-rank-top">
-                    <div class="lb-rank-title">
-                        {% if ga.archetype_emoji %}<span title="{{ ga.archetype_name }}">{{ ga.archetype_emoji }}</span> {% endif %}<a href="/ga-detail/{{ ga.ga_image_id }}">{{ ga.title }}</a>
-                    </div>
+            {# --- Card body --- #}
+            <div class="lb-ga-body">
+                <div class="lb-ga-title-row">
+                    <div class="lb-ga-title">{{ ga.title }}</div>
                     {% if has_data %}
-                        <span class="lb-rank-pct score-{{ sc }}">{{ pct }}%</span>
+                    <div class="lb-ga-score-area">
+                        {% set v_color = verdict_color(ga.avg_glance) | trim %}
+                        {% set circ = 2 * 3.14159 * 15 %}
+                        {% set ring_offset = circ - (circ * pct / 100) %}
+                        <svg width="40" height="40" viewBox="0 0 40 40">
+                            <circle cx="20" cy="20" r="15" fill="none" stroke="currentColor" stroke-width="4" opacity="0.1"/>
+                            <circle cx="20" cy="20" r="15" fill="none" stroke="{{ v_color }}" stroke-width="4"
+                                    stroke-linecap="round" stroke-dasharray="{{ circ | round(1) }}" stroke-dashoffset="{{ ring_offset | round(1) }}"
+                                    transform="rotate(-90 20 20)"/>
+                            <text x="20" y="24" text-anchor="middle" fill="{{ v_color }}"
+                                  font-family="var(--font-mono)" font-weight="800" font-size="12">{{ pct }}</text>
+                        </svg>
+                        <span class="lb-ga-verdict" style="background:{{ v_color }}20;color:{{ v_color }};">{{ verdict_label(ga.avg_glance) }}</span>
+                    </div>
+                    {% else %}
+                    <span class="lb-score-badge bg-none">&mdash;</span>
                     {% endif %}
                 </div>
 
                 {% if has_data %}
-                <div class="lb-bar">
-                    <div class="lb-bar-fill bar-{{ sc }}" style="width: {{ pct }}%;"></div>
+                <div class="lb-bar-thin">
+                    <div class="lb-bar-thin-fill bar-{{ sc }}" style="width: {{ pct }}%;"></div>
                 </div>
+                {% endif %}
 
-                <div class="lb-rank-meta">
+                <div class="lb-ga-meta">
+                    {% if ga.archetype_key and ga.archetype_info %}
+                    {{ archetype_badge({"archetype": ga.archetype_key, "archetype_info": ga.archetype_info, "source": ga.archetype_source}) }}
+                    {% elif ga.archetype_emoji %}
+                    <span class="lb-ga-meta-archetype" title="{{ ga.archetype_name }}">{{ ga.archetype_emoji }}</span>
+                    {% endif %}
+                    {% if has_data %}
                     <span>{{ ga.n_tests }} test{{ 's' if ga.n_tests != 1 else '' }}</span>
                     {% if ga.avg_s9b is not none %}
                     <span>S9b: {{ (ga.avg_s9b * 100) | round(0) | int }}%</span>
                     {% endif %}
-                    {% if ga.avg_s2_coverage is not none %}
-                    <span>Couverture: {{ (ga.avg_s2_coverage * 100) | round(0) | int }}%</span>
+                    {% else %}
+                    <span class="lb-ga-nodata-label">Pas encore de tests</span>
                     {% endif %}
-                    <a href="/ga-detail/{{ ga.ga_image_id }}">Detail &rarr;</a>
+                    <span class="lb-ga-meta-link">Detail &rarr;</span>
                 </div>
-                {% else %}
-                <div class="lb-rank-nodata">Pas encore de données</div>
-                {% endif %}
             </div>
-        </div>
+        </a>
         {% endfor %}
     </div>
     {% else %}
@@ -383,4 +621,50 @@
     </div>
     {% endif %}
 </div>
+
+<script>
+function sortCards(order) {
+    var grid = document.getElementById('cardGrid');
+    if (!grid) return;
+    var cards = Array.from(grid.children);
+
+    // Update button states
+    document.querySelectorAll('.lb-sort-btn').forEach(function(btn) {
+        btn.classList.toggle('active', btn.dataset.sort === order);
+    });
+
+    cards.sort(function(a, b) {
+        var aHas = a.dataset.hasData === '1';
+        var bHas = b.dataset.hasData === '1';
+        // Cards without data always go last
+        if (aHas && !bHas) return -1;
+        if (!aHas && bHas) return 1;
+        if (!aHas && !bHas) return 0;
+        var aScore = parseFloat(a.dataset.score);
+        var bScore = parseFloat(b.dataset.score);
+        return order === 'best' ? bScore - aScore : aScore - bScore;
+    });
+
+    // Re-number rank badges and re-apply top-N classes
+    cards.forEach(function(card, idx) {
+        var rank = idx + 1;
+        var badge = card.querySelector('.lb-ga-rank-badge');
+        if (badge) {
+            badge.textContent = rank;
+            badge.className = 'lb-ga-rank-badge';
+            if (rank <= 3 && card.dataset.hasData === '1') {
+                badge.classList.add('rank-' + rank);
+            }
+        }
+        card.className = card.className
+            .replace(/top-[123]/g, '')
+            .replace(/\s+/g, ' ')
+            .trim();
+        if (card.dataset.hasData === '1' && rank <= 3) {
+            card.classList.add('top-' + rank);
+        }
+        grid.appendChild(card);
+    });
+}
+</script>
 {% endblock %}

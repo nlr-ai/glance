@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_ga_score_macros.html" import score_badge, verdict_label, verdict_color %}
 {% block title %}Dashboard — GLANCE{% endblock %}
 
 {% block head %}
@@ -649,6 +650,14 @@
     text-transform: uppercase;
     letter-spacing: 0.06em;
 }
+/* Verdict pill in test history */
+.my-history-score .ga-verdict-pill {
+    font-size: 0.5625rem;
+    padding: 0.1rem 0.4rem;
+}
+.my-history-score .ga-score-badge {
+    gap: 0.25rem;
+}
 
 @media (max-width: 560px) {
     .my-history-card {
@@ -830,9 +839,10 @@
                 </div>
             </div>
             <div class="my-history-score">
+                {{ score_badge(mt.glance_score or 0, 'sm') }}
                 {% set g_pct = ((mt.glance_score or 0) * 100) | round(0) | int %}
-                <span class="my-history-score-num score-{{ score_color(g_pct) }}">{{ g_pct }}%</span>
-                <span class="my-history-score-label">GLANCE</span>
+                {% set v_color = verdict_color(mt.glance_score or 0) | trim %}
+                <span class="ga-verdict-pill" style="background:{{ v_color }}20;color:{{ v_color }};">{{ verdict_label(mt.glance_score or 0) }}</span>
             </div>
         </div>
         {% endfor %}

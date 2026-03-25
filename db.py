@@ -3,8 +3,23 @@
 import sqlite3
 import os
 import json
+import re
 
 DB_PATH = os.environ.get("GLANCE_DB_PATH", os.path.join(os.path.dirname(__file__), "data", "glance.db"))
+
+
+def slugify(text: str) -> str:
+    """Generate a URL-friendly slug from a filename or text.
+
+    Strips image extensions, lowercases, replaces underscores/spaces with hyphens,
+    removes non-alphanumeric characters (except hyphens), and collapses runs.
+    """
+    text = text.lower().strip()
+    text = re.sub(r'\.(png|jpg|jpeg|webp)$', '', text)
+    text = re.sub(r'[_\s]+', '-', text)
+    text = re.sub(r'[^a-z0-9-]', '', text)
+    text = re.sub(r'-+', '-', text).strip('-')
+    return text
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS participants (
@@ -30,7 +45,8 @@ CREATE TABLE IF NOT EXISTS ga_images (
     correct_product TEXT,
     products TEXT,
     title TEXT,
-    description TEXT
+    description TEXT,
+    slug TEXT UNIQUE
 );
 
 CREATE TABLE IF NOT EXISTS analysis_leads (
@@ -156,6 +172,18 @@ def init_db():
     _migrate_add_columns(conn, "participants", [
         ("handle", "TEXT"),
     ])
+    # Migrate: add slug column to ga_images
+    _migrate_add_columns(conn, "ga_images", [
+        ("slug", "TEXT"),
+    ])
+    # Ensure slug UNIQUE index exists (safe if already there)
+    try:
+        conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_ga_images_slug ON ga_images(slug)")
+        conn.commit()
+    except Exception:
+        pass
+    # Generate slugs for any images that don't have one yet
+    _backfill_slugs(conn)
     conn.close()
 
 
@@ -166,6 +194,48 @@ def _migrate_add_columns(conn, table: str, columns: list[tuple[str, str]]):
         if col_name not in existing:
             conn.execute(f"ALTER TABLE {table} ADD COLUMN {col_name} {col_type}")
     conn.commit()
+
+
+def _backfill_slugs(conn):
+    """Generate slugs for any ga_images rows that don't have one yet."""
+    rows = conn.execute("SELECT id, filename FROM ga_images WHERE slug IS NULL").fetchall()
+    if not rows:
+        return
+    # Collect existing slugs to handle collisions
+    existing = {r[0] for r in conn.execute("SELECT slug FROM ga_images WHERE slug IS NOT NULL").fetchall()}
+    for row in rows:
+        base_slug = slugify(row[1])  # row[1] = filename
+        slug = base_slug
+        counter = 2
+        while slug in existing:
+            slug = f"{base_slug}-{counter}"
+            counter += 1
+        existing.add(slug)
+        conn.execute("UPDATE ga_images SET slug = ? WHERE id = ?", (slug, row[0]))
+    conn.commit()
+
+
+def _generate_unique_slug(conn, filename: str) -> str:
+    """Generate a unique slug for a new ga_images entry."""
+    base_slug = slugify(filename)
+    slug = base_slug
+    counter = 2
+    while True:
+        existing = conn.execute(
+            "SELECT 1 FROM ga_images WHERE slug = ?", (slug,)
+        ).fetchone()
+        if not existing:
+            return slug
+        slug = f"{base_slug}-{counter}"
+        counter += 1
+
+
+def get_image_by_slug(slug: str):
+    """Return a single GA image row by slug."""
+    db = get_db()
+    row = db.execute("SELECT * FROM ga_images WHERE slug = ?", (slug,)).fetchone()
+    db.close()
+    return dict(row) if row else None
 
 
 def create_participant(token, clinical_domain, experience_years, data_literacy, grade_familiar, colorblind_status, input_mode="text", referred_by=None):
@@ -192,11 +262,12 @@ def get_participant_by_token(token):
 def add_ga_image(filename, domain="med", version=None, is_control=False,
                  correct_product=None, products=None, title=None, description=None):
     db = get_db()
+    slug = _generate_unique_slug(db, filename)
     db.execute(
-        """INSERT INTO ga_images (filename, domain, version, is_control, correct_product, products, title, description)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+        """INSERT INTO ga_images (filename, domain, version, is_control, correct_product, products, title, description, slug)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
         (filename, domain, version, int(is_control), correct_product,
-         json.dumps(products) if products else None, title, description),
+         json.dumps(products) if products else None, title, description, slug),
     )
     db.commit()
     db.close()
@@ -501,7 +572,7 @@ def get_landing_stats() -> dict:
     avg_glance = round(avg_row["avg_g"], 4) if avg_row["avg_g"] is not None else None
 
     top_rows = db.execute(
-        """SELECT g.id, g.filename, g.domain, g.title,
+        """SELECT g.id, g.filename, g.domain, g.title, g.slug,
                   AVG(t.glance_score) as avg_glance,
                   COUNT(t.id) as n_tests
            FROM ga_images g
@@ -541,7 +612,7 @@ def get_example_ga() -> dict | None:
     """
     db = get_db()
     row = db.execute(
-        """SELECT g.id, g.filename, g.domain, g.title,
+        """SELECT g.id, g.filename, g.domain, g.title, g.slug,
                   COUNT(t.id) as n_tests
            FROM ga_images g
            JOIN tests t ON t.ga_image_id = g.id

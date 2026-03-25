@@ -687,6 +687,7 @@ def get_leaderboard_data(domain_config: dict) -> dict:
 
             gas.append({
                 "ga_image_id": gid,
+                "slug": img.get("slug") or str(gid),
                 "title": img.get("title") or img["filename"],
                 "filename": img["filename"],
                 "domain": d,
@@ -900,6 +901,7 @@ def get_domain_leaderboard(domain: str, domain_config: dict) -> dict | None:
 
         gas.append({
             "ga_image_id": gid,
+            "slug": img.get("slug") or str(gid),
             "title": img.get("title") or img["filename"],
             "filename": img["filename"],
             "domain": domain,

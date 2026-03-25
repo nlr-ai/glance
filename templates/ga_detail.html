@@ -174,7 +174,21 @@
 .gd-upsell-cta:hover{background:#0f766e}
 @media(max-width:640px){.gd-gate-cards{grid-template-columns:1fr}.gd-gate-card{padding:1.75rem 1.25rem}}
 @media(max-width:480px){.gd-gate-form{flex-direction:column}}
-@media print{body{background:#fff!important;color:#000!important}.gd-page{max-width:100%;padding:0}.gd-hero{margin:0 0 1.5rem;padding:1.5rem;border-radius:0;background:#f0f4f8!important}.gd-hero-backdrop,.gd-hero-overlay{display:none!important}.gd-hero-title,.gd-gauge-verdict,.gd-gauge-sub{color:#000!important}.gd-hero-tag{color:#333!important;background:#e2e8f0!important}.gd-share-btn,.gd-nav,.gd-toast{display:none!important}.gd-score-card,.gd-rec-card,.gd-pair-card,.gd-warning-item{break-inside:avoid;box-shadow:none;border:1px solid #ccc}.gd-gauge-text{fill:#000!important}.gd-gauge-label-text{fill:#666!important}.gd-gate-overlay,.gd-upsell-card{display:none!important}.gd-gate-blurred{filter:none!important;pointer-events:auto!important;user-select:auto!important}}
+@media print{body{background:#fff!important;color:#000!important}.gd-page{max-width:100%;padding:0}.gd-hero{margin:0 0 1.5rem;padding:1.5rem;border-radius:0;background:#f0f4f8!important}.gd-hero-backdrop,.gd-hero-overlay{display:none!important}.gd-hero-title,.gd-gauge-verdict,.gd-gauge-sub{color:#000!important}.gd-hero-tag{color:#333!important;background:#e2e8f0!important}.gd-share-btn,.gd-nav,.gd-toast{display:none!important}.gd-score-card,.gd-rec-card,.gd-pair-card,.gd-warning-item{break-inside:avoid;box-shadow:none;border:1px solid #ccc}.gd-gauge-text{fill:#000!important}.gd-gauge-label-text{fill:#666!important}.gd-gate-overlay,.gd-upsell-card{display:none!important}.gd-gate-blurred{filter:none!important;pointer-events:auto!important;user-select:auto!important}.gd-info-btn,.gd-info-tooltip{display:none!important}}
+/* ── Info button + tooltip system ────────────────────────────────── */
+.gd-info-btn{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;border:1.5px solid #2A9D8F;background:transparent;color:#2A9D8F;font-size:12px;font-weight:700;font-style:italic;font-family:Georgia,'Times New Roman',serif;cursor:pointer;vertical-align:middle;margin-left:4px;padding:0;line-height:1;transition:background 0.2s,color 0.2s;flex-shrink:0;position:relative}
+.gd-info-btn:hover{background:rgba(42,157,143,0.1)}
+.gd-info-btn.gd-info-active{background:#2A9D8F;color:#fff}
+.gd-info-wrap{display:inline-flex;align-items:center;position:relative}
+.gd-info-tooltip{position:absolute;bottom:calc(100% + 10px);left:50%;transform:translateX(-50%);background:#1E293B;color:#fff;padding:0.75rem 1rem;border-radius:8px;font-size:0.8125rem;font-weight:400;font-style:normal;line-height:1.5;max-width:300px;min-width:200px;width:max-content;box-shadow:0 8px 24px rgba(0,0,0,0.25);z-index:100;pointer-events:auto;opacity:0;visibility:hidden;transition:opacity 0.2s,visibility 0.2s}
+.gd-info-tooltip.gd-info-visible{opacity:1;visibility:visible}
+.gd-info-tooltip::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:6px solid transparent;border-top-color:#1E293B}
+/* Hero context: white-on-dark variant */
+.gd-hero .gd-info-btn{border-color:rgba(255,255,255,0.5);color:rgba(255,255,255,0.7)}
+.gd-hero .gd-info-btn:hover{background:rgba(255,255,255,0.12)}
+.gd-hero .gd-info-btn.gd-info-active{background:rgba(255,255,255,0.85);color:#1E293B}
+/* Mobile: anchor tooltip to left edge if near screen edge */
+@media(max-width:640px){.gd-info-tooltip{left:0;transform:translateX(-10%);max-width:calc(100vw - 2rem)}.gd-info-tooltip::after{left:20px;transform:none}}
 </style>
 {% endblock %}
 
@@ -222,14 +236,14 @@
                         <text x="65" y="80" class="gd-gauge-label-text" text-anchor="middle">GLANCE</text>
                     </svg>
                     <div>
-                        <div class="gd-gauge-verdict" style="cursor:help;" title="Le score GLANCE mesure si votre Graphical Abstract transmet son message à un lecteur qui scrolle un feed pendant 5 secondes. ≥70% = le GA communique efficacement. <70% = trop d'information se perd en conditions réelles de lecture.">{{ verdict }} <span style="font-size:0.7rem;opacity:0.5;vertical-align:super;">ⓘ</span></div>
+                        <div class="gd-gauge-verdict">{{ verdict }} <span class="gd-info-wrap"><button class="gd-info-btn" data-info="glance-score" aria-label="Info GLANCE Score">i</button><span class="gd-info-tooltip" id="info-glance-score">Le score GLANCE mesure le pourcentage d'information correctement perçue en 5 secondes de lecture. 80%+ = excellent.</span></span></div>
                         <div class="gd-gauge-sub">Seuil de passage : {{ (glance_threshold * 100) | round(0) | int }}%</div>
                     </div>
                     {% if archetype %}
                     <div class="gd-archetype-badge" style="background:{{ archetype.archetype_info.color_bg }};border-color:{{ archetype.archetype_info.color }}40;">
                         <span class="gd-archetype-icon">{% if archetype.archetype in archetype_svgs %}{{ archetype_svgs[archetype.archetype] | safe }}{% else %}{{ archetype.archetype_info.emoji }}{% endif %}</span>
                         <div class="gd-archetype-body">
-                            <div class="gd-archetype-name">{{ archetype.archetype_info.name_fr }}{% if archetype.source == 'predicted' %}<span class="gd-archetype-predicted">prediction</span>{% endif %}</div>
+                            <div class="gd-archetype-name">{{ archetype.archetype_info.name_fr }}{% if archetype.source == 'predicted' %}<span class="gd-archetype-predicted">prediction</span>{% endif %} <span class="gd-info-wrap"><button class="gd-info-btn" data-info="archetype" aria-label="Info Archetype" style="width:16px;height:16px;font-size:10px;">i</button><span class="gd-info-tooltip" id="info-archetype">L'archetype GLANCE est un diagnostic visuel base sur le profil de scores. 7 types : Cristallin (parfait) a Fantome (invisible).</span></span></div>
                             <div class="gd-archetype-sig">{{ archetype.archetype_info.signature }}</div>
                         </div>
                     </div>
@@ -269,7 +283,7 @@
     <div class="gd-archetype-detail" style="border-left-color:{{ archetype.archetype_info.color }};">
         <div class="gd-archetype-detail-header">
             <span class="gd-archetype-detail-icon">{% if archetype.archetype in archetype_svgs %}{{ archetype_svgs[archetype.archetype] | safe }}{% else %}{{ archetype.archetype_info.emoji }}{% endif %}</span>
-            <span class="gd-archetype-detail-name">{{ archetype.archetype_info.name_fr }}</span>
+            <span class="gd-archetype-detail-name">{{ archetype.archetype_info.name_fr }} <span class="gd-info-wrap"><button class="gd-info-btn" data-info="archetype-detail" aria-label="Info Archetype" style="width:16px;height:16px;font-size:10px;">i</button><span class="gd-info-tooltip" id="info-archetype-detail">L'archetype GLANCE est un diagnostic visuel base sur le profil de scores. 7 types : Cristallin (parfait) a Fantome (invisible).</span></span></span>
             <span class="gd-archetype-detail-en">({{ archetype.archetype_info.name_en }})</span>
         </div>
         <div class="gd-archetype-detail-desc">{{ archetype.archetype_info.description_fr }}</div>
@@ -278,6 +292,13 @@
             {% if archetype.source == 'predicted' %}Archetype predit (vision IA){% else %}Archetype mesure{% endif %}
             &mdash; confiance : {{ (archetype.confidence * 100) | round(0) | int }}%
             {% if archetype.method == 'distance' %} (distance){% endif %}
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:0.75rem;">
+            <span class="gd-info-wrap"><span style="font-size:0.75rem;color:var(--gd-text-muted);font-weight:600;">Drift</span> <button class="gd-info-btn" data-info="drift" aria-label="Info Drift" style="width:16px;height:16px;font-size:10px;">i</button><span class="gd-info-tooltip" id="info-drift">Distorsion involontaire due a l'encodage visuel. Ex: les camemberts compressent les differences (Stevens beta=0.85).</span></span>
+            <span class="gd-info-wrap"><span style="font-size:0.75rem;color:var(--gd-text-muted);font-weight:600;">Warp</span> <button class="gd-info-btn" data-info="warp" aria-label="Info Warp" style="width:16px;height:16px;font-size:10px;">i</button><span class="gd-info-tooltip" id="info-warp">Distribution inegale du poids visuel. Un element domine et ecrase les autres. sigma/mu du coverage > 1.0 = warp.</span></span>
+            <span class="gd-info-wrap"><span style="font-size:0.75rem;color:var(--gd-text-muted);font-weight:600;">Spin</span> <button class="gd-info-btn" data-info="spin" aria-label="Info Spin" style="width:16px;height:16px;font-size:10px;">i</button><span class="gd-info-tooltip" id="info-spin">Embellissement visuel intentionnel ou non. Le graphique 'dit' quelque chose de different de ce que les donnees montrent.</span></span>
+            <span class="gd-info-wrap"><span style="font-size:0.75rem;color:var(--gd-text-muted);font-weight:600;">Mots</span> <button class="gd-info-btn" data-info="wordcount" aria-label="Info Word count" style="width:16px;height:16px;font-size:10px;">i</button><span class="gd-info-tooltip" id="info-wordcount">Budget recommande : &le;30 mots. Chaque mot active le Systeme 2 (lecture consciente) et augmente le temps de decodage.</span></span>
+            <span class="gd-info-wrap"><span style="font-size:0.75rem;color:var(--gd-text-muted);font-weight:600;">Canaux</span> <button class="gd-info-btn" data-info="channels" aria-label="Info Visual channels" style="width:16px;height:16px;font-size:10px;">i</button><span class="gd-info-tooltip" id="info-channels">Canaux perceptifs utilises : position, longueur, couleur, taille, forme, etc. Cleveland &amp; McGill (1984) : la position est le canal le plus precis.</span></span>
         </div>
     </div>
     {% endif %}
@@ -354,82 +375,133 @@
     {% endif %}
 
     {% if detail.n_tests > 0 %}
-    <!-- Radar + Score Cards -->
+    <!-- Profil perceptuel — Report Card -->
     <div class="gd-section">
         <h2 class="gd-section-title">Profil perceptuel</h2>
         <div class="gd-radar-wrap">
             <div class="gd-radar-svg-wrap" id="radarWrap"></div>
         </div>
-        <div class="gd-scores-row" style="margin-top:1.5rem;">
-            {% set metrics = [
-                {"name": "S9a Recall", "value": detail.avg_s9a, "desc": "Identification du sujet", "dist_key": "s9a",
-                 "threshold_good": 60, "threshold_mid": 0,
-                 "tooltip": "Est-ce que les lecteurs comprennent de quoi parle votre image ? Un score de 60%+ signifie que la majorité identifie le sujet correctement en 5 secondes.",
-                 "interpret_good": "Les lecteurs identifient le sujet de votre image",
-                 "interpret_mid": "",
-                 "interpret_bad": "Les lecteurs ne comprennent pas de quoi parle votre image — le titre ou le visuel principal n'est pas assez clair"},
-                {"name": "S9b Hiérarchie", "value": detail.avg_s9b, "desc": "Hiérarchie des preuves", "dist_key": "s9b",
-                 "threshold_good": 80, "threshold_mid": 25,
-                 "tooltip": "Est-ce que les lecteurs voient quel résultat est le plus important ? Chance = 25% (4 choix). Un bon GA dépasse 80%. En dessous de 25%, le design ne transmet aucune hiérarchie.",
-                 "interpret_good": "La hiérarchie des preuves est claire — les lecteurs voient quel résultat domine",
-                 "interpret_mid": "Les lecteurs ne voient pas quel résultat est le plus important — repensez l'encodage visuel (taille, position, couleur)",
-                 "interpret_bad": "Compréhension au niveau du hasard — le design ne transmet aucune hiérarchie"},
-                {"name": "S9c Action", "value": detail.avg_s9c, "desc": "Impact sur la pratique", "dist_key": "s9c",
-                 "threshold_good": 40, "threshold_mid": 0,
-                 "tooltip": "Est-ce que votre image donne envie d'agir ? Un score de 40%+ signifie que les lecteurs perçoivent une implication concrète pour leur pratique.",
-                 "interpret_good": "Votre image déclenche une intention d'action chez les lecteurs",
-                 "interpret_mid": "",
-                 "interpret_bad": "Les lecteurs ne voient pas en quoi ça les concerne — ajoutez un message clinique ou pratique explicite"},
-                {"name": "GLANCE", "value": detail.avg_glance, "desc": "Score composite global", "dist_key": "glance",
-                 "threshold_good": 70, "threshold_mid": 0,
-                 "tooltip": "Score composite combinant S9a, S9b et S9c. Mesure si le GA transmet son message en conditions réelles de lecture (scroll rapide).",
-                 "interpret_good": "Votre GA communique efficacement en conditions réelles",
-                 "interpret_mid": "",
-                 "interpret_bad": "Votre GA perd trop d'information dans un contexte de scroll"},
-                {"name": "Fluence", "value": detail.fluency_normalized, "desc": "Rapidité × précision", "dist_key": "",
-                 "threshold_good": 70, "threshold_mid": 40,
-                 "tooltip": "Combine la vitesse de réponse et la justesse. Un score élevé = le lecteur a compris vite ET bien. Un score bas = soit lent, soit faux, soit les deux.",
-                 "interpret_good": "Décodage rapide et précis — le design est fluide",
-                 "interpret_mid": "Compréhension correcte mais lente — le design demande un effort",
-                 "interpret_bad": "Le design bloque la compréhension rapide"},
-                {"name": "Couverture S2", "value": detail.avg_s2_coverage, "desc": "Analyse approfondie", "dist_key": "",
-                 "threshold_good": 60, "threshold_mid": 30,
-                 "tooltip": "Quand on laisse le lecteur examiner l'image sans limite de temps, quel pourcentage de l'information est restitué ? La différence avec le score en scroll montre ce qui se perd en conditions réelles.",
-                 "interpret_good": "En vision délibérée, la majorité de l'information est comprise",
-                 "interpret_mid": "Moins de la moitié des informations clés est retenue",
-                 "interpret_bad": "Très peu d'informations passent — le design est trop dense ou confus"}
+        <div class="gd-profile-card" style="margin-top:1.5rem;background:var(--gd-card);border:1px solid var(--gd-border);border-radius:var(--gd-radius);box-shadow:var(--gd-shadow-sm);overflow:hidden;">
+            {% set report_metrics = [
+                {"label": "Memorabilite", "hint": "Ce que les gens retiennent", "value": detail.avg_s9a,
+                 "good": 60, "mid": 30,
+                 "verdict_good": "Excellent", "verdict_mid": "A ameliorer", "verdict_bad": "Problematique",
+                 "dist_key": "s9a"},
+                {"label": "Clarte du message", "hint": "Le message principal passe-t-il ?", "value": detail.avg_s9b,
+                 "good": 80, "mid": 25,
+                 "verdict_good": "Excellent", "verdict_mid": "A ameliorer", "verdict_bad": "Problematique",
+                 "dist_key": "s9b"},
+                {"label": "Impact decisionnel", "hint": "Ca change les comportements ?", "value": detail.avg_s9c,
+                 "good": 40, "mid": 20,
+                 "verdict_good": "Excellent", "verdict_mid": "A ameliorer", "verdict_bad": "Problematique",
+                 "dist_key": "s9c"},
+                {"label": "Accroche visuelle", "hint": "Ca attire l'oeil ?", "value": detail.avg_glance,
+                 "good": 70, "mid": 40,
+                 "verdict_good": "Excellent", "verdict_mid": "A ameliorer", "verdict_bad": "Problematique",
+                 "dist_key": "glance"},
+                {"label": "Fluidite de lecture", "hint": "Compris vite ET bien ?", "value": detail.fluency_normalized,
+                 "good": 70, "mid": 40,
+                 "verdict_good": "Excellent", "verdict_mid": "A ameliorer", "verdict_bad": "Problematique",
+                 "dist_key": ""},
+                {"label": "Profondeur d'analyse", "hint": "Ce qui reste apres lecture attentive", "value": detail.avg_s2_coverage,
+                 "good": 60, "mid": 30,
+                 "verdict_good": "Excellent", "verdict_mid": "A ameliorer", "verdict_bad": "Problematique",
+                 "dist_key": ""},
             ] %}
-            {% for m in metrics %}
+            {% for m in report_metrics %}
             {% set mpct = (m.value * 100) | round(0) | int %}
-            {% if mpct >= 80 %}{% set bar_class = "gd-bar-green" %}
-            {% elif mpct >= 60 %}{% set bar_class = "gd-bar-yellow" %}
-            {% elif mpct >= 40 %}{% set bar_class = "gd-bar-orange" %}
-            {% else %}{% set bar_class = "gd-bar-red" %}{% endif %}
-            <div class="gd-score-card" style="position:relative;">
-                <div class="gd-score-name" style="cursor:help;" title="{{ m.tooltip }}">{{ m.name }} <span style="font-size:0.7rem;color:var(--gd-text-muted);vertical-align:super;">ⓘ</span></div>
-                <div class="gd-score-value">{{ mpct }}%</div>
-                <div class="gd-score-bar-wrap">
-                    <div class="gd-score-bar"><div class="gd-score-bar-fill {{ bar_class }}" data-width="{{ mpct }}%" style="width:0%;"></div></div>
-                    <span class="gd-score-bench">{{ mpct }}%</span>
+            {% if mpct >= m.good %}
+                {% set bar_color = "#10b981" %}
+                {% set verdict = m.verdict_good %}
+                {% set pill_bg = "rgba(16,185,129,0.1)" %}
+                {% set pill_color = "#047857" %}
+            {% elif mpct >= m.mid %}
+                {% set bar_color = "#eab308" %}
+                {% set verdict = m.verdict_mid %}
+                {% set pill_bg = "rgba(234,179,8,0.1)" %}
+                {% set pill_color = "#92400e" %}
+            {% else %}
+                {% set bar_color = "#ef4444" %}
+                {% set verdict = m.verdict_bad %}
+                {% set pill_bg = "rgba(239,68,68,0.1)" %}
+                {% set pill_color = "#dc2626" %}
+            {% endif %}
+            <div class="gd-profile-row" style="display:flex;align-items:center;gap:1rem;padding:1rem 1.25rem;border-bottom:1px solid var(--gd-border);opacity:0;animation:gdCardIn 0.5s ease forwards;animation-delay:{{ loop.index * 0.08 }}s;">
+                <div style="flex:0 0 180px;">
+                    <div style="font-weight:700;font-size:0.875rem;color:var(--gd-navy);line-height:1.3;">{{ m.label }}</div>
+                    <div style="font-size:0.6875rem;color:var(--gd-text-muted);line-height:1.3;">{{ m.hint }}</div>
                 </div>
-                <div style="font-size:0.6875rem;color:var(--gd-text-muted);margin-top:0.5rem;">{{ m.desc }}</div>
-                <div style="font-size:0.75rem;margin-top:0.375rem;line-height:1.4;color:{% if mpct >= m.threshold_good %}var(--gd-pass){% elif m.threshold_mid and mpct >= m.threshold_mid %}var(--gd-priority-medium){% else %}var(--gd-fail){% endif %};">
-                    {% if mpct >= m.threshold_good %}{{ m.interpret_good }}{% elif m.threshold_mid and m.interpret_mid and mpct >= m.threshold_mid %}{{ m.interpret_mid }}{% else %}{{ m.interpret_bad }}{% endif %}
+                <div style="flex:1;display:flex;align-items:center;gap:0.75rem;">
+                    <div style="flex:1;height:8px;background:#f1f5f9;border-radius:4px;overflow:hidden;">
+                        <div class="gd-score-bar-fill" data-width="{{ mpct }}%" style="width:0%;height:100%;border-radius:4px;background:{{ bar_color }};transition:width 0.8s cubic-bezier(0.22,1,0.36,1);"></div>
+                    </div>
+                    <span style="font-family:var(--gd-font-mono);font-size:0.8125rem;font-weight:700;color:var(--gd-navy);min-width:3em;text-align:right;">{{ mpct }}%</span>
                 </div>
-                {% if m.dist_key and distributions and distributions.n_gas >= 5 %}
-                <div class="gd-dist-wrap" data-dist-key="{{ m.dist_key }}" data-this-score="{{ m.value }}"></div>
-                {% elif m.dist_key and distributions and distributions.n_gas > 0 and distributions.n_gas < 5 %}
-                <div class="gd-dist-label" style="margin-top:0.5rem;">Distribution disponible a partir de 5 GAs</div>
-                {% endif %}
+                <div style="flex:0 0 auto;">
+                    <span style="display:inline-block;font-size:0.6875rem;font-weight:600;padding:0.25rem 0.625rem;border-radius:100px;background:{{ pill_bg }};color:{{ pill_color }};white-space:nowrap;">{{ verdict }}</span>
+                </div>
             </div>
             {% endfor %}
+
+            {# Distortion metrics (inverted scale: lower = better) #}
+            {% if perceptual_drift is not none or perceptual_warp is not none or perceptual_spin is not none %}
+            <div style="padding:0.625rem 1.25rem 0.375rem;border-top:2px solid var(--gd-border);background:var(--gd-bg);">
+                <div style="font-size:0.6875rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--gd-text-muted);font-weight:600;">Fidelite des donnees</div>
+            </div>
+            {% set distortion_metrics = [] %}
+            {% if perceptual_drift is not none %}
+                {% set _ = distortion_metrics.append({"label": "Distorsion d'encodage", "hint": "Les donnees sont-elles fidelement representees ?", "value": perceptual_drift}) %}
+            {% endif %}
+            {% if perceptual_warp is not none %}
+                {% set _ = distortion_metrics.append({"label": "Equilibre visuel", "hint": "Le poids visuel est-il bien reparti ?", "value": perceptual_warp}) %}
+            {% endif %}
+            {% if perceptual_spin is not none %}
+                {% set _ = distortion_metrics.append({"label": "Embellissement", "hint": "Le graphique embellit-il les resultats ?", "value": (1.0 if perceptual_spin else 0.0)}) %}
+            {% endif %}
+            {% for m in distortion_metrics %}
+            {% set mpct_raw = (m.value * 100) | round(0) | int %}
+            {% if mpct_raw > 100 %}{% set mpct = 100 %}{% else %}{% set mpct = mpct_raw %}{% endif %}
+            {# Inverted scale: lower is better #}
+            {% if m.value < 0.3 %}
+                {% set bar_color = "#10b981" %}
+                {% set verdict = "Fidele" %}
+                {% set pill_bg = "rgba(16,185,129,0.1)" %}
+                {% set pill_color = "#047857" %}
+            {% elif m.value <= 0.6 %}
+                {% set bar_color = "#eab308" %}
+                {% set verdict = "A surveiller" %}
+                {% set pill_bg = "rgba(234,179,8,0.1)" %}
+                {% set pill_color = "#92400e" %}
+            {% else %}
+                {% set bar_color = "#ef4444" %}
+                {% set verdict = "Distorsion detectee" %}
+                {% set pill_bg = "rgba(239,68,68,0.1)" %}
+                {% set pill_color = "#dc2626" %}
+            {% endif %}
+            <div class="gd-profile-row" style="display:flex;align-items:center;gap:1rem;padding:1rem 1.25rem;background:var(--gd-bg);{% if not loop.last %}border-bottom:1px solid var(--gd-border);{% endif %}opacity:0;animation:gdCardIn 0.5s ease forwards;animation-delay:{{ (loop.index + 6) * 0.08 }}s;">
+                <div style="flex:0 0 180px;">
+                    <div style="font-weight:700;font-size:0.875rem;color:var(--gd-navy);line-height:1.3;">{{ m.label }}</div>
+                    <div style="font-size:0.6875rem;color:var(--gd-text-muted);line-height:1.3;">{{ m.hint }}</div>
+                </div>
+                <div style="flex:1;display:flex;align-items:center;gap:0.75rem;">
+                    <div style="flex:1;height:8px;background:#f1f5f9;border-radius:4px;overflow:hidden;">
+                        <div class="gd-score-bar-fill" data-width="{{ mpct }}%" style="width:0%;height:100%;border-radius:4px;background:{{ bar_color }};transition:width 0.8s cubic-bezier(0.22,1,0.36,1);"></div>
+                    </div>
+                    <span style="font-family:var(--gd-font-mono);font-size:0.8125rem;font-weight:700;color:var(--gd-navy);min-width:3em;text-align:right;">{{ mpct }}%</span>
+                </div>
+                <div style="flex:0 0 auto;">
+                    <span style="display:inline-block;font-size:0.6875rem;font-weight:600;padding:0.25rem 0.625rem;border-radius:100px;background:{{ pill_bg }};color:{{ pill_color }};white-space:nowrap;">{{ verdict }}</span>
+                </div>
+            </div>
+            {% endfor %}
+            {% endif %}
         </div>
     </div>
 
     <!-- Node Coverage -->
     {% if detail.s2_node_means %}
     <div class="gd-section">
-        <h2 class="gd-section-title">Couverture nodale (System 2)</h2>
+        <h2 class="gd-section-title">Couverture nodale (System 2) <span class="gd-info-wrap"><button class="gd-info-btn" data-info="s2-nodes" aria-label="Info System 2" style="width:18px;height:18px;font-size:11px;">i</button><span class="gd-info-tooltip" id="info-s2-nodes">Quand on laisse le lecteur examiner l'image sans limite de temps, quels concepts sont correctement restitues ? Chaque bulle = un concept cle. Vert = compris, rouge = manque.</span></span></h2>
         <div class="gd-nodes-grid">
             {% for node_id, score in detail.s2_node_means.items() %}
             {% set is_hit = score >= 0.4 %}
@@ -518,7 +590,7 @@
     <!-- Speed-Accuracy -->
     {% if detail.n_tests > 0 %}
     <div class="gd-section">
-        <h2 class="gd-section-title">Distribution Vitesse-Precision</h2>
+        <h2 class="gd-section-title">Distribution Vitesse-Precision <span class="gd-info-wrap"><button class="gd-info-btn" data-info="speed-acc" aria-label="Info Speed-Accuracy" style="width:18px;height:18px;font-size:11px;">i</button><span class="gd-info-tooltip" id="info-speed-acc">Croise la vitesse de reponse et la justesse. L'ideal : beaucoup de 'Rapide + Correct' (comprehension fluide). 'Lent + Faux' = le design bloque totalement.</span></span></h2>
         <div class="gd-scores-row" style="grid-template-columns:repeat(4,1fr);">
             {% set sa = detail.speed_dist %}
             {% set total = sa.fast_right + sa.slow_right + sa.fast_wrong + sa.slow_wrong %}
@@ -575,11 +647,11 @@
 <script>
 (function(){
     var DIMS=[
-        {label:'S9a',value:{{ detail.avg_s9a or 0 }}},
-        {label:'S9b',value:{{ detail.avg_s9b or 0 }}},
-        {label:'S9c',value:{{ detail.avg_s9c or 0 }}},
-        {label:'Fluence',value:{{ detail.fluency_normalized or 0 }}},
-        {label:'S2',value:{{ detail.avg_s2_coverage or 0 }}}
+        {label:'Memo.',value:{{ detail.avg_s9a or 0 }}},
+        {label:'Clarte',value:{{ detail.avg_s9b or 0 }}},
+        {label:'Impact',value:{{ detail.avg_s9c or 0 }}},
+        {label:'Fluidite',value:{{ detail.fluency_normalized or 0 }}},
+        {label:'Profondeur',value:{{ detail.avg_s2_coverage or 0 }}}
     ];
     var cx=160,cy=140,R=110,n=5;
     var START=-Math.PI/2,STEP=2*Math.PI/n;
@@ -628,6 +700,27 @@
         else{var ta=document.createElement('textarea');ta.value=url;ta.style.position='fixed';ta.style.left='-9999px';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');showToast();}catch(e){}document.body.removeChild(ta);}
     };
     function showToast(){var t=document.getElementById('gdToast');t.classList.add('gd-toast-show');setTimeout(function(){t.classList.remove('gd-toast-show');},2000);}
+
+    // ── Info button tooltip system ──────────────────────────────────
+    (function(){
+        function closeAllTooltips(){
+            document.querySelectorAll('.gd-info-tooltip.gd-info-visible').forEach(function(el){el.classList.remove('gd-info-visible');});
+            document.querySelectorAll('.gd-info-btn.gd-info-active').forEach(function(el){el.classList.remove('gd-info-active');});
+        }
+        document.addEventListener('click',function(e){
+            var btn=e.target.closest('.gd-info-btn');
+            if(btn){
+                e.preventDefault();e.stopPropagation();
+                var tip=btn.nextElementSibling;
+                if(!tip||!tip.classList.contains('gd-info-tooltip'))return;
+                var wasOpen=tip.classList.contains('gd-info-visible');
+                closeAllTooltips();
+                if(!wasOpen){tip.classList.add('gd-info-visible');btn.classList.add('gd-info-active');}
+            } else {
+                closeAllTooltips();
+            }
+        });
+    })();
 
     // ── Distribution mini-charts ────────────────────────────────────
     var DISTRIBUTIONS = {{ distributions | tojson }};

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_ga_score_macros.html" import score_badge, archetype_badge, verdict_label, verdict_color %}
 {% block title %}GLANCE — Testez votre œil scientifique{% endblock %}
 
 {% block head %}
@@ -292,6 +293,26 @@
     font-size: 0.6875rem;
     color: var(--lp-text-muted);
     margin-top: 0.375rem;
+}
+
+/* GA card score hero area */
+.lp-ga-score-hero {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+.lp-ga-score-hero .ga-score-badge {
+    flex-direction: row;
+    gap: 0.5rem;
+}
+.lp-ga-score-hero .ga-score-ring {
+    flex-shrink: 0;
+}
+.lp-ga-card .ga-archetype-badge {
+    margin-top: 0.25rem;
+    font-size: 0.625rem;
+    padding: 0.125rem 0.5rem;
 }
 
 /* Empty state for top GAs */
@@ -961,11 +982,17 @@
         {% if landing.top_gas %}
         <div class="lp-top-gas-scroll">
             {% for ga in landing.top_gas %}
-            <a href="/ga-detail/{{ ga.id }}" class="lp-ga-card">
+            <a href="/ga-detail/{{ ga.slug or ga.id }}" class="lp-ga-card">
                 <img src="/ga/{{ ga.filename }}" alt="{{ ga.title }}" class="lp-ga-card-img" loading="lazy">
                 <div class="lp-ga-card-body">
                     <span class="lp-ga-domain-badge">{{ ga.domain }}</span>
                     <div class="lp-ga-card-title">{{ ga.title or ga.filename }}</div>
+                    <div class="lp-ga-score-hero">
+                        {{ score_badge(ga.avg_glance, 'sm') }}
+                        {% set pct = (ga.avg_glance * 100) | round(0) | int %}
+                        {% set v_color = verdict_color(ga.avg_glance) | trim %}
+                        <span class="ga-verdict-pill" style="background:{{ v_color }}20;color:{{ v_color }};">{{ verdict_label(ga.avg_glance) }}</span>
+                    </div>
                     {% set pct = (ga.avg_glance * 100) | round(0) | int %}
                     <div class="lp-score-row">
                         <div class="lp-score-bar-bg">
@@ -982,6 +1009,9 @@
                         </div>
                         <span class="lp-score-value">{{ pct }}%</span>
                     </div>
+                    {% if ga.archetype_key and ga.archetype_info %}
+                    {{ archetype_badge({"archetype": ga.archetype_key, "archetype_info": ga.archetype_info, "source": ga.archetype_source}) }}
+                    {% endif %}
                     <div class="lp-ga-tests">{{ ga.n_tests }} test{{ 's' if ga.n_tests != 1 else '' }}</div>
                 </div>
             </a>

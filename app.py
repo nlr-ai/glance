@@ -20,7 +20,7 @@ from fastapi.templating import Jinja2Templates
 from db import get_db, init_db, create_participant, get_participant_by_token
 from db import get_next_image, save_test, get_test, get_stats
 from db import get_all_tests, get_image_count, get_all_images, add_ga_image
-from db import get_image_by_id, get_tests_for_image, get_tests_for_participant, get_landing_stats, get_example_ga
+from db import get_image_by_id, get_image_by_slug, get_tests_for_image, get_tests_for_participant, get_landing_stats, get_example_ga
 from db import get_referral_count, get_top_referrers, save_analysis_lead
 from scoring import score_test, classify_speed_accuracy
 from analytics import (
@@ -134,6 +134,26 @@ def _lang(request: Request) -> str:
     return getattr(request.state, "lang", "fr")
 
 
+def _resolve_ga(ga_id_or_slug: str):
+    """Resolve a GA identifier — try slug first, then numeric ID fallback.
+
+    Returns (image_dict, numeric_id) or (None, None).
+    """
+    # Try slug lookup first
+    image = get_image_by_slug(ga_id_or_slug)
+    if image:
+        return image, image["id"]
+    # Fallback: try parsing as numeric ID
+    try:
+        numeric_id = int(ga_id_or_slug)
+        image = get_image_by_id(numeric_id)
+        if image:
+            return image, numeric_id
+    except (ValueError, TypeError):
+        pass
+    return None, None
+
+
 # ── Routes ────────────────────────────────────────────────────────────
 
 
@@ -147,6 +167,33 @@ def index(request: Request):
     for domain_key, n_gas in landing["domain_counts"].items():
         label = CONFIG["domains"].get(domain_key, {}).get("label", domain_key)
         domain_list.append({"key": domain_key, "label": label, "n_gas": n_gas})
+
+    # Enrich top_gas with archetype info for score badges on cards
+    for ga in landing.get("top_gas", []):
+        if ga.get("avg_glance") is not None:
+            sidecar_ga = _load_sidecar(ga.get("filename", ""))
+            ga_scores = {
+                "s10": 0.0, "s9b": 0.0, "s2_coverage": 0.0,
+                "drift": 0.0, "warp": 0.0,
+                "word_count": sidecar_ga.get("word_count", 0),
+                "spin_detected": False,
+            }
+            # Try to get real test stats for richer classification
+            try:
+                ga_detail = get_ga_detail_stats(ga["id"])
+                ga_scores["s10"] = ga_detail.get("avg_s9a", 0.0)
+                ga_scores["s9b"] = ga_detail.get("avg_s9b", 0.0)
+                ga_scores["s2_coverage"] = ga_detail.get("avg_s2_coverage", 0.0)
+            except Exception:
+                pass
+            arch_result = classify_ga(ga_scores)
+            ga["archetype"] = arch_result["archetype"]
+            ga["archetype_info"] = arch_result["archetype_info"]
+            ga["archetype_source"] = "measured"
+        else:
+            ga["archetype"] = None
+            ga["archetype_info"] = None
+            ga["archetype_source"] = None
 
     # Example GA analysis for the demo section
     example = _build_example_data()
@@ -876,10 +923,16 @@ def leaderboard(request: Request):
         key=lambda kv: (kv[1]["avg_score"] is not None, kv[1]["avg_score"] or 0),
         reverse=True,
     )
+    # Build domain pills for inter-domain navigation
+    all_domains = [
+        {"key": k, "label": v["label"], "n_gas": v["n_gas"]}
+        for k, v in domains
+    ]
     return templates.TemplateResponse("leaderboard.html", {
         "request": request,
         "lang": lang,
         "domains": domains,
+        "all_domains": all_domains,
         "og_title": "GLANCE Leaderboard — Classement des Graphical Abstracts",
         "og_description": "Découvrez quels GAs scientifiques communiquent le mieux, classés par domaine.",
     })
@@ -893,7 +946,7 @@ def leaderboard_domain(request: Request, domain: str):
     if not data:
         raise HTTPException(status_code=404, detail=f"Domain '{domain}' not found")
 
-    # Enrich each GA with archetype emoji for leaderboard display
+    # Enrich each GA with archetype data for leaderboard display
     for ga in data.get("gas", []):
         if ga.get("avg_glance") is not None:
             lb_scores = {
@@ -911,6 +964,9 @@ def leaderboard_domain(request: Request, domain: str):
             lb_result = classify_ga(lb_scores)
             ga["archetype_emoji"] = lb_result["archetype_info"]["emoji"]
             ga["archetype_name"] = lb_result["archetype_info"]["name_fr"]
+            ga["archetype_key"] = lb_result["archetype"]
+            ga["archetype_info"] = lb_result["archetype_info"]
+            ga["archetype_source"] = "measured"
         else:
             # Try vision-based approximation
             sidecar_lb = _load_sidecar(ga.get("filename", ""))
@@ -925,9 +981,15 @@ def leaderboard_domain(request: Request, domain: str):
                 lb_result = classify_from_vision_metadata(vision_meta)
                 ga["archetype_emoji"] = lb_result["archetype_info"]["emoji"]
                 ga["archetype_name"] = lb_result["archetype_info"]["name_fr"]
+                ga["archetype_key"] = lb_result["archetype"]
+                ga["archetype_info"] = lb_result["archetype_info"]
+                ga["archetype_source"] = "predicted"
             else:
                 ga["archetype_emoji"] = ""
                 ga["archetype_name"] = ""
+                ga["archetype_key"] = None
+                ga["archetype_info"] = None
+                ga["archetype_source"] = None
 
     # OG meta for sharing
     domain_label = data.get("label", domain)
@@ -937,11 +999,24 @@ def leaderboard_domain(request: Request, domain: str):
     og_title = f"GLANCE — Classement {domain_label}"
     og_desc = f"{n_gas} Graphical Abstracts classés en {domain_label}. Score moyen : {avg_pct}%."
 
+    # Build domain pills for inter-domain navigation
+    all_lb_data = get_leaderboard_data(domain_config)
+    all_domains_sorted = sorted(
+        all_lb_data.items(),
+        key=lambda kv: (kv[1]["avg_score"] is not None, kv[1]["avg_score"] or 0),
+        reverse=True,
+    )
+    all_domains = [
+        {"key": k, "label": v["label"], "n_gas": v["n_gas"]}
+        for k, v in all_domains_sorted
+    ]
+
     return templates.TemplateResponse("leaderboard_domain.html", {
         "request": request,
         "lang": lang,
         "domain": domain,
         "data": data,
+        "all_domains": all_domains,
         "og_title": og_title,
         "og_description": og_desc,
     })
@@ -1185,12 +1260,18 @@ def _generate_executive_summary(sidecar: dict, image: dict, detail: dict,
 
 
 @app.get("/ga-detail/{ga_id}", response_class=HTMLResponse)
-def ga_detail(request: Request, ga_id: int):
+def ga_detail(request: Request, ga_id: str):
     """GA detail page with executive summary, study reference, and analysis."""
     lang = _lang(request)
-    image = get_image_by_id(ga_id)
+    image, numeric_id = _resolve_ga(ga_id)
     if not image:
         raise HTTPException(status_code=404, detail="GA not found")
+
+    # Redirect numeric IDs to canonical slug URL (301 for SEO)
+    if image.get("slug") and ga_id != image["slug"]:
+        return RedirectResponse(url=f"/ga-detail/{image['slug']}", status_code=301)
+
+    ga_id = numeric_id  # use numeric ID for all downstream lookups
 
     # Compute detailed stats for this GA
     detail = get_ga_detail_stats(ga_id)
@@ -1349,6 +1430,16 @@ def ga_detail(request: Request, ga_id: int):
     og_desc = f"Analyse détaillée : S9b {s9b_pct}%, {n_tests} tests. {verdict}."
     og_image = f"https://glance.scisense.fr/og/ga/{ga_id}.png"
 
+    # Expose drift / warp / spin for the perceptual profile report card
+    if detail.get("n_tests", 0) > 0:
+        perceptual_drift = drift_val
+        perceptual_warp = warp_val
+        perceptual_spin = archetype_scores.get("spin_detected", False)
+    else:
+        perceptual_drift = None
+        perceptual_warp = None
+        perceptual_spin = None
+
     return templates.TemplateResponse("ga_detail.html", {
         "request": request,
         "lang": lang,
@@ -1372,6 +1463,9 @@ def ga_detail(request: Request, ga_id: int):
         "og_title": og_title,
         "og_description": og_desc,
         "og_image": og_image,
+        "perceptual_drift": perceptual_drift,
+        "perceptual_warp": perceptual_warp,
+        "perceptual_spin": perceptual_spin,
     })
 
 
@@ -1473,12 +1567,15 @@ async def analyze_submit(request: Request, file: UploadFile = File(...)):
     # Create ga_images entry in DB
     description = executive_summary or main_finding or ""
     ga_id = None
+    ga_slug = None
     try:
+        from db import _generate_unique_slug, slugify
         db = get_db()
+        slug = _generate_unique_slug(db, upload_filename)
         db.execute(
             """INSERT INTO ga_images
-               (filename, domain, version, is_control, correct_product, products, title, description)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+               (filename, domain, version, is_control, correct_product, products, title, description, slug)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (
                 upload_filename,
                 "user_upload",
@@ -1488,10 +1585,12 @@ async def analyze_submit(request: Request, file: UploadFile = File(...)):
                 None,
                 title,
                 description,
+                slug,
             ),
         )
         db.commit()
         ga_id = db.execute("SELECT last_insert_rowid()").fetchone()[0]
+        ga_slug = slug
         db.close()
     except Exception as e:
         logger.error(f"DB insert failed: {e}")
@@ -1538,8 +1637,9 @@ async def analyze_submit(request: Request, file: UploadFile = File(...)):
     except Exception as e:
         logger.warning(f"Graph YAML copy failed: {e}")
 
-    # Redirect to the ga-detail page
-    return RedirectResponse(url=f"/ga-detail/{ga_id}", status_code=303)
+    # Redirect to the ga-detail page (prefer slug)
+    redirect_key = ga_slug or ga_id
+    return RedirectResponse(url=f"/ga-detail/{redirect_key}", status_code=303)
 
 
 @app.post("/analyze/unlock/{ga_id}")
@@ -1553,8 +1653,12 @@ async def unlock_analysis(ga_id: int, email: str = Form(...)):
     # Save email lead
     save_analysis_lead(email=email, ga_image_id=ga_id, source="analyze")
 
+    # Resolve slug for redirect
+    image = get_image_by_id(ga_id)
+    redirect_key = image["slug"] if image and image.get("slug") else str(ga_id)
+
     # Set unlock cookie (30 days) and redirect back
-    response = RedirectResponse(url=f"/ga-detail/{ga_id}", status_code=303)
+    response = RedirectResponse(url=f"/ga-detail/{redirect_key}", status_code=303)
     response.set_cookie(
         f"glance_unlock_{ga_id}",
         "1",
@@ -1578,9 +1682,13 @@ async def create_checkout(request: Request, product: str, ga_id: int):
     if product not in PRODUCTS:
         raise HTTPException(status_code=400, detail="Produit inconnu")
 
+    # Resolve slug for cancel URL
+    image = get_image_by_id(ga_id)
+    redirect_key = image["slug"] if image and image.get("slug") else str(ga_id)
+
     base_url = str(request.base_url).rstrip("/")
     success_url = f"{base_url}/checkout/success?session_id={{CHECKOUT_SESSION_ID}}&ga_id={ga_id}"
-    cancel_url = f"{base_url}/ga-detail/{ga_id}"
+    cancel_url = f"{base_url}/ga-detail/{redirect_key}"
 
     checkout_url = create_checkout_session(product, ga_id, success_url, cancel_url)
     return RedirectResponse(url=checkout_url, status_code=303)
@@ -1593,6 +1701,10 @@ async def checkout_success(request: Request, session_id: str, ga_id: int):
 
     result = verify_session(session_id)
 
+    # Resolve slug for redirect
+    image = get_image_by_id(ga_id)
+    redirect_key = image["slug"] if image and image.get("slug") else str(ga_id)
+
     if result["paid"]:
         # Save to DB as paid lead
         save_analysis_lead(
@@ -1603,7 +1715,7 @@ async def checkout_success(request: Request, session_id: str, ga_id: int):
         )
 
         # Set unlock cookie (1 year)
-        response = RedirectResponse(url=f"/ga-detail/{ga_id}", status_code=303)
+        response = RedirectResponse(url=f"/ga-detail/{redirect_key}", status_code=303)
         response.set_cookie(
             f"glance_unlock_{ga_id}",
             "paid",
@@ -1613,7 +1725,7 @@ async def checkout_success(request: Request, session_id: str, ga_id: int):
         return response
 
     # Payment not completed — redirect back without unlocking
-    return RedirectResponse(url=f"/ga-detail/{ga_id}", status_code=303)
+    return RedirectResponse(url=f"/ga-detail/{redirect_key}", status_code=303)
 
 
 @app.get("/admin", response_class=HTMLResponse)

@@ -1,0 +1,30 @@
+# Palette — GLANCE Paper Graphical Abstract
+# Two-zone architecture: Le Fosse (problem) vs La Mesure (solution)
+
+problem:
+  dominant: "#E63946"      # red-orange (engagement line)
+  secondary: "#F4A261"     # orange (lens frame, chrono needle)
+  accent: "#8D99AE"        # gray (comprehension line)
+  bg_tint: "#FFECEC"       # warmer red background (boosted for saliency)
+
+solution:
+  dominant: "#1D3557"      # deep blue (GRADE bar, title)
+  secondary: "#2A9D8F"     # teal (GLANCE bar)
+  accent: "#A8DADC"        # light blue (vanity bar)
+
+fracture:
+  line: "#1D3557"          # deep blue fracture line
+  chrono_frame: "#1D3557"  # chronometer border
+  chrono_needle: "#F4A261" # orange needle
+
+bars:
+  glance: "#2A9D8F"        # teal — 100%
+  grade: "#1D3557"         # deep blue — 74%
+  vanity: "#A8DADC"        # light blue — ~5%
+
+text:
+  primary: "#1D3557"       # titles, bar labels
+  secondary: "#6B7280"     # annotations, sub-labels
+  light: "#8D99AE"         # muted text
+
+background: "#FFFFFF"
