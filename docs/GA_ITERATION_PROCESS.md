@@ -3,13 +3,18 @@
 ## The Loop
 
 ```
-GENERATE/MODIFY ──→ ANALYZE (Gemini Vision) ──→ L3 GRAPH
+GENERATE/MODIFY ──→ ANALYZE (Gemini Vision) ──→ L3 GRAPH (space/narrative/thing)
       ↑                                            │
       │                                            ▼
       │                                     ARCHETYPE + SCORES
       │                                            │
       │                                            ▼
-      │                                   RECOMMENDATIONS
+      │                                   READER SIMULATION
+      │                                   (Z-pattern traversal)
+      │                                            │
+      │                                            ▼
+      │                                   AUTO-IMPROVE PROMPTS
+      │                                   (FACT→PROBLEM→QUESTION)
       │                                            │
       └────────── APPLY FIXES ◄────────────────────┘
 ```
@@ -26,7 +31,16 @@ from vision_scorer import analyze_ga_image
 result = analyze_ga_image(image_bytes, filename="ga_vX.png")
 ```
 - Gemini Pro Vision receives the image + structured YAML prompt
-- Returns: nodes (5-15), links, metadata (chart_type, word_count, channels, hierarchy_clear, accessibility, executive_summary_fr)
+- Stratified 4-step extraction:
+  1. **Zones** — `space` nodes: bounded visual containers/regions on the GA
+  2. **Messages** — `narrative` nodes: intended reader takeaways or effects
+  3. **Elements** — `thing` nodes: concrete visual elements (bars, icons, text, shapes)
+  4. **Links** — typed relationships:
+     - thing → narrative = "this element CARRIES this message"
+     - thing → space = "this element LIVES IN this zone"
+     - narrative → space = "this message is communicated IN this zone"
+     - thing → thing = visual relationships (proximity, alignment, etc.)
+- Returns: nodes (spaces + narratives + things), links, metadata (chart_type, word_count, channels, hierarchy_clear, accessibility, executive_summary_fr)
 - Saves: L3 graph YAML + raw response
 
 ### 3. Classify Archetype
@@ -37,28 +51,44 @@ arch = classify_from_vision_metadata(result['metadata'])
 - 7 archetypes: Cristallin / Spectacle / Tresor Enfoui / Encyclopedie / Desequilibre / Embelli / Fantome
 - Approximated scores: S10 (saliency), S9b (hierarchy), S2 coverage, Drift, Warp
 
-### 4. Get Recommendations
+### 4. Reader Simulation + Recommendations
 ```python
 from recommender import analyze_ga
 recs = analyze_ga(graph_path)
 ```
-- Flags high-energy nodes (not visually resolved)
-- Identifies strengths (high weight + high stability)
+- **Reader simulation:** a virtual actor traverses `space` nodes in Z-pattern (top-left → bottom-right)
+  - Time per space is proportional to the space's weight
+  - Attention propagates: actor → things in space → narratives linked to those things
+  - Each narrative accumulates `received_attention` from elements that carry it
+- **Metrics derived:**
+  - `received_attention` per narrative — did the message actually get carried?
+  - `diversity` — are narratives spread across spaces or clustered?
+  - `route_exists` — can the reader reach every narrative through the Z-pattern?
 - Accessibility warnings
 - Upgrade paths
 
 ### 5. Interpret & Apply Fixes
 Read the graph like a diagnostic:
-- **High energy (e > 0.7)** = element is "moving", not settled → needs visual anchoring
-- **Low stability (s < 0.6)** = encoding is ambiguous → clarify channel
-- **Low weight (w < 0.3)** = element is invisible → increase size/contrast or remove
+- **Narrative with low received_attention** = message isn't carried by enough visual elements → add/strengthen thing→narrative links
+- **Space with no narratives** = zone exists visually but communicates nothing → add narrative or merge into adjacent space
+- **Thing not linked to any narrative** = decorative element → justify or remove
+- **Low diversity** = all messages clustered in one zone → redistribute across spaces
+- **route_exists: False** = reader's Z-pattern skips a narrative entirely → reposition elements
 - **hierarchy_clear: False** = the main message doesn't pop in 5s → restructure visual weight
 - **word_count > 30** = too much text → cut labels
 
 ### 6. Re-render and Re-analyze
 Compare V(n) vs V(n+1):
-- Track: hierarchy_clear, word_count, node stability, energy reduction, archetype shift
-- Target: Cristallin archetype, S9b >= 0.80, all node energies < 0.5
+- Track: hierarchy_clear, word_count, narrative received_attention, diversity, route_exists, archetype shift
+- Target: Cristallin archetype, S9b >= 0.80, all narratives reachable, min narrative attention > 0.20
+
+## Auto-Improve Prompts
+
+When generating improvement prompts for Gemini, follow the FACT → PROBLEM → QUESTION structure:
+
+1. **FACT** — Specific diagnosis with node names and values from the graph (e.g., "narrative:key_finding has received_attention=0.12, carried by only 1 thing node")
+2. **PROBLEM** — Dynamic problem description using actual graph data (e.g., "The key finding is invisible because it lives in space:bottom_zone which the Z-pattern reaches last, and its single carrier has weight=0.2")
+3. **QUESTION** — Open question for Gemini to explore (e.g., "How can we increase the key finding's visibility without adding clutter?")
 
 ## Metrics to Track Per Version
 
@@ -69,9 +99,13 @@ Compare V(n) vs V(n+1):
 | S9b (hierarchy) | >= 0.80 | archetype approx |
 | S10 (saliency) | >= 0.60 | archetype approx |
 | Archetype | Cristallin | classifier |
-| Max node energy | < 0.50 | graph nodes |
+| All narratives reachable | True | reader sim (route_exists) |
+| Min narrative attention | > 0.20 | reader sim (received_attention) |
+| Narrative diversity | > 0.50 | reader sim |
 | Accessibility issues | 0 | metadata |
-| Node count | 8-12 | graph |
+| Node count (spaces) | 2-5 | graph (space nodes) |
+| Node count (narratives) | 3-7 | graph (narrative nodes) |
+| Node count (things) | 5-15 | graph (thing nodes) |
 | Link count | >= nodes-2 | graph |
 
 ## Blog Display Format

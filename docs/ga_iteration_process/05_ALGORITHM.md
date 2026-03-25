@@ -11,10 +11,19 @@ Step 1: Generate or modify GA
     Tool:   compose_paper_ga.py or equivalent compositor
     Fail:   SVG render fails -> fix compositor, do not proceed
 
-Step 2: Analyze with Gemini Vision
+Step 2: Analyze with Gemini Vision (stratified 4-step extraction)
     Input:  PNG image bytes + filename
-    Output: L3 graph YAML (nodes, links, metadata) saved to data/
+    Output: L3 graph YAML (space/narrative/thing nodes, typed links, metadata) saved to data/
     Tool:   vision_scorer.analyze_ga_image(image_bytes, filename)
+    Process:
+        2a. Gemini identifies zones → space nodes (bounded visual containers)
+        2b. Gemini identifies messages → narrative nodes (intended reader effects)
+        2c. Gemini identifies elements → thing nodes (bars, icons, text, shapes)
+        2d. Gemini creates typed links:
+            - thing → narrative ("carries" — this element carries this message)
+            - thing → space ("lives_in" — this element lives in this zone)
+            - narrative → space ("communicated_in" — this message is in this zone)
+            - thing → thing (visual relationships: proximity, alignment, etc.)
     Fail:   Gemini API error -> retry once, then abort
     Fail:   YAML parse error -> truncation recovery in _parse_gemini_yaml()
 
@@ -24,10 +33,21 @@ Step 3: Classify archetype
     Tool:   archetype.classify_from_vision_metadata(metadata)
     Fail:   classify returns fantome with low confidence -> flag for redesign (P6)
 
-Step 4: Generate recommendations
+Step 4: Reader simulation + recommendations
     Input:  L3 graph YAML path from Step 2
-    Output: prioritized recommendations + strengths + accessibility warnings
+    Output: reader simulation results + prioritized recommendations + accessibility warnings
     Tool:   recommender.analyze_ga(graph_path)
+    Process:
+        4a. Reader simulation: a virtual actor traverses space nodes in Z-pattern
+            (top-left → top-right → bottom-left → bottom-right)
+            - Time per space proportional to space weight
+            - Attention propagates: actor → things in space → narratives linked to those things
+            - Each narrative accumulates received_attention from its carrier elements
+        4b. Compute simulation metrics:
+            - received_attention per narrative — did the message get enough energy?
+            - diversity — are narratives spread across spaces or clustered?
+            - route_exists per narrative — can the Z-pattern reader reach it?
+        4c. Generate recommendations based on simulation + graph diagnostics
     Fail:   Empty recommendations -> GA may already be optimal, check convergence
 
 Step 5: Check convergence
@@ -35,19 +55,22 @@ Step 5: Check convergence
         - archetype == "cristallin"
         - metadata.hierarchy_clear == True
         - metadata.word_count <= 30
-        - max(node.energy for all nodes) < 0.50
+        - all narratives reachable (route_exists == True for all)
+        - min(narrative.received_attention) > 0.20
         - len(metadata.accessibility_issues) == 0
 
     If CONVERGED: exit loop, report final metrics
     If NOT CONVERGED: continue to Step 6
 
 Step 6: Interpret recommendations and select fixes
-    Input:  recommendations from Step 4
+    Input:  recommendations from Step 4 (now informed by reader simulation)
     Output: 1-2 targeted fixes to apply
     Rules:
-        - Fix CRITICAL priority first, then HIGH
+        - Fix unreachable narratives first (route_exists == False)
+        - Then fix low-attention narratives (received_attention < 0.20)
+        - Then fix CRITICAL priority, then HIGH
         - Apply at most 2 fixes per iteration (avoid cascading side effects)
-        - For each fix, identify: which node, which channel, what upgrade path
+        - For each fix, identify: which node (space/narrative/thing), which link to add/strengthen
 
 Step 7: Apply fixes to GA source
     Input:  selected fixes + GA source (YAML config or SVG)
@@ -65,8 +88,10 @@ Step 9: Compare versions
     Output: delta table on all tracked metrics
     Method:
         For each metric in [hierarchy_clear, word_count, s9b_approx,
-            s10_approx, archetype, max_energy, accessibility_count,
-            node_count, link_count]:
+            s10_approx, archetype, min_narrative_attention,
+            narrative_diversity, all_routes_exist,
+            accessibility_count, space_count, narrative_count,
+            thing_count, link_count]:
             delta = V(n+1).metric - V(n).metric
             direction = improved / regressed / unchanged
     Fail:   Any regression > 5% -> flag as warning, review fix
@@ -80,6 +105,27 @@ Step 11: Loop
     Return to Step 2 with V(n+1) as the new input
     Max iterations: 5 (if not converged after 5, escalate to redesign)
 ```
+
+## A1b: Auto-Improve Prompt Generation
+
+When generating improvement prompts for Gemini after reader simulation, follow the FACT → PROBLEM → QUESTION structure:
+
+```
+Step 1: FACT — specific diagnosis with node names and actual values
+    Example: "narrative:key_finding has received_attention=0.12,
+              carried by only thing:small_label (weight=0.2) in space:bottom_zone"
+
+Step 2: PROBLEM — dynamic problem description derived from graph data
+    Example: "The key finding is nearly invisible because its single carrier
+              is a low-weight text label in the last zone of the Z-pattern.
+              The reader's attention is exhausted by the time they reach it."
+
+Step 3: QUESTION — open question for Gemini to explore
+    Example: "How can we increase the key finding's visibility
+              without adding visual clutter to the already-dense top zone?"
+```
+
+Each auto-improve prompt references real node IDs, real values, and real graph topology. No generic advice.
 
 ## A2: First-time analysis (no prior version)
 

@@ -33,8 +33,8 @@ After the 5-second exposure, participants describe everything they understand fr
 - 📱 **Phone emulation** (iPhone 14 frame, inertial scroll physics)
 - 🧠 **AI-powered GA analysis** — upload your GA, get instant scoring + recommendations (Gemini Pro Vision)
 - 📈 **Domain leaderboards** — how does your GA rank against others?
-- 🔬 **L3 graph scoring** — 75 visual channels mapped to psychophysics (Stevens' Power Law)
-- 💡 **Actionable recommendations** — "Replace area encoding with length — expected +20% comprehension"
+- 🔬 **L3 graph scoring** — 3-type graph (space/narrative/thing), 75 visual channels, reader simulation with Z-pattern attention propagation
+- 💡 **Actionable recommendations** — reader simulation diagnoses which messages survive the scroll, auto-improve prompts with FACT → PROBLEM → QUESTION
 
 ## Quick Start
 

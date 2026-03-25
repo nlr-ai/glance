@@ -2,8 +2,10 @@
 
 ## A1: Main Pipeline
 
+The L3 graph now contains 3 node types: `space` (visual zones), `narrative` (messages/effects), and `thing` (concrete visual elements). Channel analysis applies primarily to `thing` nodes (the visual elements that carry channels), but results propagate to `narrative` and `space` nodes through their links.
+
 ```
-INPUT: GA image (PNG/JPG) + L3 graph (YAML)
+INPUT: GA image (PNG/JPG) + L3 graph (YAML with space/narrative/thing nodes)
 OUTPUT: Enriched L3 graph with channel annotations
 
 1. Load visual channel catalog (data/visual_channel_catalog.md)
@@ -21,15 +23,21 @@ OUTPUT: Enriched L3 graph with channel annotations
    b. Send to Gemini Pro Vision
    c. Parse YAML response
    d. Extract per-channel: used, effectiveness, nodes_affected, issues, recommendation
+      - nodes_affected references thing nodes (the visual carriers)
+      - effectiveness on a thing propagates to its linked narratives
    e. Validate + heal + feed back (A6) before next batch
    f. Rate limit: 4s between batches
 
 4. Final merge of all batch results (post-healing)
 
 5. Enrich graph:
-   a. For each node: attach visual_channels[] with channel + effectiveness + role
-   b. Compute channel_score per node = avg(effectiveness)
-   c. Compute metadata.channel_analysis summary:
+   a. For each thing node: attach visual_channels[] with channel + effectiveness + role
+   b. Compute channel_score per thing node = avg(effectiveness)
+   c. Propagate to narratives: for each narrative, aggregate channel_scores
+      from thing nodes linked via thing→narrative ("carries") relationships
+   d. Propagate to spaces: for each space, aggregate channel_scores
+      from thing nodes linked via thing→space ("lives in") relationships
+   e. Compute metadata.channel_analysis summary:
       - total_channels_analyzed
       - channels_used / unused
       - low_effectiveness count
@@ -44,13 +52,13 @@ OUTPUT: Enriched L3 graph with channel annotations
 Each batch sends to Gemini:
 - System context: "analyze this GA against these 25 visual channels"
 - The GA image
-- The current L3 graph (so Gemini knows what nodes exist)
+- The current L3 graph with typed nodes (space/narrative/thing) and their relationships
 - 25 channel descriptions (name + communicates + speed)
 
 Gemini returns per-channel YAML with:
 - `used: true/false`
 - `effectiveness: 0.0-1.0`
-- `nodes_affected: [{node_id, role}]`
+- `nodes_affected: [{node_id, role}]` — references `thing` nodes only
 - `issues: string`
 - `recommendation: string`
 

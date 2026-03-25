@@ -37,6 +37,8 @@
 - Added A6 inter-batch self-healing mechanism (validate/heal/feedback between Gemini batches)
 - Updated A1 pipeline to reference A6 self-healing loop
 - Added V9 (inter-batch healing invariants) and V10 (missing_category exhaustiveness)
+- Updated ALGORITHM to reflect 3-type graph topology (space/narrative/thing)
+- Channel enrichment now targets thing nodes, with propagation to narratives and spaces via link traversal
 
 ### Next steps
 1. Implement A5 anti-pattern detection in `channel_analyzer.py` (including missing_category)
