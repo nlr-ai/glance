@@ -1054,6 +1054,100 @@
     </div>
 </div>
 
+<!-- ===== SECTION 3b: EXAMPLE ANALYSIS ===== -->
+<div class="lp-example-bg">
+    <div class="lp-section">
+        <div class="lp-section-header">
+            <h2>Exemple d'analyse</h2>
+            <p>Voici ce que GLANCE produit pour chaque GA</p>
+        </div>
+
+        <div class="lp-example-layout">
+            <!-- Left: GA image + Radar chart -->
+            <div class="lp-example-left">
+                <div class="lp-example-ga-wrap">
+                    <img src="/ga/{{ example.ga_filename }}" alt="{{ example.ga_title }}" class="lp-example-ga-img" loading="lazy">
+                    <div class="lp-example-ga-label">
+                        <div class="lp-example-ga-title">{{ example.ga_title }}</div>
+                        <div class="lp-example-ga-meta">
+                            <span class="lp-ga-domain-badge" style="font-size:0.625rem;padding:0.125rem 0.4rem;">{{ example.ga_domain | upper }}</span>
+                            {{ example.n_tests }} test{{ 's' if example.n_tests != 1 else '' }}
+                            {% if not example.has_real_data %} (demo){% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Radar chart -->
+                <div class="lp-example-radar-wrap" id="exampleRadarWrap"></div>
+            </div>
+
+            <!-- Right: Score cards + Recommendation + CTA -->
+            <div class="lp-example-right">
+                <div class="lp-example-scores">
+                    <!-- GLANCE composite — highlight card -->
+                    {% set glance_pct = (example.glance * 100) | round(0) | int %}
+                    {% if glance_pct >= 70 %}{% set glance_color = "#10b981" %}{% set glance_verdict = "Clair" %}
+                    {% elif glance_pct >= 50 %}{% set glance_color = "#eab308" %}{% set glance_verdict = "Brumeux" %}
+                    {% elif glance_pct >= 30 %}{% set glance_color = "#f59e0b" %}{% set glance_verdict = "Opaque" %}
+                    {% else %}{% set glance_color = "#ef4444" %}{% set glance_verdict = "Illisible" %}{% endif %}
+                    <div class="lp-ex-score-card highlight">
+                        <div class="lp-ex-score-label">Score GLANCE</div>
+                        <div class="lp-ex-score-value" style="color: {{ glance_color }};">{{ glance_pct }}%</div>
+                        <div class="lp-ex-score-verdict" style="color: {{ glance_color }};">{{ glance_verdict }}</div>
+                    </div>
+
+                    <!-- S9a -->
+                    {% set s9a_pct = (example.s9a * 100) | round(0) | int %}
+                    {% if s9a_pct >= 70 %}{% set s9a_verdict = "Sujet identifie" %}{% set s9a_color = "#10b981" %}
+                    {% elif s9a_pct >= 40 %}{% set s9a_verdict = "Partiellement" %}{% set s9a_color = "#eab308" %}
+                    {% else %}{% set s9a_verdict = "Non identifie" %}{% set s9a_color = "#ef4444" %}{% endif %}
+                    <div class="lp-ex-score-card">
+                        <div class="lp-ex-score-label">S9a Recall</div>
+                        <div class="lp-ex-score-value">{{ s9a_pct }}%</div>
+                        <div class="lp-ex-score-verdict" style="color: {{ s9a_color }};">{{ s9a_verdict }}</div>
+                    </div>
+
+                    <!-- S9b -->
+                    {% set s9b_pct = (example.s9b * 100) | round(0) | int %}
+                    {% if s9b_pct >= 70 %}{% set s9b_verdict = "Produit identifie" %}{% set s9b_color = "#10b981" %}
+                    {% elif s9b_pct >= 40 %}{% set s9b_verdict = "Confus" %}{% set s9b_color = "#eab308" %}
+                    {% else %}{% set s9b_verdict = "Non identifie" %}{% set s9b_color = "#ef4444" %}{% endif %}
+                    <div class="lp-ex-score-card">
+                        <div class="lp-ex-score-label">S9b Precision</div>
+                        <div class="lp-ex-score-value">{{ s9b_pct }}%</div>
+                        <div class="lp-ex-score-verdict" style="color: {{ s9b_color }};">{{ s9b_verdict }}</div>
+                    </div>
+
+                    <!-- S9c -->
+                    {% set s9c_pct = (example.s9c * 100) | round(0) | int %}
+                    {% if s9c_pct >= 50 %}{% set s9c_verdict = "Insight compris" %}{% set s9c_color = "#10b981" %}
+                    {% elif s9c_pct >= 20 %}{% set s9c_verdict = "Partiel" %}{% set s9c_color = "#eab308" %}
+                    {% else %}{% set s9c_verdict = "Manque" %}{% set s9c_color = "#ef4444" %}{% endif %}
+                    <div class="lp-ex-score-card">
+                        <div class="lp-ex-score-label">S9c Insight</div>
+                        <div class="lp-ex-score-value">{{ s9c_pct }}%</div>
+                        <div class="lp-ex-score-verdict" style="color: {{ s9c_color }};">{{ s9c_verdict }}</div>
+                    </div>
+                </div>
+
+                <!-- Recommendation -->
+                <div class="lp-example-reco">
+                    <div class="lp-example-reco-icon">&#128161;</div>
+                    <div class="lp-example-reco-text">{{ example.recommendation }}</div>
+                </div>
+
+                <!-- CTA -->
+                <a href="/analyze" class="lp-example-cta">
+                    Analysez votre GA
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- ===== SECTION 4: LIVE STATS ===== -->
 <div class="lp-live-bg">
     {# ── L3 Graph Decoration: Stats ──
@@ -1234,6 +1328,7 @@
     <div class="lp-footer-links">
         <a href="/analyze">Note mon GA</a>
         <a href="/leaderboard">{{ t('footer_leaderboard', lang) }}</a>
+        <a href="/participants">Classement participants</a>
         <a href="/dashboard">{{ t('footer_dashboard', lang) }}</a>
         <a href="/spin">{{ t('footer_spin', lang) }}</a>
         <a href="/onboard">{{ t('footer_start', lang) }}</a>
@@ -1318,6 +1413,90 @@
     }, { threshold: 0.2 });
 
     bars.forEach(function(bar) { barObserver.observe(bar); });
+
+    // ── Example Analysis Radar Chart ──
+    (function() {
+        var DIMS = [
+            {label: 'S9a', value: {{ example.s9a }}},
+            {label: 'S9b', value: {{ example.s9b }}},
+            {label: 'S9c', value: {{ example.s9c }}},
+            {label: 'Fluence', value: {{ example.fluency }}},
+            {label: 'S2', value: {{ example.s2_coverage }}}
+        ];
+        var cx = 140, cy = 130, R = 100, n = 5;
+        var START = -Math.PI / 2, STEP = 2 * Math.PI / n;
+
+        function pt(i, r) {
+            var a = START + i * STEP;
+            return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+        }
+        function poly(pts) {
+            return pts.map(function(p) { return p[0].toFixed(1) + ',' + p[1].toFixed(1); }).join(' ');
+        }
+
+        var wrap = document.getElementById('exampleRadarWrap');
+        if (!wrap) return;
+
+        var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('width', '280');
+        svg.setAttribute('height', '270');
+        svg.setAttribute('viewBox', '0 0 280 270');
+
+        // Grid rings
+        [0.25, 0.5, 0.75, 1.0].forEach(function(lv) {
+            var pts = [];
+            for (var i = 0; i < n; i++) pts.push(pt(i, R * lv));
+            var pg = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+            pg.setAttribute('points', poly(pts));
+            pg.setAttribute('class', 'lp-radar-grid');
+            svg.appendChild(pg);
+        });
+
+        // Axis lines
+        for (var i = 0; i < n; i++) {
+            var p2 = pt(i, R);
+            var ln = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            ln.setAttribute('x1', cx);
+            ln.setAttribute('y1', cy);
+            ln.setAttribute('x2', p2[0].toFixed(1));
+            ln.setAttribute('y2', p2[1].toFixed(1));
+            ln.setAttribute('class', 'lp-radar-axis');
+            svg.appendChild(ln);
+        }
+
+        // Data shape
+        var dpts = [];
+        for (var i = 0; i < n; i++) {
+            var v = Math.max(0, Math.min(1, DIMS[i].value));
+            dpts.push(pt(i, R * v));
+        }
+        var shape = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+        shape.setAttribute('points', poly(dpts));
+        shape.setAttribute('class', 'lp-radar-shape');
+        svg.appendChild(shape);
+
+        // Data dots + labels
+        for (var i = 0; i < n; i++) {
+            var v = Math.max(0, Math.min(1, DIMS[i].value));
+            var dp = pt(i, R * v);
+            var c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            c.setAttribute('cx', dp[0].toFixed(1));
+            c.setAttribute('cy', dp[1].toFixed(1));
+            c.setAttribute('r', '4');
+            c.setAttribute('class', 'lp-radar-dot');
+            svg.appendChild(c);
+
+            var lp2 = pt(i, R + 20);
+            var t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            t.setAttribute('x', lp2[0].toFixed(1));
+            t.setAttribute('y', (lp2[1] + 4).toFixed(1));
+            t.setAttribute('class', 'lp-radar-text');
+            t.textContent = DIMS[i].label + ' ' + Math.round(DIMS[i].value * 100) + '%';
+            svg.appendChild(t);
+        }
+
+        wrap.appendChild(svg);
+    })();
 })();
 </script>
 {% endblock %}
