@@ -2,6 +2,7 @@
 
 import os
 import json
+import re
 import uuid
 import random
 
@@ -14,6 +15,7 @@ from fastapi.templating import Jinja2Templates
 from db import get_db, init_db, create_participant, get_participant_by_token
 from db import get_next_image, save_test, get_test, get_stats
 from db import get_all_tests, get_image_count, get_all_images, add_ga_image
+from db import get_image_by_id, get_tests_for_image
 from scoring import score_test, classify_speed_accuracy
 from analytics import (
     compute_aggregate_stats,
@@ -27,6 +29,10 @@ from analytics import (
     get_leaderboard_data,
     get_domain_leaderboard,
     get_ga_detail_stats,
+    get_score_distributions,
+    get_domain_rank,
+    get_admin_analytics,
+    compute_kpi_evolution,
 )
 from config_loader import get_constant
 
@@ -549,6 +555,9 @@ def dashboard(request: Request):
     # S10 saillance rate (stream mode only) per S2b_Mathematics.md section 8
     s10_stats = compute_s10_rate(tests)
 
+    # Week-over-week KPI evolution indicators
+    kpi_evo = compute_kpi_evolution(tests)
+
     return templates.TemplateResponse("dashboard.html", {
         "request": request,
         "stats": stats,
@@ -563,4 +572,99 @@ def dashboard(request: Request):
         "spotlight_stats": spotlight_stats,
         "s10_stats": s10_stats,
         "ab_fluency": ab_fluency,
+        "kpi_evo": kpi_evo,
+    })
+
+
+@app.get("/ga-detail/{ga_id}", response_class=HTMLResponse)
+def ga_detail(request: Request, ga_id: int):
+    """GA detail page with percentile ranking and distribution charts."""
+    image = get_image_by_id(ga_id)
+    if not image:
+        raise HTTPException(status_code=404, detail="GA not found")
+
+    # Compute detailed stats for this GA
+    detail = get_ga_detail_stats(ga_id)
+
+    # Domain rank and percentile
+    domain = image["domain"]
+    domain_rank = get_domain_rank(ga_id, domain)
+    domain_label = CONFIG["domains"].get(domain, {}).get("label", domain)
+    domain_rank["domain_label"] = domain_label
+
+    # Score distributions across ALL GAs (global position)
+    distributions = get_score_distributions()
+
+    # Load sidecar metadata if available
+    sidecar = {}
+    meta_path = os.path.join(BASE, "ga_library",
+                             image["filename"].rsplit(".", 1)[0] + ".json")
+    if os.path.exists(meta_path):
+        with open(meta_path, encoding="utf-8") as mf:
+            sidecar = json.load(mf)
+
+    # Fluency normalized for radar
+    fluency_normalized = detail.get("fluency_normalized", 0.0)
+
+    # GLANCE pass threshold
+    glance_threshold = get_constant("glance_pass_threshold", 0.70)
+
+    # Recommendations (from recommender if GA graph exists)
+    recommendations = None
+    ga_graph_path = os.path.join(BASE, "ga_library",
+                                  image["filename"].rsplit(".", 1)[0] + ".yaml")
+    if os.path.exists(ga_graph_path):
+        try:
+            from recommender import generate_recommendations
+            recommendations = generate_recommendations(ga_graph_path, detail)
+        except Exception:
+            pass
+
+    # A/B pair lookup (same correct_product + domain, opposite is_control)
+    pair_image = None
+    pair_stats = None
+    db = get_db()
+    pair_row = db.execute(
+        """SELECT * FROM ga_images
+           WHERE correct_product = ? AND domain = ? AND is_control != ? AND id != ?
+           LIMIT 1""",
+        (image.get("correct_product"), domain, image.get("is_control", 0), ga_id),
+    ).fetchone()
+    db.close()
+    if pair_row:
+        pair_image = dict(pair_row)
+        pair_stats = get_ga_detail_stats(pair_image["id"])
+
+    # S2 node labels from sidecar
+    s2_node_labels = {}
+    if sidecar.get("semantic_references"):
+        for ref in sidecar["semantic_references"]:
+            nid = ref.get("id", "")
+            label = ref.get("label", ref.get("text", nid))
+            s2_node_labels[nid] = label
+
+    return templates.TemplateResponse("ga_detail.html", {
+        "request": request,
+        "image": image,
+        "detail": detail,
+        "domain_rank": domain_rank,
+        "distributions": distributions,
+        "sidecar": sidecar,
+        "glance_threshold": glance_threshold,
+        "recommendations": recommendations,
+        "pair_image": pair_image,
+        "pair_stats": pair_stats,
+        "s2_node_labels": s2_node_labels,
+        "fluency_normalized": fluency_normalized,
+    })
+
+
+@app.get("/admin", response_class=HTMLResponse)
+def admin_dashboard(request: Request):
+    """Admin analytics dashboard — platform-wide metrics and charts."""
+    analytics = get_admin_analytics()
+    return templates.TemplateResponse("admin.html", {
+        "request": request,
+        "analytics": analytics,
+        "analytics_json": json.dumps(analytics, ensure_ascii=False),
     })

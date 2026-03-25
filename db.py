@@ -397,3 +397,28 @@ def get_tests_by_quadrant(quadrant_fn):
         q = quadrant_fn(t.get("clinical_domain", ""), t.get("data_literacy", ""))
         buckets.setdefault(q, []).append(t)
     return buckets
+
+
+def get_tests_for_image(ga_image_id: int):
+    """Return all tests for a specific GA image, with participant and image data."""
+    db = get_db()
+    rows = db.execute(
+        """SELECT t.*, p.clinical_domain, p.data_literacy,
+                  g.title, g.domain, g.version, g.correct_product, g.is_control
+           FROM tests t
+           JOIN participants p ON t.participant_id = p.id
+           JOIN ga_images g ON t.ga_image_id = g.id
+           WHERE t.ga_image_id = ?
+           ORDER BY t.created_at DESC""",
+        (ga_image_id,),
+    ).fetchall()
+    db.close()
+    return [dict(r) for r in rows]
+
+
+def get_image_by_id(ga_image_id: int):
+    """Return a single GA image row by id."""
+    db = get_db()
+    row = db.execute("SELECT * FROM ga_images WHERE id = ?", (ga_image_id,)).fetchone()
+    db.close()
+    return dict(row) if row else None

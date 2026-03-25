@@ -97,6 +97,11 @@
 .gd-share-btn:hover{border-color:var(--gd-teal);color:var(--gd-teal);box-shadow:var(--gd-shadow-md)}
 .gd-toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(100px);background:var(--gd-navy);color:#fff;padding:0.75rem 1.5rem;border-radius:100px;font-size:0.875rem;font-weight:500;box-shadow:0 8px 32px rgba(0,0,0,0.25);z-index:1000;opacity:0;transition:opacity 0.3s,transform 0.3s;pointer-events:none}
 .gd-toast.gd-toast-show{opacity:1;transform:translateX(-50%) translateY(0)}
+.gd-rank-badge{display:inline-flex;align-items:center;gap:0.5rem;padding:0.5rem 1rem;border-radius:100px;font-size:0.8125rem;font-weight:600;margin-top:0.75rem;letter-spacing:0.01em}
+.gd-rank-gold{background:rgba(245,158,11,0.18);color:#fbbf24;border:1px solid rgba(245,158,11,0.25)}
+.gd-rank-teal{background:rgba(13,148,136,0.12);color:#5eead4;border:1px solid rgba(13,148,136,0.2)}
+.gd-dist-wrap{margin-top:0.625rem;position:relative}
+.gd-dist-label{font-size:0.625rem;color:var(--gd-text-muted);margin-top:0.25rem;text-align:center}
 .gd-empty{text-align:center;padding:3rem 2rem;background:var(--gd-card);border:1px solid var(--gd-border);border-radius:var(--gd-radius);box-shadow:var(--gd-shadow-sm)}
 .gd-empty-icon{width:64px;height:64px;margin:0 auto 1rem;display:block;opacity:0.3}
 .gd-empty p{color:var(--gd-text-dim);font-size:0.9375rem;margin:0}
@@ -124,6 +129,14 @@
                     {% if image.is_control %}<span class="gd-hero-tag">Control</span>{% else %}<span class="gd-hero-tag">VEC</span>{% endif %}
                     {% if sidecar.get('description') %}<span class="gd-hero-tag">{{ sidecar.description[:60] }}{% if sidecar.description|length > 60 %}...{% endif %}</span>{% endif %}
                 </div>
+                {% if domain_rank and domain_rank.rank > 0 %}
+                {% set top_pct = ((domain_rank.rank / domain_rank.total_in_domain) * 100) | round(0) | int %}
+                <div class="gd-rank-badge {{ 'gd-rank-gold' if domain_rank.rank <= 3 else 'gd-rank-teal' }}">
+                    {% if domain_rank.rank <= 3 %}&#x1F3C6;{% else %}&#x1F4CA;{% endif %}
+                    #{{ domain_rank.rank }} sur {{ domain_rank.total_in_domain }} en {{ domain_rank.domain_label }}
+                    {% if domain_rank.total_in_domain > 1 %} &mdash; Meilleur que {{ domain_rank.percentile | int }}% des GAs{% endif %}
+                </div>
+                {% endif %}
                 {% if detail.n_tests > 0 %}
                 {% set pct = (detail.avg_glance * 100) | round(0) | int %}
                 {% set circ = 251.2 %}
@@ -172,23 +185,27 @@
         </div>
         <div class="gd-scores-row" style="margin-top:1.5rem;">
             {% set metrics = [
-                {"name": "S9a Recall", "value": detail.avg_s9a, "desc": "Identification du sujet",
+                {"name": "S9a Recall", "value": detail.avg_s9a, "desc": "Identification du sujet", "dist_key": "s9a",
                  "tooltip": "Est-ce que les lecteurs comprennent de quoi parle votre image ? Un score de 60%+ signifie que la majorité identifie le sujet correctement en 5 secondes.",
                  "interpret_good": "Les lecteurs identifient le sujet de votre image",
                  "interpret_bad": "Les lecteurs ne comprennent pas de quoi parle votre image — le titre ou le visuel principal n'est pas assez clair"},
-                {"name": "S9b Hiérarchie", "value": detail.avg_s9b, "desc": "Hiérarchie des preuves",
+                {"name": "S9b Hiérarchie", "value": detail.avg_s9b, "desc": "Hiérarchie des preuves", "dist_key": "s9b",
                  "tooltip": "Est-ce que les lecteurs voient quel résultat est le plus important ? Chance = 25% (4 choix). Un bon GA dépasse 80%. En dessous de 25%, le design ne transmet aucune hiérarchie.",
                  "interpret_good": "La hiérarchie des preuves est claire — les lecteurs voient quel résultat domine",
                  "interpret_bad": "Les lecteurs ne distinguent pas quel résultat est le plus important — repensez l'encodage visuel (taille, position, couleur)"},
-                {"name": "S9c Action", "value": detail.avg_s9c, "desc": "Impact sur la pratique",
+                {"name": "S9c Action", "value": detail.avg_s9c, "desc": "Impact sur la pratique", "dist_key": "s9c",
                  "tooltip": "Est-ce que votre image donne envie d'agir ? Un score de 40%+ signifie que les lecteurs perçoivent une implication concrète pour leur pratique.",
                  "interpret_good": "Votre image déclenche une intention d'action chez les lecteurs",
                  "interpret_bad": "Les lecteurs ne voient pas en quoi ça les concerne — ajoutez un message clinique ou pratique explicite"},
-                {"name": "Fluence", "value": detail.fluency_normalized, "desc": "Rapidité × précision",
+                {"name": "GLANCE", "value": detail.avg_glance, "desc": "Score composite global", "dist_key": "glance",
+                 "tooltip": "Score composite combinant S9a, S9b et S9c. Mesure si le GA transmet son message en conditions réelles de lecture (scroll rapide).",
+                 "interpret_good": "Le GA communique efficacement son message en 5 secondes",
+                 "interpret_bad": "Trop d'information se perd en conditions réelles — simplifiez le message principal"},
+                {"name": "Fluence", "value": detail.fluency_normalized, "desc": "Rapidité × précision", "dist_key": "",
                  "tooltip": "Combine la vitesse de réponse et la justesse. Un score élevé = le lecteur a compris vite ET bien. Un score bas = soit lent, soit faux, soit les deux.",
                  "interpret_good": "Compréhension rapide et exacte — le design guide l'œil efficacement",
                  "interpret_bad": "Compréhension lente ou inexacte — le design force un effort cognitif trop important"},
-                {"name": "Couverture S2", "value": detail.avg_s2_coverage, "desc": "Analyse approfondie",
+                {"name": "Couverture S2", "value": detail.avg_s2_coverage, "desc": "Analyse approfondie", "dist_key": "",
                  "tooltip": "Quand on laisse le lecteur examiner l'image sans limite de temps, quel pourcentage de l'information est restitué ? La différence avec le score en scroll montre ce qui se perd en conditions réelles.",
                  "interpret_good": "En vision délibérée, la majorité de l'information est comprise",
                  "interpret_bad": "Même en prenant le temps, des informations clés restent incomprises — le design a des problèmes structurels"}
@@ -210,6 +227,11 @@
                 <div style="font-size:0.75rem;margin-top:0.375rem;line-height:1.4;color:{% if mpct >= 60 %}var(--gd-pass){% else %}var(--gd-fail){% endif %};">
                     {{ m.interpret_good if mpct >= 60 else m.interpret_bad }}
                 </div>
+                {% if m.dist_key and distributions and distributions.n_gas >= 5 %}
+                <div class="gd-dist-wrap" data-dist-key="{{ m.dist_key }}" data-this-score="{{ m.value }}"></div>
+                {% elif m.dist_key and distributions and distributions.n_gas > 0 and distributions.n_gas < 5 %}
+                <div class="gd-dist-label" style="margin-top:0.5rem;">Distribution disponible a partir de 5 GAs</div>
+                {% endif %}
             </div>
             {% endfor %}
         </div>
@@ -392,6 +414,99 @@
         else{var ta=document.createElement('textarea');ta.value=url;ta.style.position='fixed';ta.style.left='-9999px';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');showToast();}catch(e){}document.body.removeChild(ta);}
     };
     function showToast(){var t=document.getElementById('gdToast');t.classList.add('gd-toast-show');setTimeout(function(){t.classList.remove('gd-toast-show');},2000);}
+
+    // ── Distribution mini-charts ────────────────────────────────────
+    var DISTRIBUTIONS = {{ distributions | tojson }};
+
+    function renderDistChart(wrap, distKey, thisScore) {
+        var scores = DISTRIBUTIONS[distKey];
+        if (!scores || scores.length < 5) return;
+
+        var W = 130, H = 40, BINS = 10, PAD = 2;
+        var barW = (W - PAD * 2) / BINS;
+
+        // Bin the scores (0..1 range)
+        var counts = new Array(BINS).fill(0);
+        var maxVal = 1.0;
+        for (var i = 0; i < scores.length; i++) {
+            var bin = Math.min(BINS - 1, Math.floor(scores[i] / maxVal * BINS));
+            counts[bin]++;
+        }
+        var maxCount = Math.max.apply(null, counts);
+        if (maxCount === 0) return;
+
+        // Which bin does this GA fall in?
+        var thisBin = Math.min(BINS - 1, Math.floor(thisScore / maxVal * BINS));
+
+        // Compute percentile: how many GAs have a lower score
+        var below = 0;
+        for (var i = 0; i < scores.length; i++) {
+            if (scores[i] < thisScore) below++;
+        }
+        var topPct = Math.round(100 - (below / scores.length * 100));
+
+        var ns = 'http://www.w3.org/2000/svg';
+        var svg = document.createElementNS(ns, 'svg');
+        svg.setAttribute('width', W);
+        svg.setAttribute('height', H + 14);
+        svg.setAttribute('viewBox', '0 0 ' + W + ' ' + (H + 14));
+        svg.style.display = 'block';
+        svg.style.margin = '0 auto';
+
+        // Draw bars
+        for (var i = 0; i < BINS; i++) {
+            var barH = (counts[i] / maxCount) * (H - 4);
+            var rect = document.createElementNS(ns, 'rect');
+            rect.setAttribute('x', PAD + i * barW + 0.5);
+            rect.setAttribute('y', H - barH);
+            rect.setAttribute('width', Math.max(barW - 1, 1));
+            rect.setAttribute('height', barH);
+            rect.setAttribute('rx', 1);
+            if (i === thisBin) {
+                rect.setAttribute('fill', '#0d9488');
+                rect.setAttribute('opacity', '0.9');
+            } else {
+                rect.setAttribute('fill', '#cbd5e1');
+                rect.setAttribute('opacity', '0.5');
+            }
+            svg.appendChild(rect);
+        }
+
+        // Vertical marker line at this GA's score position
+        var markerX = PAD + (thisScore / maxVal) * (W - PAD * 2);
+        markerX = Math.max(PAD, Math.min(W - PAD, markerX));
+        var line = document.createElementNS(ns, 'line');
+        line.setAttribute('x1', markerX);
+        line.setAttribute('y1', 0);
+        line.setAttribute('x2', markerX);
+        line.setAttribute('y2', H);
+        line.setAttribute('stroke', '#0d9488');
+        line.setAttribute('stroke-width', '1.5');
+        line.setAttribute('stroke-dasharray', '2,2');
+        svg.appendChild(line);
+
+        // Top X% label
+        var label = document.createElementNS(ns, 'text');
+        label.setAttribute('x', W / 2);
+        label.setAttribute('y', H + 11);
+        label.setAttribute('text-anchor', 'middle');
+        label.setAttribute('font-size', '9');
+        label.setAttribute('fill', '#64748b');
+        label.setAttribute('font-weight', '600');
+        label.textContent = 'Top ' + topPct + '%';
+        svg.appendChild(label);
+
+        wrap.appendChild(svg);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        var wraps = document.querySelectorAll('.gd-dist-wrap[data-dist-key]');
+        wraps.forEach(function(wrap) {
+            var key = wrap.getAttribute('data-dist-key');
+            var score = parseFloat(wrap.getAttribute('data-this-score')) || 0;
+            renderDistChart(wrap, key, score);
+        });
+    });
 })();
 </script>
 {% endblock %}

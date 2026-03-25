@@ -5,6 +5,7 @@ All formulas from sections 2-7 of the mathematical model.
 
 import math
 import statistics
+from datetime import datetime, timedelta
 
 from scoring import classify_speed_accuracy, classify_rt2, score_glance_composite
 from config_loader import get_constant
@@ -83,6 +84,134 @@ def compute_cognitive_effort_index(s9a_score: float, filter_ratio: float,
         "filter_ratio": filter_ratio,
         "latency_ms": first_utterance_ms,
         "interpretation": "effortless" if avg_effort < 0.3 else "moderate" if avg_effort < 0.6 else "laborious",
+    }
+
+
+# ── KPI Evolution (week-over-week delta) ─────────────────────────────
+
+
+def compute_kpi_evolution(tests: list[dict]) -> dict:
+    """Compute week-over-week evolution for dashboard KPI cards.
+
+    Splits tests into current period (last 7 days) and previous period
+    (7-14 days ago) based on created_at timestamps. For each KPI, computes:
+        - current: value for last 7 days
+        - previous: value for 7-14 days ago
+        - delta_pct: ((current - previous) / previous) * 100
+        - arrow: "up" | "down" | "flat"
+        - label: formatted string e.g. "+23%" or "-12%" or "0%"
+
+    If no previous period data exists (first week), delta fields are None.
+
+    Returns:
+        {
+            "tests_completed": { current, previous, delta_pct, arrow, label },
+            "unique_participants": { current, previous, delta_pct, arrow, label },
+            "avg_glance": { current, previous, delta_pct, arrow, label },
+            "completion_rate": { current, previous, delta_pct, arrow, label },
+        }
+    """
+    now = datetime.utcnow()
+    seven_days_ago = now - timedelta(days=7)
+    fourteen_days_ago = now - timedelta(days=14)
+
+    def parse_ts(t):
+        """Parse created_at string to datetime. Handles common SQLite formats."""
+        ts = t.get("created_at", "")
+        if not ts:
+            return None
+        try:
+            # SQLite datetime('now') format: "2026-03-25 14:30:00"
+            return datetime.strptime(ts[:19], "%Y-%m-%d %H:%M:%S")
+        except (ValueError, TypeError):
+            try:
+                return datetime.strptime(ts[:10], "%Y-%m-%d")
+            except (ValueError, TypeError):
+                return None
+
+    current_tests = []
+    previous_tests = []
+    for t in tests:
+        dt = parse_ts(t)
+        if dt is None:
+            continue
+        if dt >= seven_days_ago:
+            current_tests.append(t)
+        elif dt >= fourteen_days_ago:
+            previous_tests.append(t)
+
+    def _make_delta(current_val, previous_val):
+        """Build a delta dict from two numeric values."""
+        if previous_val is None or len(previous_tests) == 0:
+            return {
+                "current": current_val,
+                "previous": None,
+                "delta_pct": None,
+                "arrow": None,
+                "label": None,
+            }
+        if previous_val == 0:
+            if current_val == 0:
+                pct = 0.0
+            else:
+                pct = 100.0  # went from 0 to something
+        else:
+            pct = ((current_val - previous_val) / previous_val) * 100.0
+
+        pct = round(pct, 1)
+        if pct > 0:
+            arrow = "up"
+            label = f"+{pct}%"
+        elif pct < 0:
+            arrow = "down"
+            label = f"{pct}%"
+        else:
+            arrow = "flat"
+            label = "0%"
+
+        return {
+            "current": current_val,
+            "previous": previous_val,
+            "delta_pct": pct,
+            "arrow": arrow,
+            "label": label,
+        }
+
+    # KPI 1: Tests completed
+    n_current = len(current_tests)
+    n_previous = len(previous_tests)
+
+    # KPI 2: Unique participants
+    current_participants = len(set(t.get("participant_id") for t in current_tests if t.get("participant_id")))
+    previous_participants = len(set(t.get("participant_id") for t in previous_tests if t.get("participant_id")))
+
+    # KPI 3: Average GLANCE score
+    current_glance_scores = [float(t.get("glance_score") or 0.0) for t in current_tests]
+    previous_glance_scores = [float(t.get("glance_score") or 0.0) for t in previous_tests]
+    avg_glance_current = (sum(current_glance_scores) / len(current_glance_scores)) if current_glance_scores else 0.0
+    avg_glance_previous = (sum(previous_glance_scores) / len(previous_glance_scores)) if previous_glance_scores else 0.0
+
+    # KPI 4: Completion rate (tests with glance_score > 0 / total tests)
+    # Proxy: a completed test has all three S9 sub-scores filled
+    def _completion_rate(test_list):
+        if not test_list:
+            return 0.0
+        completed = sum(
+            1 for t in test_list
+            if t.get("s9a_pass") is not None
+            and t.get("s9b_pass") is not None
+            and t.get("s9c_pass") is not None
+        )
+        return completed / len(test_list)
+
+    completion_current = _completion_rate(current_tests)
+    completion_previous = _completion_rate(previous_tests)
+
+    return {
+        "tests_completed": _make_delta(n_current, n_previous),
+        "unique_participants": _make_delta(current_participants, previous_participants),
+        "avg_glance": _make_delta(round(avg_glance_current, 4), round(avg_glance_previous, 4)),
+        "completion_rate": _make_delta(round(completion_current, 4), round(completion_previous, 4)),
     }
 
 
@@ -814,4 +943,360 @@ def get_domain_leaderboard(domain: str, domain_config: dict) -> dict | None:
         "avg_score": round(avg_score, 4) if avg_score is not None else None,
         "median_score": round(median_score, 4) if median_score is not None else None,
         "std_score": round(std_score, 4) if std_score is not None else None,
+    }
+
+
+# ── Score Distribution analytics ─────────────────────────────────────
+
+
+def get_score_distributions() -> dict:
+    """Return score distributions across ALL GAs for distribution charts.
+
+    Computes per-GA average scores for s9a, s9b, s9c, and glance_score,
+    then returns sorted lists for each metric. Used to render inline SVG
+    histograms on the GA detail page.
+
+    Returns:
+        {
+            "s9a": [float, ...],       # sorted avg S9a scores per GA
+            "s9b": [float, ...],       # sorted avg S9b scores per GA
+            "s9c": [float, ...],       # sorted avg S9c scores per GA
+            "glance": [float, ...],    # sorted avg GLANCE scores per GA
+            "n_gas": int,              # total GAs with test data
+        }
+    """
+    from db import get_db
+    import json
+
+    db = get_db()
+
+    # Get all tests grouped by GA
+    test_rows = db.execute(
+        """SELECT ga_image_id,
+                  s9a_score,
+                  s9b_pass,
+                  s9c_score,
+                  glance_score
+           FROM tests
+           WHERE ga_image_id IS NOT NULL"""
+    ).fetchall()
+    db.close()
+
+    # Build per-GA aggregates
+    ga_data = {}  # ga_image_id -> {s9a: [], s9b: [], s9c: [], glance: []}
+    for t in test_rows:
+        gid = t["ga_image_id"]
+        if gid not in ga_data:
+            ga_data[gid] = {"s9a": [], "s9b": [], "s9c": [], "glance": []}
+        ga_data[gid]["s9a"].append(float(t["s9a_score"] or 0.0))
+        ga_data[gid]["s9b"].append(1.0 if t["s9b_pass"] else 0.0)
+        ga_data[gid]["s9c"].append(float(t["s9c_score"] or 0.0))
+        ga_data[gid]["glance"].append(float(t["glance_score"] or 0.0))
+
+    # Compute per-GA averages
+    distributions = {"s9a": [], "s9b": [], "s9c": [], "glance": []}
+    for gid, data in ga_data.items():
+        n = len(data["glance"])
+        if n > 0:
+            distributions["s9a"].append(sum(data["s9a"]) / n)
+            distributions["s9b"].append(sum(data["s9b"]) / n)
+            distributions["s9c"].append(sum(data["s9c"]) / n)
+            distributions["glance"].append(sum(data["glance"]) / n)
+
+    # Sort each
+    for key in distributions:
+        distributions[key].sort()
+
+    distributions["n_gas"] = len(distributions["glance"])
+    return distributions
+
+
+def get_admin_analytics() -> dict:
+    """Return comprehensive platform analytics for admin dashboard.
+
+    Queries all participants, tests, and images to compute:
+    - Overview KPIs (total visitors, tests completed, averages, completion rate)
+    - Tests per day (last 30 days)
+    - Score distribution (histogram bins)
+    - Domain performance (avg S9b, GLANCE per domain)
+    - VEC vs Control comparison per domain
+    - Profile distributions (clinical_domain, data_literacy, experience_years)
+    - Input mode comparison (voice vs text S9a)
+    - All test rows for the response table
+
+    Returns a dict with all computed analytics, safe for empty DB.
+    """
+    from db import get_db
+    from datetime import datetime, timedelta
+
+    db = get_db()
+
+    # ── Participants ──
+    participants = [dict(r) for r in db.execute("SELECT * FROM participants ORDER BY created_at").fetchall()]
+    n_participants = len(participants)
+
+    # ── All tests with joins ──
+    all_tests_rows = db.execute(
+        """SELECT t.id, t.created_at, t.participant_id, t.ga_image_id,
+                  t.q1_text, t.q1_time_ms, t.q2_choice, t.q2_time_ms,
+                  t.q3_choice, t.q3_time_ms,
+                  t.s9a_pass, t.s9a_score, t.s9b_pass, t.s9c_pass,
+                  t.s9c_score, t.glance_score, t.speed_accuracy,
+                  t.exposure_mode, t.q1_input_mode, t.q1_raw_transcript,
+                  t.exposure_actual_ms,
+                  p.clinical_domain, p.data_literacy, p.experience_years,
+                  p.input_mode as participant_input_mode,
+                  g.title as ga_title, g.domain, g.is_control, g.filename
+           FROM tests t
+           JOIN participants p ON t.participant_id = p.id
+           JOIN ga_images g ON t.ga_image_id = g.id
+           ORDER BY t.created_at DESC"""
+    ).fetchall()
+    db.close()
+
+    all_tests = [dict(r) for r in all_tests_rows]
+    n_tests = len(all_tests)
+
+    # ── Overview KPIs ──
+    today = datetime.utcnow().strftime("%Y-%m-%d")
+    week_ago = (datetime.utcnow() - timedelta(days=7)).strftime("%Y-%m-%d")
+
+    tests_today = sum(1 for t in all_tests if t["created_at"] and t["created_at"][:10] == today)
+    tests_this_week = sum(1 for t in all_tests if t["created_at"] and t["created_at"][:10] >= week_ago)
+
+    glance_scores = [float(t.get("glance_score") or 0.0) for t in all_tests]
+    avg_glance = (sum(glance_scores) / len(glance_scores)) if glance_scores else 0.0
+
+    # Average session duration estimate: sum of q1_time + q2_time + q3_time per test
+    session_durations = []
+    for t in all_tests:
+        dur = (t.get("q1_time_ms") or 0) + (t.get("q2_time_ms") or 0) + (t.get("q3_time_ms") or 0)
+        if t.get("exposure_actual_ms"):
+            dur += t["exposure_actual_ms"]
+        if dur > 0:
+            session_durations.append(dur)
+    avg_session_ms = (sum(session_durations) / len(session_durations)) if session_durations else 0
+
+    # Completion rate: participants who completed at least 1 test / total participants
+    participants_with_tests = len(set(t["participant_id"] for t in all_tests))
+    completion_rate = (participants_with_tests / n_participants * 100) if n_participants > 0 else 0.0
+
+    # ── Tests per day (last 30 days) ──
+    thirty_days_ago = (datetime.utcnow() - timedelta(days=30)).strftime("%Y-%m-%d")
+    day_counts = {}
+    for t in all_tests:
+        day = t["created_at"][:10] if t["created_at"] else None
+        if day and day >= thirty_days_ago:
+            day_counts[day] = day_counts.get(day, 0) + 1
+
+    # Fill in missing days with 0
+    tests_per_day = []
+    base_date = datetime.utcnow() - timedelta(days=29)
+    for i in range(30):
+        d = (base_date + timedelta(days=i)).strftime("%Y-%m-%d")
+        tests_per_day.append({"date": d, "count": day_counts.get(d, 0)})
+
+    # ── Score distribution (10 bins from 0-100%) ──
+    score_bins = [0] * 10
+    for s in glance_scores:
+        pct = s * 100
+        bin_idx = min(int(pct // 10), 9)  # 0-9
+        score_bins[bin_idx] += 1
+
+    # ── Domain scores ──
+    domain_data = {}  # domain -> {s9b_passes, glance_scores, n}
+    for t in all_tests:
+        d = t.get("domain", "unknown")
+        if d not in domain_data:
+            domain_data[d] = {"s9b_passes": 0, "n": 0, "glance_sum": 0.0}
+        domain_data[d]["n"] += 1
+        if t.get("s9b_pass"):
+            domain_data[d]["s9b_passes"] += 1
+        domain_data[d]["glance_sum"] += float(t.get("glance_score") or 0.0)
+
+    domain_scores = []
+    for d, dd in sorted(domain_data.items()):
+        domain_scores.append({
+            "domain": d,
+            "avg_s9b": round(dd["s9b_passes"] / dd["n"], 4) if dd["n"] > 0 else 0,
+            "avg_glance": round(dd["glance_sum"] / dd["n"], 4) if dd["n"] > 0 else 0,
+            "n_tests": dd["n"],
+        })
+
+    # ── VEC vs Control per domain ──
+    vec_ctrl_data = {}  # domain -> {vec_s9b_passes, vec_n, ctrl_s9b_passes, ctrl_n}
+    for t in all_tests:
+        d = t.get("domain", "unknown")
+        if d not in vec_ctrl_data:
+            vec_ctrl_data[d] = {"vec_s9b": 0, "vec_n": 0, "ctrl_s9b": 0, "ctrl_n": 0}
+        if t.get("is_control"):
+            vec_ctrl_data[d]["ctrl_n"] += 1
+            if t.get("s9b_pass"):
+                vec_ctrl_data[d]["ctrl_s9b"] += 1
+        else:
+            vec_ctrl_data[d]["vec_n"] += 1
+            if t.get("s9b_pass"):
+                vec_ctrl_data[d]["vec_s9b"] += 1
+
+    vec_vs_control = []
+    for d, dd in sorted(vec_ctrl_data.items()):
+        if dd["vec_n"] > 0 or dd["ctrl_n"] > 0:
+            vec_vs_control.append({
+                "domain": d,
+                "vec_s9b": round(dd["vec_s9b"] / dd["vec_n"], 4) if dd["vec_n"] > 0 else 0,
+                "control_s9b": round(dd["ctrl_s9b"] / dd["ctrl_n"], 4) if dd["ctrl_n"] > 0 else 0,
+                "vec_n": dd["vec_n"],
+                "control_n": dd["ctrl_n"],
+            })
+
+    # ── Profile distributions ──
+    clinical_dist = {}
+    literacy_dist = {}
+    experience_dist = {}
+    for p in participants:
+        cd = p.get("clinical_domain", "unknown") or "unknown"
+        dl = p.get("data_literacy", "unknown") or "unknown"
+        ey = p.get("experience_years", "unknown") or "unknown"
+        clinical_dist[cd] = clinical_dist.get(cd, 0) + 1
+        literacy_dist[dl] = literacy_dist.get(dl, 0) + 1
+        experience_dist[ey] = experience_dist.get(ey, 0) + 1
+
+    # ── Input mode comparison (voice vs text S9a) ──
+    voice_s9a = []
+    text_s9a = []
+    for t in all_tests:
+        mode = t.get("q1_input_mode", "text") or "text"
+        s9a = float(t.get("s9a_score") or 0.0)
+        if mode == "voice":
+            voice_s9a.append(s9a)
+        else:
+            text_s9a.append(s9a)
+
+    input_mode_comparison = {
+        "voice": {
+            "avg_s9a": round(sum(voice_s9a) / len(voice_s9a), 4) if voice_s9a else 0,
+            "n": len(voice_s9a),
+        },
+        "text": {
+            "avg_s9a": round(sum(text_s9a) / len(text_s9a), 4) if text_s9a else 0,
+            "n": len(text_s9a),
+        },
+    }
+
+    # ── All tests for response table ──
+    response_table = []
+    for t in all_tests:
+        response_table.append({
+            "date": t["created_at"][:16] if t["created_at"] else "",
+            "profile": f"{t.get('clinical_domain', '-')} / {t.get('data_literacy', '-')}",
+            "ga_title": t.get("ga_title") or "-",
+            "domain": t.get("domain", "-"),
+            "mode": t.get("exposure_mode", "spotlight"),
+            "input_mode": t.get("q1_input_mode", "text"),
+            "s9a": int(t.get("s9a_pass") or 0),
+            "s9a_score": round(float(t.get("s9a_score") or 0), 3),
+            "s9b": int(t.get("s9b_pass") or 0),
+            "s9c": int(t.get("s9c_pass") or 0),
+            "glance": round(float(t.get("glance_score") or 0) * 100, 1),
+            "rt2": round((t.get("q2_time_ms") or 0) / 1000, 1),
+            "speed_accuracy": t.get("speed_accuracy") or "-",
+            "q1_text": (t.get("q1_text") or "")[:80],
+            "q2_choice": t.get("q2_choice") or "-",
+        })
+
+    return {
+        "kpis": {
+            "n_participants": n_participants,
+            "n_tests": n_tests,
+            "tests_today": tests_today,
+            "tests_this_week": tests_this_week,
+            "avg_glance": round(avg_glance * 100, 1),
+            "avg_session_s": round(avg_session_ms / 1000, 1) if avg_session_ms > 0 else 0,
+            "completion_rate": round(completion_rate, 1),
+        },
+        "tests_per_day": tests_per_day,
+        "score_distribution": score_bins,
+        "domain_scores": domain_scores,
+        "vec_vs_control": vec_vs_control,
+        "profile_distribution": {
+            "clinical_domain": clinical_dist,
+            "data_literacy": literacy_dist,
+            "experience_years": experience_dist,
+        },
+        "input_mode_comparison": input_mode_comparison,
+        "response_table": response_table,
+    }
+
+
+def get_domain_rank(ga_image_id: int, domain: str) -> dict:
+    """Compute rank and percentile of a GA within its domain.
+
+    Queries all GAs in the same domain, computes their average GLANCE scores,
+    and finds where this GA sits.
+
+    Returns:
+        {
+            "rank": int,              # 1-indexed rank (1 = best)
+            "total_in_domain": int,   # total GAs with data in domain
+            "percentile": float,      # percentage of GAs this one beats (0-100)
+            "domain_label": str,      # human-readable domain label
+        }
+    """
+    from db import get_db
+
+    db = get_db()
+
+    # All GA images in this domain
+    images = db.execute(
+        "SELECT id FROM ga_images WHERE domain = ?", (domain,)
+    ).fetchall()
+    image_ids = [r["id"] for r in images]
+
+    if not image_ids:
+        db.close()
+        return {"rank": 0, "total_in_domain": 0, "percentile": 0.0, "domain_label": domain}
+
+    # Get average GLANCE per GA in this domain
+    placeholders = ",".join("?" * len(image_ids))
+    rows = db.execute(
+        f"""SELECT ga_image_id, AVG(glance_score) as avg_glance
+            FROM tests
+            WHERE ga_image_id IN ({placeholders})
+            GROUP BY ga_image_id
+            HAVING COUNT(*) > 0""",
+        image_ids,
+    ).fetchall()
+    db.close()
+
+    if not rows:
+        return {"rank": 0, "total_in_domain": 0, "percentile": 0.0, "domain_label": domain}
+
+    # Sort by avg_glance descending
+    scored = [(r["ga_image_id"], r["avg_glance"] or 0.0) for r in rows]
+    scored.sort(key=lambda x: x[1], reverse=True)
+
+    total = len(scored)
+    rank = 0
+    for i, (gid, score) in enumerate(scored):
+        if gid == ga_image_id:
+            rank = i + 1
+            break
+
+    if rank == 0:
+        # This GA has no test data
+        return {"rank": 0, "total_in_domain": total, "percentile": 0.0, "domain_label": domain}
+
+    # Percentile: percentage of GAs this one beats
+    # rank 1 out of 10 -> beats 9/10 = 90%
+    # rank 10 out of 10 -> beats 0/10 = 0%
+    if total <= 1:
+        percentile = 100.0
+    else:
+        percentile = ((total - rank) / (total - 1)) * 100.0
+
+    return {
+        "rank": rank,
+        "total_in_domain": total,
+        "percentile": round(percentile, 0),
+        "domain_label": domain,
     }
