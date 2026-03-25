@@ -3,13 +3,18 @@
 
 {% block head %}
 {% set dash_glance_pct = (agg.Score_GLANCE * 100) | round(0) | int %}
-<meta property="og:title" content="GLANCE — Mon score : {{ dash_glance_pct }}%">
-<meta property="og:description" content="J'ai testé ma compréhension des Graphical Abstracts scientifiques en conditions réelles.">
+{% set og_image_url = request.url.scheme ~ "://" ~ request.url.netloc ~ "/card/default.png" %}
+<meta property="og:title" content="GLANCE — Dashboard ({{ dash_glance_pct }}% moyen)">
+<meta property="og:description" content="Tableau de bord GLANCE — analyse de la lisibilite des Graphical Abstracts scientifiques.">
+<meta property="og:image" content="{{ og_image_url }}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
 <meta property="og:url" content="{{ request.url }}">
 <meta property="og:type" content="website">
-<meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="GLANCE — Mon score : {{ dash_glance_pct }}%">
-<meta name="twitter:description" content="J'ai testé ma compréhension des Graphical Abstracts scientifiques en conditions réelles.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="GLANCE — Dashboard ({{ dash_glance_pct }}% moyen)">
+<meta name="twitter:description" content="Tableau de bord GLANCE — analyse de la lisibilite des Graphical Abstracts scientifiques.">
+<meta name="twitter:image" content="{{ og_image_url }}">
 <style>
 /* ===== GLANCE Dashboard — Redesign =====
    Uses app-wide dark blue theme from style.css variables.
