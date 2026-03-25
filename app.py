@@ -1537,13 +1537,32 @@ def analyze_page(request: Request, ga: str = ""):
     """
     lang = _lang(request)
     active_ga = None
+    overlay_svg = None
+    scanpath_json = "null"
     if ga:
         active_ga = get_image_by_slug(ga)
+        if active_ga:
+            try:
+                _lg = get_latest_graph(active_ga["id"])
+                if _lg:
+                    _sims = get_reading_sims(graph_id=_lg["id"])
+                    _s1 = next((s for s in _sims if s["mode"] == "system1"), None)
+                    if _s1:
+                        from graph_renderer import render_overlay_svg
+                        from reader_sim import simulate_reading
+                        graph_dict = _lg["graph"]
+                        sim_full = simulate_reading(graph_dict, total_ticks=50, mode="system1")
+                        overlay_svg = render_overlay_svg(graph_dict, sim_full, 900, 600)
+                        scanpath_json = json.dumps(sim_full.get("scanpath", []))
+            except Exception as e:
+                logger.warning(f"Analyze overlay failed: {e}")
 
     return templates.TemplateResponse("analyze.html", {
         "request": request,
         "lang": lang,
         "active_ga": active_ga,
+        "overlay_svg": overlay_svg,
+        "scanpath_json": scanpath_json,
         "og_title": "Analyse ton Graphical Abstract — GLANCE",
         "og_description": "Depose ton Graphical Abstract et recois une analyse IA en 30 secondes : score, archetype, forces, faiblesses, recommandations.",
     })

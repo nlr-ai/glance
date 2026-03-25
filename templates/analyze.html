@@ -739,10 +739,17 @@
             </div>
 
             {% if active_ga %}
-            <!-- Active GA: show image + tools -->
+            <!-- Active GA: show image + overlay + tools -->
             <div class="an-upload-card" style="padding:1.5rem;">
-                <img src="/ga/{{ active_ga.filename }}" alt="{{ active_ga.title }}"
-                     style="width:100%;max-height:400px;object-fit:contain;border-radius:var(--an-radius-sm);margin-bottom:1rem;">
+                <div style="position:relative;margin-bottom:1rem;">
+                    <img src="/ga/{{ active_ga.filename }}" alt="{{ active_ga.title }}"
+                         style="width:100%;border-radius:var(--an-radius-sm);display:block;" id="gaImg">
+                    {% if overlay_svg %}
+                    <div id="overlayWrap" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;">
+                        {{ overlay_svg | safe }}
+                    </div>
+                    {% endif %}
+                </div>
                 <h3 style="font-size:1rem;font-weight:700;color:var(--an-text);margin:0 0 0.5rem;">{{ active_ga.title or active_ga.filename }}</h3>
                 <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:1rem;">
                     <button class="tool-btn" onclick="runTool('vision')" style="padding:0.5rem 1rem;border-radius:var(--an-radius-sm);border:1px solid var(--an-border);background:var(--an-card);color:var(--an-text);cursor:pointer;font-size:0.8rem;">Analyser l'image</button>
