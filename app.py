@@ -1527,8 +1527,24 @@ async def analyze_submit(request: Request, file: UploadFile = File(...)):
 
     # Read file bytes
     image_bytes = await file.read()
-    if len(image_bytes) > 10 * 1024 * 1024:
-        raise HTTPException(status_code=400, detail="Fichier trop volumineux (max 10 Mo)")
+    if len(image_bytes) > 20 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="Fichier trop volumineux (max 20 Mo)")
+
+    # Auto-resize large images to max 2000px (reduces Gemini latency + cost)
+    if ext in ("png", "jpg", "jpeg", "webp") and len(image_bytes) > 2 * 1024 * 1024:
+        try:
+            from PIL import Image as PILImage
+            import io
+            img = PILImage.open(io.BytesIO(image_bytes))
+            if img.width > 2000:
+                ratio = 2000 / img.width
+                img = img.resize((2000, int(img.height * ratio)), PILImage.LANCZOS)
+                buf = io.BytesIO()
+                img.save(buf, format="PNG", optimize=True)
+                image_bytes = buf.getvalue()
+                logger.info(f"Resized to 2000px ({len(image_bytes)//1024}KB)")
+        except Exception as e:
+            logger.warning(f"Auto-resize failed: {e}")
 
     # Handle PDF: extract largest image
     if ext == "pdf":
