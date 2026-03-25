@@ -217,6 +217,21 @@
     .gd-share-main-btn{flex:1}
 }
 </style>
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "ScholarlyArticle",
+    "name": "{{ image.title }}",
+    "description": "{{ og_description }}",
+    "image": "https://glance.scisense.fr/ga/{{ image.filename }}",
+    "url": "https://glance.scisense.fr/ga-detail/{{ share_slug }}",
+    "publisher": {
+        "@type": "Organization",
+        "name": "SciSense",
+        "url": "https://scisense.fr"
+    }
+}
+</script>
 {% endblock %}
 
 {% block content %}
@@ -697,57 +712,79 @@ new Chart(document.getElementById('evolutionChart'), {
 </script>
 {% endif %}
 
-<!-- Tool panel -->
+<!-- Tool panel — Pipeline layout -->
 {% if true %}
 <div style="margin-top:1rem;margin-bottom:1.5rem;padding:1.5rem;border:1px solid var(--gd-border);border-radius:var(--gd-radius);background:var(--gd-card);box-shadow:var(--gd-shadow-sm);">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
-        <h3 style="margin:0;font-size:1rem;font-weight:700;color:var(--gd-navy);">Outils d'analyse</h3>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;">
+        <h3 style="margin:0;font-size:1rem;font-weight:700;color:var(--gd-navy);">Boucle d'analyse</h3>
         <span id="callBadge" style="font-size:0.75rem;color:var(--gd-text-dim);"></span>
     </div>
 
-    <!-- Tool buttons -->
-    <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:1rem;">
-        <button class="tool-btn" onclick="runTool('vision')" data-tool="vision" title="Gemini Vision decompose l'image en graphe L3 : zones, elements, messages"
-                style="padding:0.5rem 1rem;border-radius:var(--gd-radius-sm);border:1px solid var(--gd-border);background:var(--gd-card);color:var(--gd-text);cursor:pointer;font-size:0.8rem;font-weight:500;">
-            👁 Analyser
-        </button>
-        <button class="tool-btn" onclick="runTool('channels')" data-tool="channels" title="Evalue 70 canaux visuels (couleur, forme, taille, position) et detecte les anti-patterns"
-                style="padding:0.5rem 1rem;border-radius:var(--gd-radius-sm);border:1px solid var(--gd-border);background:var(--gd-card);color:var(--gd-text);cursor:pointer;font-size:0.8rem;font-weight:500;">
-            📡 Canaux
-        </button>
-        <button class="tool-btn" onclick="showTextTool('advise')" data-tool="advise" title="Decrivez ce que vous voulez ameliorer — l'IA propose des modifications concretes sur le graphe"
-                style="padding:0.5rem 1rem;border-radius:var(--gd-radius-sm);border:1px solid var(--gd-teal);background:var(--gd-teal-light);color:var(--gd-teal);cursor:pointer;font-size:0.8rem;font-weight:600;">
-            💡 Recommander
-        </button>
-        <button class="tool-btn" onclick="showTextTool('rubber_duck')" data-tool="rubber_duck" title="Posez n'importe quelle question sur votre GA — exploration libre avec l'IA"
-                style="padding:0.5rem 1rem;border-radius:var(--gd-radius-sm);border:1px solid var(--gd-amber);background:var(--gd-amber-light);color:var(--gd-amber);cursor:pointer;font-size:0.8rem;font-weight:600;">
-            🦆 Explorer
-        </button>
-        <button class="tool-btn" onclick="runTool('health')" data-tool="health" title="Verifie que chaque message scientifique est porte par un element visuel — detecte les routes cassees"
-                style="padding:0.5rem 1rem;border-radius:var(--gd-radius-sm);border:1px solid var(--gd-border);background:var(--gd-card);color:var(--gd-text);cursor:pointer;font-size:0.8rem;font-weight:500;">
-            🔗 Routes
-        </button>
-        <button class="tool-btn" onclick="runTool('reader_sim')" data-tool="reader_sim" title="Un lecteur virtuel scanne votre figure pendant 5 secondes — montre ce qu'il voit et ce qu'il rate"
-                style="padding:0.5rem 1rem;border-radius:var(--gd-radius-sm);border:1px solid var(--gd-border);background:var(--gd-card);color:var(--gd-text);cursor:pointer;font-size:0.8rem;font-weight:500;">
-            👀 Lecture 5s
-        </button>
-        <button class="tool-btn" onclick="runTool('reader_sim_s2')" data-tool="reader_sim_s2" title="Lecture deliberee de 90 secondes — le lecteur prend son temps, explore chaque zone"
-                style="padding:0.5rem 1rem;border-radius:var(--gd-radius-sm);border:1px solid var(--gd-border);background:var(--gd-card);color:var(--gd-text);cursor:pointer;font-size:0.8rem;font-weight:500;">
-            🔍 Lecture 90s
-        </button>
-        <button class="tool-btn" onclick="runImprove()" data-tool="improve" title="Lance un tour complet : diagnostic + recommandations + application automatique des corrections"
-                style="padding:0.5rem 1rem;border-radius:var(--gd-radius-sm);border:1px solid var(--gd-pass);background:var(--gd-pass-bg);color:var(--gd-pass);cursor:pointer;font-size:0.8rem;font-weight:600;">
-            ⚡ Auto-fix
-        </button>
-        <button class="tool-btn" onclick="runTool('deepen')" data-tool="deepen" title="Analyse chaque zone en detail — augmente la resolution du graphe"
-                style="padding:0.5rem 1rem;border-radius:var(--gd-radius-sm);border:1px solid #8b5cf6;background:rgba(139,92,246,0.08);color:#8b5cf6;cursor:pointer;font-size:0.8rem;font-weight:600;">
-            🔬 Approfondir
-        </button>
+    <!-- Phase 1: COMPRENDRE -->
+    <div style="margin-bottom:0.75rem;">
+        <div style="font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--gd-text-dim);margin-bottom:0.4rem;">1. Comprendre</div>
+        <div style="display:flex;flex-wrap:wrap;gap:0.4rem;">
+            <button class="tool-btn" onclick="runTool('vision')" data-tool="vision" title="Gemini Vision decompose l'image en graphe : zones, elements, messages"
+                    style="padding:0.4rem 0.8rem;border-radius:6px;border:1px solid var(--gd-border);background:var(--gd-card);color:var(--gd-text);cursor:pointer;font-size:0.75rem;">
+                👁 Analyser
+            </button>
+            <button class="tool-btn" onclick="runTool('channels')" data-tool="channels" title="70 canaux visuels evalues + anti-patterns detectes"
+                    style="padding:0.4rem 0.8rem;border-radius:6px;border:1px solid var(--gd-border);background:var(--gd-card);color:var(--gd-text);cursor:pointer;font-size:0.75rem;">
+                📡 Canaux
+            </button>
+            <button class="tool-btn" onclick="runTool('deepen')" data-tool="deepen" title="Analyse chaque zone en detail — augmente la resolution"
+                    style="padding:0.4rem 0.8rem;border-radius:6px;border:1px solid var(--gd-border);background:var(--gd-card);color:var(--gd-text);cursor:pointer;font-size:0.75rem;">
+                🔬 Approfondir
+            </button>
+        </div>
     </div>
 
-    <!-- Text input (shows for advise + rubber_duck) -->
-    <div id="toolTextInput" style="display:none;margin-bottom:1rem;">
-        <textarea id="toolText" rows="3" placeholder="Votre question ou intention..."
+    <!-- Arrow -->
+    <div style="text-align:center;color:var(--gd-text-muted);font-size:0.8rem;margin:0.25rem 0;">↓</div>
+
+    <!-- Phase 2: DIAGNOSTIQUER -->
+    <div style="margin-bottom:0.75rem;">
+        <div style="font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--gd-text-dim);margin-bottom:0.4rem;">2. Diagnostiquer</div>
+        <div style="display:flex;flex-wrap:wrap;gap:0.4rem;">
+            <button class="tool-btn" onclick="runTool('reader_sim')" data-tool="reader_sim" title="Simulation de lecture 5 secondes — que voit le lecteur ?"
+                    style="padding:0.4rem 0.8rem;border-radius:6px;border:1px solid var(--gd-border);background:var(--gd-card);color:var(--gd-text);cursor:pointer;font-size:0.75rem;">
+                👀 Lecture 5s
+            </button>
+            <button class="tool-btn" onclick="runTool('reader_sim_s2')" data-tool="reader_sim_s2" title="Lecture deliberee 90 secondes"
+                    style="padding:0.4rem 0.8rem;border-radius:6px;border:1px solid var(--gd-border);background:var(--gd-card);color:var(--gd-text);cursor:pointer;font-size:0.75rem;">
+                🔍 Lecture 90s
+            </button>
+            <button class="tool-btn" onclick="runTool('health')" data-tool="health" title="Routes de transmission : chaque message a-t-il un porteur visuel ?"
+                    style="padding:0.4rem 0.8rem;border-radius:6px;border:1px solid var(--gd-border);background:var(--gd-card);color:var(--gd-text);cursor:pointer;font-size:0.75rem;">
+                🔗 Routes
+            </button>
+        </div>
+    </div>
+
+    <!-- Arrow -->
+    <div style="text-align:center;color:var(--gd-text-muted);font-size:0.8rem;margin:0.25rem 0;">↓</div>
+
+    <!-- Phase 3: AMÉLIORER -->
+    <div style="margin-bottom:0.75rem;">
+        <div style="font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--gd-text-dim);margin-bottom:0.4rem;">3. Ameliorer</div>
+        <div style="display:flex;flex-wrap:wrap;gap:0.4rem;align-items:center;">
+            <button class="tool-btn" onclick="showTextTool('ask')" data-tool="ask" title="Posez une question ou donnez une instruction — le systeme route automatiquement"
+                    style="padding:0.4rem 0.8rem;border-radius:6px;border:1px solid var(--gd-teal);background:var(--gd-teal-light);color:var(--gd-teal);cursor:pointer;font-size:0.75rem;font-weight:600;">
+                💬 Demander
+            </button>
+            <button class="tool-btn" onclick="runImprove()" data-tool="improve" title="Tour complet automatique : diagnostic + recommandations + corrections"
+                    style="padding:0.4rem 0.8rem;border-radius:6px;border:1px solid var(--gd-pass);background:var(--gd-pass-bg);color:var(--gd-pass);cursor:pointer;font-size:0.75rem;font-weight:600;">
+                ⚡ Auto-fix
+            </button>
+        </div>
+    </div>
+
+    <!-- Arrow looping back -->
+    <div style="text-align:center;color:var(--gd-text-muted);font-size:0.7rem;margin:0.25rem 0;">↻ repeter jusqu'a satisfaction</div>
+
+    <!-- Unified text input -->
+    <div id="toolTextInput" style="display:none;margin-bottom:1rem;margin-top:0.75rem;">
+        <textarea id="toolText" rows="2" placeholder="Question ou instruction..."
                   style="width:100%;padding:0.75rem;border:1px solid var(--gd-border);border-radius:var(--gd-radius-sm);
                          background:var(--gd-bg);color:var(--gd-text);font-size:0.85rem;font-family:inherit;resize:vertical;"></textarea>
         <button id="toolTextSubmit" onclick="runTextTool()"
@@ -804,16 +841,17 @@ function showTextTool(toolName) {
     const textarea = document.getElementById('toolText');
     input.style.display = 'block';
     textarea.focus();
-    textarea.placeholder = toolName === 'advise'
-        ? "Intent : que voulez-vous améliorer ? (ex: renforcer la hiérarchie, réduire les mots...)"
-        : "Question : explorez le GA librement (ex: qu'est-ce qui capte l'attention en premier ?)";
+    textarea.placeholder = "Question ou instruction (ex: qu'est-ce qui capte l'attention ? / renforce la hierarchie)";
 }
 
 function runTextTool() {
     const text = document.getElementById('toolText').value.trim();
     if (!text) return;
     document.getElementById('toolTextInput').style.display = 'none';
-    runTool(pendingTextTool, text);
+    // Auto-route: questions → rubber_duck, instructions → advise
+    const isQuestion = /\?|qu['e]|comment|pourquoi|est-ce|what|how|why/i.test(text);
+    const tool = isQuestion ? 'rubber_duck' : 'advise';
+    runTool(tool, text);
 }
 
 async function runTool(toolName, textInput) {
