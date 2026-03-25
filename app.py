@@ -2061,7 +2061,7 @@ async def analyze_submit(request: Request, file: UploadFile = File(...), public:
     return RedirectResponse(url=f"/analyze?ga={redirect_key}", status_code=303)
 
 
-@app.post("/analyze/improve/{ga_slug}")
+@app.get("/analyze/poll/{ga_slug}")
 async def analyze_poll_state(ga_slug: str):
     """Poll the current analysis state for a GA. Used by frontend to update without refresh."""
     image = get_image_by_slug(ga_slug)
@@ -2108,10 +2108,32 @@ async def analyze_poll_state(ga_slug: str):
     return JSONResponse(state)
 
 
-@app.get("/analyze/poll/{ga_slug}")
-async def analyze_poll_get(ga_slug: str):
-    """GET alias for poll."""
-    return await analyze_poll_state(ga_slug)
+
+@app.get("/analyze/activity/{ga_slug}")
+async def analyze_activity(ga_slug: str):
+    """Activity log for a GA — what ran, when, results."""
+    image = get_image_by_slug(ga_slug)
+    if not image:
+        return JSONResponse({"error": "not_found"}, status_code=404)
+    ga_id = image["id"]
+    db = get_db()
+    graphs = [dict(r) for r in db.execute(
+        "SELECT id, graph_type, source, created_at, node_count, link_count, avg_effectiveness, anti_pattern_count FROM ga_graphs WHERE ga_image_id = ? ORDER BY id", (ga_id,)
+    ).fetchall()]
+    sims = [dict(r) for r in db.execute(
+        "SELECT id, graph_id, mode, created_at, complexity_verdict, budget_pressure, nodes_visited, nodes_total, narrative_coverage, dead_space_count FROM reading_simulations WHERE ga_image_id = ? ORDER BY id", (ga_id,)
+    ).fetchall()]
+    db.close()
+    events = []
+    for g in graphs:
+        events.append({"type": "graph", "time": g["created_at"], "icon": "📊",
+            "title": f"Graph {g['graph_type']} ({g['source']})", "detail": f"{g['node_count']} nodes, {g['link_count']} links"})
+    for s in sims:
+        events.append({"type": "sim", "time": s["created_at"], "icon": "👀" if s["mode"] == "system1" else "🔍",
+            "title": f"Lecture {'5s' if s['mode'] == 'system1' else '90s'} — {s['complexity_verdict']}",
+            "detail": f"{s['nodes_visited']}/{s['nodes_total']} lus, {round((s['narrative_coverage'] or 0)*100)}% messages"})
+    events.sort(key=lambda e: e.get("time", ""))
+    return JSONResponse({"ga_id": ga_id, "total_events": len(events), "timeline": events})
 
 
 @app.post("/analyze/improve/{ga_slug}")
