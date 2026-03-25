@@ -1435,6 +1435,43 @@ def ga_detail(request: Request, ga_id: str):
     # Canonical share slug (prefer slug, fallback to numeric id)
     share_slug = image.get("slug") or str(ga_id)
 
+    # Dynamic share text — use sim data when available
+    share_text_dynamic = None
+    try:
+        _lg = get_latest_graph(ga_id)
+        if _lg:
+            _sims = get_reading_sims(graph_id=_lg["id"])
+            _s1 = next((s for s in _sims if s["mode"] == "system1"), None)
+            if _s1:
+                _visited = _s1.get("nodes_visited", 0) or 0
+                _total = _s1.get("nodes_total", 0) or 0
+                _coverage = _s1.get("narrative_coverage", 0) or 0
+                _verdict = _s1.get("complexity_verdict", "")
+                _skipped = _s1.get("nodes_skipped", 0) or 0
+                _pct_read = round(_visited / max(_total, 1) * 100)
+                _narr_pct = round(_coverage * 100)
+
+                if _skipped > 0:
+                    share_text_dynamic = (
+                        f"Que voient vos lecteurs en 5 secondes sur ce GA ?\n\n"
+                        f"{_pct_read}% des éléments lus — {_narr_pct}% des messages transmis.\n"
+                        f"{_skipped} éléments jamais atteints.\n\n"
+                        f"Testez le vôtre →")
+                elif _narr_pct < 100:
+                    share_text_dynamic = (
+                        f"Que voient vos lecteurs en 5 secondes sur ce GA ?\n\n"
+                        f"Tous les éléments sont vus, mais seulement {_narr_pct}% des messages passent.\n\n"
+                        f"Testez le vôtre →")
+                else:
+                    share_text_dynamic = (
+                        f"Ce GA transmet 100% de ses messages en 5 secondes. Limpide.\n\n"
+                        f"Testez le vôtre →")
+    except Exception:
+        pass
+
+    if share_text_dynamic:
+        og_desc = share_text_dynamic
+
     # Expose drift / warp / spin for the perceptual profile report card
     if detail.get("n_tests", 0) > 0:
         perceptual_drift = drift_val
