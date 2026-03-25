@@ -3014,15 +3014,21 @@ def sitemap():
     """Dynamic sitemap for Google indexing."""
     db = get_db()
 
-    # All public GA pages
-    gas = db.execute(
-        "SELECT slug, created_at FROM ga_images WHERE public = 1 AND slug IS NOT NULL ORDER BY id DESC"
-    ).fetchall()
-
-    # All domain leaderboard pages
-    domains = db.execute(
-        "SELECT DISTINCT domain FROM ga_images WHERE public = 1"
-    ).fetchall()
+    # All public GA pages (fallback if public column doesn't exist yet)
+    try:
+        gas = db.execute(
+            "SELECT slug, created_at FROM ga_images WHERE public = 1 AND slug IS NOT NULL ORDER BY id DESC"
+        ).fetchall()
+        domains = db.execute(
+            "SELECT DISTINCT domain FROM ga_images WHERE public = 1"
+        ).fetchall()
+    except Exception:
+        gas = db.execute(
+            "SELECT slug, created_at FROM ga_images WHERE domain != 'user_upload' AND slug IS NOT NULL ORDER BY id DESC"
+        ).fetchall()
+        domains = db.execute(
+            "SELECT DISTINCT domain FROM ga_images WHERE domain != 'user_upload'"
+        ).fetchall()
     db.close()
 
     base = "https://glance.scisense.fr"
