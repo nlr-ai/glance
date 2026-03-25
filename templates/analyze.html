@@ -738,6 +738,99 @@
                 <span style="color:var(--an-teal);font-weight:600;padding:0.375rem 0.75rem;font-size:0.875rem;">Analyse mon GA</span>
             </div>
 
+            {% if active_ga %}
+            <!-- Active GA: show image + tools -->
+            <div class="an-upload-card" style="padding:1.5rem;">
+                <img src="/ga/{{ active_ga.filename }}" alt="{{ active_ga.title }}"
+                     style="width:100%;max-height:400px;object-fit:contain;border-radius:var(--an-radius-sm);margin-bottom:1rem;">
+                <h3 style="font-size:1rem;font-weight:700;color:var(--an-text);margin:0 0 0.5rem;">{{ active_ga.title or active_ga.filename }}</h3>
+                <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:1rem;">
+                    <button class="tool-btn" onclick="runTool('vision')" style="padding:0.5rem 1rem;border-radius:var(--an-radius-sm);border:1px solid var(--an-border);background:var(--an-card);color:var(--an-text);cursor:pointer;font-size:0.8rem;">Analyser l'image</button>
+                    <button class="tool-btn" onclick="runTool('channels')" style="padding:0.5rem 1rem;border-radius:var(--an-radius-sm);border:1px solid var(--an-border);background:var(--an-card);color:var(--an-text);cursor:pointer;font-size:0.8rem;">Canaux visuels</button>
+                    <button class="tool-btn" onclick="showTextTool('advise')" style="padding:0.5rem 1rem;border-radius:var(--an-radius-sm);border:1px solid var(--an-teal);background:rgba(13,148,136,0.08);color:var(--an-teal);cursor:pointer;font-size:0.8rem;font-weight:600;">Recommander</button>
+                    <button class="tool-btn" onclick="showTextTool('rubber_duck')" style="padding:0.5rem 1rem;border-radius:var(--an-radius-sm);border:1px solid var(--an-amber);background:rgba(245,158,11,0.08);color:var(--an-amber);cursor:pointer;font-size:0.8rem;font-weight:600;">Explorer</button>
+                    <button class="tool-btn" onclick="runTool('health')" style="padding:0.5rem 1rem;border-radius:var(--an-radius-sm);border:1px solid var(--an-border);background:var(--an-card);color:var(--an-text);cursor:pointer;font-size:0.8rem;">Routes</button>
+                    <button class="tool-btn" onclick="runTool('reader_sim')" style="padding:0.5rem 1rem;border-radius:var(--an-radius-sm);border:1px solid var(--an-border);background:var(--an-card);color:var(--an-text);cursor:pointer;font-size:0.8rem;">Simuler la lecture</button>
+                    <button class="tool-btn" onclick="runImproveAnalyze()" style="padding:0.5rem 1rem;border-radius:var(--an-radius-sm);border:1px solid #10b981;background:rgba(16,185,129,0.08);color:#10b981;cursor:pointer;font-size:0.8rem;font-weight:600;">Amelioration auto</button>
+                </div>
+                <div id="toolTextInput" style="display:none;margin-bottom:1rem;">
+                    <textarea id="toolText" rows="2" placeholder="Votre question ou intention..."
+                              style="width:100%;padding:0.75rem;border:1px solid var(--an-border);border-radius:var(--an-radius-sm);background:var(--an-bg);color:var(--an-text);font-size:0.85rem;font-family:inherit;resize:vertical;"></textarea>
+                    <button id="toolTextSubmit" onclick="runTextTool()"
+                            style="margin-top:0.5rem;padding:0.5rem 1.25rem;background:var(--an-teal);color:white;border:none;border-radius:var(--an-radius-sm);cursor:pointer;font-size:0.85rem;">Envoyer</button>
+                </div>
+                <div id="toolSpinner" style="display:none;padding:0.5rem;color:var(--an-text-dim);font-size:0.85rem;">Analyse en cours...</div>
+                <div id="toolResults"></div>
+                <a href="/analyze" style="display:inline-block;margin-top:1rem;font-size:0.8rem;color:var(--an-teal);">Analyser une autre figure</a>
+            </div>
+
+            <script>
+            const SLUG = '{{ active_ga.slug or active_ga.id }}';
+            let pendingTextTool = null;
+
+            function showTextTool(t) {
+                pendingTextTool = t;
+                document.getElementById('toolTextInput').style.display = 'block';
+                document.getElementById('toolText').focus();
+            }
+            function runTextTool() {
+                const text = document.getElementById('toolText').value.trim();
+                if (!text) return;
+                document.getElementById('toolTextInput').style.display = 'none';
+                runTool(pendingTextTool, text);
+            }
+            async function runTool(name, text) {
+                const spinner = document.getElementById('toolSpinner');
+                const results = document.getElementById('toolResults');
+                document.querySelectorAll('.tool-btn').forEach(b => b.disabled = true);
+                spinner.style.display = 'block';
+                spinner.textContent = name + ' en cours...';
+                try {
+                    const opts = {method:'POST', headers:{'Content-Type':'application/json'}};
+                    if (text) opts.body = JSON.stringify({text});
+                    const r = await fetch(`/analyze/tool/${name}/${SLUG}`, opts);
+                    const d = await r.json();
+                    if (!r.ok) throw new Error(d.detail || d.message || 'Erreur');
+                    const ts = new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+                    let html = `<div style="border:1px solid var(--an-border);border-radius:var(--an-radius-sm);padding:1rem;margin-bottom:0.75rem;background:var(--an-card);">`;
+                    html += `<div style="font-size:0.7rem;color:var(--an-teal);font-weight:600;text-transform:uppercase;margin-bottom:0.5rem;">${name} — ${ts}</div>`;
+                    html += `<div style="font-size:0.85rem;color:var(--an-text);line-height:1.6;white-space:pre-wrap;">${JSON.stringify(d, null, 2).replace(/[{}"\[\]]/g, '').substring(0, 2000)}</div>`;
+                    html += '</div>';
+                    results.innerHTML = html + results.innerHTML;
+                } catch(e) {
+                    results.innerHTML = `<div style="border:1px solid #ef4444;border-radius:var(--an-radius-sm);padding:1rem;margin-bottom:0.75rem;color:#ef4444;font-size:0.85rem;">${name}: ${e.message}</div>` + results.innerHTML;
+                } finally {
+                    document.querySelectorAll('.tool-btn').forEach(b => b.disabled = false);
+                    spinner.style.display = 'none';
+                }
+            }
+            async function runImproveAnalyze() {
+                const spinner = document.getElementById('toolSpinner');
+                const results = document.getElementById('toolResults');
+                document.querySelectorAll('.tool-btn').forEach(b => b.disabled = true);
+                spinner.style.display = 'block';
+                spinner.textContent = 'Amelioration auto en cours...';
+                try {
+                    const r = await fetch(`/analyze/improve/${SLUG}`, {method:'POST'});
+                    const d = await r.json();
+                    if (!r.ok) throw new Error(d.detail || d.message || 'Erreur');
+                    const ts = new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+                    let html = `<div style="border:1px solid var(--an-border);border-radius:var(--an-radius-sm);padding:1rem;margin-bottom:0.75rem;background:var(--an-card);">`;
+                    html += `<div style="font-size:0.7rem;color:#10b981;font-weight:600;text-transform:uppercase;margin-bottom:0.5rem;">AMELIORATION — ${ts}</div>`;
+                    html += `<div style="font-size:0.85rem;color:var(--an-text);line-height:1.6;">${d.n_changes || 0} changements proposes</div>`;
+                    if (d.changes) { for (const c of d.changes.slice(0,5)) { html += `<div style="font-size:0.8rem;margin-top:0.25rem;">— <strong>${c.node}</strong>: ${c.change}</div>`; } }
+                    if (d.sim_s1 && d.sim_s1.narrative_text) { html += `<details style="margin-top:0.5rem;"><summary style="cursor:pointer;font-size:0.75rem;color:var(--an-teal);">Lecture simulee</summary><p style="font-size:0.8rem;line-height:1.5;white-space:pre-wrap;margin-top:0.5rem;">${d.sim_s1.narrative_text}</p></details>`; }
+                    html += '</div>';
+                    results.innerHTML = html + results.innerHTML;
+                } catch(e) {
+                    results.innerHTML = `<div style="border:1px solid #ef4444;border-radius:var(--an-radius-sm);padding:1rem;margin-bottom:0.75rem;color:#ef4444;font-size:0.85rem;">improve: ${e.message}</div>` + results.innerHTML;
+                } finally {
+                    document.querySelectorAll('.tool-btn').forEach(b => b.disabled = false);
+                    spinner.style.display = 'none';
+                }
+            }
+            </script>
+            {% else %}
             <form id="analyzeForm" action="/analyze/submit" method="post" enctype="multipart/form-data">
                 <div class="an-upload-card">
                     <!-- Dropzone -->
@@ -804,6 +897,7 @@
                     </div>
                 </div>
             </form>
+            {% endif %}
         </div>
 
         <!-- RIGHT: Demo preview -->

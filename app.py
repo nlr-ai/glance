@@ -1482,12 +1482,21 @@ logger = logging.getLogger(__name__)
 
 
 @app.get("/analyze", response_class=HTMLResponse)
-def analyze_page(request: Request):
-    """Show the GA upload/analysis page."""
+def analyze_page(request: Request, ga: str = ""):
+    """Show the GA upload/analysis page.
+
+    If ?ga=<slug> is provided, show the GA image + tool panel instead of the
+    upload dropzone. This lets users continue working on an already-uploaded GA.
+    """
     lang = _lang(request)
+    active_ga = None
+    if ga:
+        active_ga = get_image_by_slug(ga)
+
     return templates.TemplateResponse("analyze.html", {
         "request": request,
         "lang": lang,
+        "active_ga": active_ga,
         "og_title": "Analyse ton Graphical Abstract — GLANCE",
         "og_description": "Depose ton Graphical Abstract et recois une analyse IA en 30 secondes : score, archetype, forces, faiblesses, recommandations.",
     })
@@ -1666,9 +1675,9 @@ async def analyze_submit(request: Request, file: UploadFile = File(...)):
     except Exception as e:
         logger.warning(f"Graph YAML copy failed: {e}")
 
-    # Redirect to the ga-detail page (prefer slug)
+    # Redirect back to /analyze with the GA active (tools ready)
     redirect_key = ga_slug or ga_id
-    return RedirectResponse(url=f"/ga-detail/{redirect_key}", status_code=303)
+    return RedirectResponse(url=f"/analyze?ga={redirect_key}", status_code=303)
 
 
 @app.post("/analyze/improve/{ga_slug}")
