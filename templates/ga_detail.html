@@ -908,7 +908,6 @@
         <h3 style="margin:0;font-size:1rem;font-weight:700;color:var(--gd-navy);">Outils d'analyse</h3>
         <span id="callBadge" style="font-size:0.75rem;color:var(--gd-text-dim);"></span>
     </div>
-    <script>updateCallBadge(getCallCount());</script>
 
     <!-- Tool buttons -->
     <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:1rem;">
@@ -989,6 +988,8 @@ function updateCallBadge(n) {
         badge.style.color = remaining > 0 ? 'var(--gd-text-dim)' : 'var(--gd-fail)';
     }
 }
+// Init badge on load
+updateCallBadge(getCallCount());
 
 function showTextTool(toolName) {
     pendingTextTool = toolName;
