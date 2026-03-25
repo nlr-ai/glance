@@ -72,3 +72,21 @@ Implementation: in `cards.py`, composite the GA image and the overlay PNG using 
 ## B9: Auto-play Animation on Page Load
 
 The scanpath animation starts automatically when the page loads — no "Play" button. The user lands on the page and immediately sees the virtual eye scanning their GA. The animation runs once (5s at 1x speed), then holds the final state. A "Rejouer" button appears after completion.
+
+## B10: Share Video Generation
+
+A "Partager la video" button generates a 5-10s MP4 of the scanpath animation:
+
+1. Server-side rendering using Pillow frame-by-frame (30fps = 150 frames for 5s)
+2. Each frame: GA image + overlay at the corresponding tick state
+   - Frame 0: all spheres grey
+   - Frame 15 (0.5s): first sphere gold, eye dot moving
+   - Frame 150 (5.0s): final state with all visited spheres lit
+3. Frames assembled into MP4 via ffmpeg (subprocess)
+4. Saved to `/var/data/videos/{slug}.mp4` (persistent disk)
+5. Served at `/video/ga/{slug}.mp4`
+6. Share button copies URL to clipboard + offers direct download
+
+Fallback if ffmpeg not available: generate animated GIF instead (Pillow native, no external dep, larger file but universally supported).
+
+The video is the viral artifact. A researcher shares it on Twitter/LinkedIn — people see an eye scanning a GA and discovering what works and what doesn't. 5 seconds of content that explains the entire value proposition.

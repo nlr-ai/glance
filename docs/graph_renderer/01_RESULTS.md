@@ -28,3 +28,8 @@ The overlay auto-animates the reader's scanpath on page load — spheres light u
 The OG sharing card shows a diagonal split: original GA (top-left) / overlay render (bottom-right).
 
 **Measurement:** `/og/ga/{id}.png` returns a composite image with diagonal split when overlay exists.
+
+## R6: Share Video
+The user can share a short video (5-10s MP4) of the scanpath animation playing over their GA. One click → video generated server-side → shareable URL.
+
+**Measurement:** "Partager la video" button on ga-detail generates `/video/ga/{slug}.mp4` and copies share link to clipboard.
