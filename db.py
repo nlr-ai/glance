@@ -383,6 +383,74 @@ def get_all_images():
     return [dict(r) for r in rows]
 
 
+def get_tests_for_image(ga_image_id: int) -> list[dict]:
+    """Return all test dicts for a specific GA image, joined with participant profile."""
+    db = get_db()
+    rows = db.execute(
+        """SELECT t.id, t.created_at, t.participant_id,
+                  t.s9a_pass, t.s9a_score,
+                  t.s9b_pass, t.s9c_pass,
+                  t.s9c_score, t.glance_score, t.speed_accuracy,
+                  t.q1_text, t.q2_choice, t.q3_choice,
+                  t.q1_time_ms, t.q2_time_ms, t.q3_time_ms,
+                  t.tab_switched, t.exposure_actual_ms,
+                  t.q1_first_keystroke_ms, t.q1_last_keystroke_ms,
+                  t.exposure_mode, t.stream_position, t.stream_length,
+                  t.stream_selected_id, t.s10_hit,
+                  t.q1_input_mode, t.q1_raw_transcript,
+                  t.q1_filter_ratio,
+                  t.stream_show_title,
+                  t.rejection_reason,
+                  t.s2_transcript, t.s2_duration_ms,
+                  t.s2_chunks, t.s2_node_coverage,
+                  p.clinical_domain, p.data_literacy,
+                  g.title, g.domain, g.version, g.correct_product,
+                  g.is_control, g.filename, g.description, g.products
+           FROM tests t
+           JOIN participants p ON t.participant_id = p.id
+           JOIN ga_images g ON t.ga_image_id = g.id
+           WHERE t.ga_image_id = ?
+           ORDER BY t.created_at DESC""",
+        (ga_image_id,),
+    ).fetchall()
+    db.close()
+    return [dict(r) for r in rows]
+
+
+def get_image_by_id(ga_image_id: int) -> dict | None:
+    """Return a single GA image row by its ID."""
+    db = get_db()
+    row = db.execute("SELECT * FROM ga_images WHERE id = ?", (ga_image_id,)).fetchone()
+    db.close()
+    return dict(row) if row else None
+
+
+def get_control_pair(ga_image: dict) -> dict | None:
+    """Find the control/VEC pair for a GA image.
+
+    If the image is a control, find its VEC version (same correct_product, same domain, not control).
+    If VEC, find its control (same correct_product, same domain, is_control).
+    Returns None if no pair found.
+    """
+    db = get_db()
+    if ga_image.get("is_control"):
+        row = db.execute(
+            """SELECT * FROM ga_images
+               WHERE is_control = 0 AND correct_product = ? AND domain = ?
+               LIMIT 1""",
+            (ga_image["correct_product"], ga_image["domain"]),
+        ).fetchone()
+    else:
+        row = db.execute(
+            """SELECT * FROM ga_images
+               WHERE is_control = 1 AND correct_product = ? AND domain = ?
+               LIMIT 1""",
+            (ga_image["correct_product"], ga_image["domain"]),
+        ).fetchone()
+    db.close()
+    return dict(row) if row else None
+
+
 def get_tests_by_quadrant(quadrant_fn):
     """Group all tests by profile quadrant.
 

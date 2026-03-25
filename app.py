@@ -14,19 +14,14 @@ from fastapi.templating import Jinja2Templates
 from db import get_db, init_db, create_participant, get_participant_by_token
 from db import get_next_image, save_test, get_test, get_stats
 from db import get_all_tests, get_image_count, get_all_images, add_ga_image
-from db import update_test_system2
+from db import update_test_system2, get_image_by_id, get_control_pair, get_tests_for_image
 from scoring import (score_test, classify_speed_accuracy,
                      chunk_transcript, score_node_coverage, compute_system2_coverage)
-from analytics import (
-    compute_aggregate_stats,
-    compute_profile_quadrant,
-    compute_stats_by_quadrant,
-    compute_speed_accuracy_distribution,
-    compute_ab_delta,
-    compute_ab_fluency_delta,
-    compute_s10_rate,
-    compute_fluency_score,
-)
+from analytics import (  # noqa: E501
+    compute_aggregate_stats, compute_profile_quadrant,
+    compute_stats_by_quadrant, compute_speed_accuracy_distribution,
+    compute_ab_delta, compute_ab_fluency_delta, compute_s10_rate,
+    compute_fluency_score, get_leaderboard_data, get_domain_leaderboard)
 from config_loader import get_constant
 
 BASE = os.path.dirname(__file__)
@@ -619,6 +614,111 @@ def spin_page(request: Request):
         "vec": vec,
         "products": products,
         "q2_text": questions["q2"],
+    })
+
+
+@app.get("/leaderboard", response_class=HTMLResponse)
+def leaderboard(request: Request):
+    """Public leaderboard — all domains with top GAs."""
+    data = get_leaderboard_data(CONFIG["domains"])
+    # Sort domains: those with tests first (by top_score desc), then empty
+    domains_with_data = sorted(
+        [(k, v) for k, v in data.items() if v["top_score"] is not None],
+        key=lambda x: x[1]["top_score"],
+        reverse=True,
+    )
+    domains_no_data = [(k, v) for k, v in data.items() if v["top_score"] is None]
+    sorted_domains = domains_with_data + domains_no_data
+
+    return templates.TemplateResponse("leaderboard.html", {
+        "request": request,
+        "domains": sorted_domains,
+    })
+
+
+@app.get("/leaderboard/{domain}", response_class=HTMLResponse)
+def leaderboard_domain(request: Request, domain: str):
+    """Public leaderboard — detailed ranking for one domain."""
+    if domain not in CONFIG["domains"]:
+        raise HTTPException(status_code=404, detail=f"Domain '{domain}' not found")
+
+    data = get_domain_leaderboard(domain, CONFIG["domains"])
+    if data is None:
+        raise HTTPException(status_code=404, detail=f"No images for domain '{domain}'")
+
+    return templates.TemplateResponse("leaderboard_domain.html", {
+        "request": request,
+        "data": data,
+    })
+
+
+@app.get("/ga-detail/{ga_id}", response_class=HTMLResponse)
+def ga_detail(request: Request, ga_id: int):
+    """Public GA detail page -- score breakdown, recommendations, comparisons."""
+    image = get_image_by_id(ga_id)
+    if not image:
+        raise HTTPException(status_code=404, detail="GA image not found")
+
+    # Compute all stats for this GA
+    detail = get_ga_detail_stats(ga_id)
+
+    # Load sidecar JSON for metadata (semantic_references, description, etc.)
+    ga_metadata = dict(image)
+    if ga_metadata.get("products") and isinstance(ga_metadata["products"], str):
+        ga_metadata["products"] = json.loads(ga_metadata["products"])
+    meta_path = os.path.join(BASE, "ga_library",
+                             image["filename"].rsplit(".", 1)[0] + ".json")
+    sidecar = {}
+    if os.path.exists(meta_path):
+        with open(meta_path, encoding="utf-8") as mf:
+            sidecar = json.load(mf)
+            ga_metadata.update(sidecar)
+
+    # Load S2 node labels from semantic_references
+    s2_node_labels = {}
+    sem_refs = ga_metadata.get("semantic_references", {})
+    for level_key in ("L1_broad", "L2_specific", "L3_detailed"):
+        level_texts = sem_refs.get(level_key, [])
+        if isinstance(level_texts, list):
+            for i, text in enumerate(level_texts):
+                ref_id = f"{level_key}_{i}"
+                s2_node_labels[ref_id] = text
+
+    # Run recommender if L3 graph YAML exists
+    recommendations = None
+    ga_graph_path = os.path.join(BASE, "data",
+                                 "auto_" + image["filename"].rsplit(".", 1)[0] + "_ga_graph.yaml")
+    if not os.path.exists(ga_graph_path):
+        # Try without auto_ prefix
+        ga_graph_path = os.path.join(BASE, "data",
+                                     image["filename"].rsplit(".", 1)[0] + "_ga_graph.yaml")
+    if os.path.exists(ga_graph_path):
+        try:
+            from recommender import analyze_ga
+            recommendations = analyze_ga(ga_graph_path)
+        except Exception:
+            pass
+
+    # Find control pair for comparison section
+    pair_image = get_control_pair(image)
+    pair_stats = None
+    if pair_image:
+        pair_stats = get_ga_detail_stats(pair_image["id"])
+
+    # GLANCE pass threshold
+    glance_threshold = get_constant("glance_pass_threshold", 0.70)
+
+    return templates.TemplateResponse("ga_detail.html", {
+        "request": request,
+        "image": image,
+        "ga_metadata": ga_metadata,
+        "sidecar": sidecar,
+        "detail": detail,
+        "s2_node_labels": s2_node_labels,
+        "recommendations": recommendations,
+        "pair_image": pair_image,
+        "pair_stats": pair_stats,
+        "glance_threshold": glance_threshold,
     })
 
 

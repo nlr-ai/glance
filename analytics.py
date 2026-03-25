@@ -4,6 +4,7 @@ All formulas from sections 2-7 of the mathematical model.
 """
 
 import math
+import statistics
 
 from scoring import classify_speed_accuracy, classify_rt2, score_glance_composite
 from config_loader import get_constant
@@ -366,4 +367,251 @@ def compute_ab_fluency_delta(tests_control: list[dict], tests_vec: list[dict]) -
         "fluency_vec": round(mean_vec, 4),
         "fluency_delta": round(mean_vec - mean_control, 4),
         "interpretation": "VEC faster+more accurate" if mean_vec > mean_control else "Control better or equal",
+    }
+
+
+# ── Leaderboard analytics ──────────────────────────────────────────────
+
+
+def get_leaderboard_data(domain_config: dict) -> dict:
+    """Return leaderboard data: domain -> list of GA rankings.
+
+    Each GA entry contains:
+        ga_image_id, title, filename, domain, avg_glance, avg_s9b,
+        n_tests, avg_s2_coverage
+
+    Args:
+        domain_config: dict from config.yaml["domains"] — used for labels.
+
+    Returns:
+        dict mapping domain_key -> {
+            "label": str,
+            "gas": list of GA dicts sorted by avg_glance desc,
+            "n_gas": int,
+            "n_tests": int,
+            "top_score": float,
+            "avg_score": float,
+        }
+    """
+    from db import get_db
+    import json
+
+    db = get_db()
+
+    # All GA images
+    images = db.execute("SELECT * FROM ga_images ORDER BY id").fetchall()
+    images = [dict(r) for r in images]
+
+    # All tests with scores
+    test_rows = db.execute(
+        """SELECT ga_image_id,
+                  glance_score,
+                  s9b_pass,
+                  s2_node_coverage
+           FROM tests
+           WHERE ga_image_id IS NOT NULL"""
+    ).fetchall()
+    db.close()
+
+    # Build per-GA aggregates
+    ga_stats = {}  # ga_image_id -> {scores, s9b_passes, s2_coverages}
+    for t in test_rows:
+        gid = t["ga_image_id"]
+        if gid not in ga_stats:
+            ga_stats[gid] = {"glance_scores": [], "s9b_passes": [], "s2_coverages": []}
+        ga_stats[gid]["glance_scores"].append(t["glance_score"] or 0.0)
+        ga_stats[gid]["s9b_passes"].append(1 if t["s9b_pass"] else 0)
+        if t["s2_node_coverage"]:
+            try:
+                cov = json.loads(t["s2_node_coverage"])
+                from scoring import compute_system2_coverage
+                ga_stats[gid]["s2_coverages"].append(compute_system2_coverage(cov))
+            except Exception:
+                pass
+
+    # Group images by domain
+    domain_groups = {}
+    for img in images:
+        d = img["domain"]
+        domain_groups.setdefault(d, []).append(img)
+
+    result = {}
+    for domain_key, imgs in domain_groups.items():
+        label = domain_config.get(domain_key, {}).get("label", domain_key)
+        gas = []
+        for img in imgs:
+            gid = img["id"]
+            stats = ga_stats.get(gid)
+            if stats and stats["glance_scores"]:
+                avg_glance = sum(stats["glance_scores"]) / len(stats["glance_scores"])
+                avg_s9b = sum(stats["s9b_passes"]) / len(stats["s9b_passes"])
+                n_tests = len(stats["glance_scores"])
+                avg_s2 = (sum(stats["s2_coverages"]) / len(stats["s2_coverages"])
+                          if stats["s2_coverages"] else None)
+            else:
+                avg_glance = None
+                avg_s9b = None
+                n_tests = 0
+                avg_s2 = None
+
+            gas.append({
+                "ga_image_id": gid,
+                "title": img.get("title") or img["filename"],
+                "filename": img["filename"],
+                "domain": d,
+                "avg_glance": round(avg_glance, 4) if avg_glance is not None else None,
+                "avg_s9b": round(avg_s9b, 4) if avg_s9b is not None else None,
+                "n_tests": n_tests,
+                "avg_s2_coverage": round(avg_s2, 4) if avg_s2 is not None else None,
+            })
+
+        # Sort: GAs with data first (by avg_glance desc), then GAs without data
+        gas_with_data = sorted(
+            [g for g in gas if g["avg_glance"] is not None],
+            key=lambda g: g["avg_glance"],
+            reverse=True,
+        )
+        gas_no_data = [g for g in gas if g["avg_glance"] is None]
+        sorted_gas = gas_with_data + gas_no_data
+
+        all_scores = [g["avg_glance"] for g in gas_with_data]
+        total_tests = sum(g["n_tests"] for g in gas)
+
+        result[domain_key] = {
+            "label": label,
+            "gas": sorted_gas,
+            "n_gas": len(gas),
+            "n_tests": total_tests,
+            "top_score": max(all_scores) if all_scores else None,
+            "avg_score": (sum(all_scores) / len(all_scores)) if all_scores else None,
+        }
+
+    return result
+
+
+def get_domain_leaderboard(domain: str, domain_config: dict) -> dict | None:
+    """Return detailed leaderboard for a single domain.
+
+    Args:
+        domain: domain key (e.g. "med", "tech")
+        domain_config: dict from config.yaml["domains"]
+
+    Returns:
+        dict with:
+            label, gas (sorted list), summary stats (avg, median, std, n_gas, n_tests)
+        or None if domain has no images.
+    """
+    from db import get_db
+    import json
+
+    db = get_db()
+
+    images = db.execute(
+        "SELECT * FROM ga_images WHERE domain = ? ORDER BY id", (domain,)
+    ).fetchall()
+    images = [dict(r) for r in images]
+
+    if not images:
+        db.close()
+        return None
+
+    image_ids = [img["id"] for img in images]
+    placeholders = ",".join("?" * len(image_ids))
+    test_rows = db.execute(
+        f"""SELECT ga_image_id,
+                   glance_score,
+                   s9b_pass,
+                   s9a_score,
+                   s2_node_coverage
+            FROM tests
+            WHERE ga_image_id IN ({placeholders})""",
+        image_ids,
+    ).fetchall()
+    db.close()
+
+    # Aggregate per GA
+    ga_stats = {}
+    for t in test_rows:
+        gid = t["ga_image_id"]
+        if gid not in ga_stats:
+            ga_stats[gid] = {
+                "glance_scores": [],
+                "s9b_passes": [],
+                "s9a_scores": [],
+                "s2_coverages": [],
+            }
+        ga_stats[gid]["glance_scores"].append(t["glance_score"] or 0.0)
+        ga_stats[gid]["s9b_passes"].append(1 if t["s9b_pass"] else 0)
+        ga_stats[gid]["s9a_scores"].append(t["s9a_score"] or 0.0)
+        if t["s2_node_coverage"]:
+            try:
+                cov = json.loads(t["s2_node_coverage"])
+                from scoring import compute_system2_coverage
+                ga_stats[gid]["s2_coverages"].append(compute_system2_coverage(cov))
+            except Exception:
+                pass
+
+    gas = []
+    for img in images:
+        gid = img["id"]
+        stats = ga_stats.get(gid)
+        if stats and stats["glance_scores"]:
+            avg_glance = sum(stats["glance_scores"]) / len(stats["glance_scores"])
+            avg_s9b = sum(stats["s9b_passes"]) / len(stats["s9b_passes"])
+            avg_s9a = sum(stats["s9a_scores"]) / len(stats["s9a_scores"])
+            n_tests = len(stats["glance_scores"])
+            avg_s2 = (sum(stats["s2_coverages"]) / len(stats["s2_coverages"])
+                      if stats["s2_coverages"] else None)
+        else:
+            avg_glance = None
+            avg_s9b = None
+            avg_s9a = None
+            n_tests = 0
+            avg_s2 = None
+
+        gas.append({
+            "ga_image_id": gid,
+            "title": img.get("title") or img["filename"],
+            "filename": img["filename"],
+            "domain": domain,
+            "avg_glance": round(avg_glance, 4) if avg_glance is not None else None,
+            "avg_s9b": round(avg_s9b, 4) if avg_s9b is not None else None,
+            "avg_s9a": round(avg_s9a, 4) if avg_s9a is not None else None,
+            "n_tests": n_tests,
+            "avg_s2_coverage": round(avg_s2, 4) if avg_s2 is not None else None,
+        })
+
+    # Sort: data first by avg_glance desc, then no-data
+    gas_with_data = sorted(
+        [g for g in gas if g["avg_glance"] is not None],
+        key=lambda g: g["avg_glance"],
+        reverse=True,
+    )
+    gas_no_data = [g for g in gas if g["avg_glance"] is None]
+    sorted_gas = gas_with_data + gas_no_data
+
+    all_scores = [g["avg_glance"] for g in gas_with_data]
+    total_tests = sum(g["n_tests"] for g in gas)
+
+    # Summary stats
+    if all_scores:
+        avg_score = sum(all_scores) / len(all_scores)
+        median_score = statistics.median(all_scores)
+        std_score = statistics.stdev(all_scores) if len(all_scores) > 1 else 0.0
+    else:
+        avg_score = None
+        median_score = None
+        std_score = None
+
+    label = domain_config.get(domain, {}).get("label", domain)
+
+    return {
+        "domain": domain,
+        "label": label,
+        "gas": sorted_gas,
+        "n_gas": len(gas),
+        "n_tests": total_tests,
+        "avg_score": round(avg_score, 4) if avg_score is not None else None,
+        "median_score": round(median_score, 4) if median_score is not None else None,
+        "std_score": round(std_score, 4) if std_score is not None else None,
     }

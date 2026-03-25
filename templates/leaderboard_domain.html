@@ -1,0 +1,286 @@
+{% extends "base.html" %}
+{% block title %}Leaderboard {{ data.label }} — GLANCE{% endblock %}
+
+{% block head %}
+<style>
+.lb-header {
+    margin-bottom: var(--sp-6);
+}
+.lb-header h1 {
+    margin-bottom: var(--sp-2);
+}
+.lb-back {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-2);
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: var(--text-sm);
+    margin-bottom: var(--sp-4);
+}
+.lb-back:hover {
+    color: var(--text);
+}
+.lb-summary {
+    display: flex;
+    gap: var(--sp-3);
+    margin-bottom: var(--sp-8);
+    flex-wrap: wrap;
+}
+.lb-summary .stat {
+    flex: 1;
+    min-width: 100px;
+}
+.lb-rank-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3);
+    margin-bottom: var(--sp-8);
+}
+.lb-rank-item {
+    background: var(--surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: var(--sp-4) var(--sp-5);
+    display: grid;
+    grid-template-columns: 48px 1fr auto;
+    gap: var(--sp-4);
+    align-items: center;
+}
+.lb-rank-item:hover {
+    background: var(--surface-hover);
+}
+.lb-rank-badge {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: var(--text-lg);
+    color: var(--text-dim);
+    text-align: center;
+    line-height: 1;
+}
+.lb-rank-badge.rank-1 { font-size: var(--text-xl); }
+.lb-rank-badge.rank-2 { font-size: var(--text-xl); }
+.lb-rank-badge.rank-3 { font-size: var(--text-xl); }
+.lb-rank-info {
+    min-width: 0;
+}
+.lb-rank-title {
+    font-weight: 600;
+    font-size: var(--text-base);
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.lb-rank-meta {
+    display: flex;
+    gap: var(--sp-4);
+    margin-top: var(--sp-1);
+    font-size: var(--text-xs);
+    color: var(--text-dim);
+    flex-wrap: wrap;
+}
+.lb-rank-scores {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: var(--sp-1);
+    min-width: 180px;
+}
+.lb-score-bar-row {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    width: 100%;
+}
+.lb-score-label {
+    font-size: var(--text-xs);
+    color: var(--text-dim);
+    min-width: 55px;
+    text-align: right;
+}
+.lb-score-bar {
+    flex: 1;
+    height: 8px;
+    background: var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+}
+.lb-score-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.lb-score-value {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: var(--text-sm);
+    min-width: 3em;
+    text-align: right;
+}
+.lb-no-data {
+    text-align: center;
+    padding: var(--sp-8);
+}
+.lb-no-data p {
+    color: var(--text-dim);
+    font-size: var(--text-sm);
+}
+/* Top 3 medal items get a subtle highlight */
+.lb-rank-item.lb-top-1 { border-color: #fbbf24; }
+.lb-rank-item.lb-top-2 { border-color: #9ca3af; }
+.lb-rank-item.lb-top-3 { border-color: #d97706; }
+
+@media (max-width: 560px) {
+    .lb-rank-item {
+        grid-template-columns: 40px 1fr;
+        gap: var(--sp-3);
+    }
+    .lb-rank-scores {
+        grid-column: 1 / -1;
+        min-width: 0;
+    }
+    .lb-summary .stat {
+        flex: 1 1 calc(50% - var(--sp-3));
+        min-width: calc(50% - var(--sp-3));
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<a href="/leaderboard" class="lb-back">&larr; Tous les domaines</a>
+
+<div class="lb-header">
+    <h1>Leaderboard {{ data.label }}</h1>
+</div>
+
+<div class="lb-summary">
+    <div class="stat">
+        <div class="stat-value">{{ data.n_gas }}</div>
+        <div class="stat-label">GAs</div>
+    </div>
+    <div class="stat">
+        <div class="stat-value">{{ data.n_tests }}</div>
+        <div class="stat-label">Tests</div>
+    </div>
+    <div class="stat">
+        <div class="stat-value">
+            {% if data.avg_score is not none %}
+                {{ (data.avg_score * 100) | round(0) }}%
+            {% else %}
+                —
+            {% endif %}
+        </div>
+        <div class="stat-label">Score moyen</div>
+    </div>
+    <div class="stat">
+        <div class="stat-value">
+            {% if data.median_score is not none %}
+                {{ (data.median_score * 100) | round(0) }}%
+            {% else %}
+                —
+            {% endif %}
+        </div>
+        <div class="stat-label">Mediane</div>
+    </div>
+    <div class="stat">
+        <div class="stat-value">
+            {% if data.std_score is not none %}
+                {{ (data.std_score * 100) | round(1) }}%
+            {% else %}
+                —
+            {% endif %}
+        </div>
+        <div class="stat-label">Ecart-type</div>
+    </div>
+</div>
+
+<div class="lb-rank-list">
+    {% for ga in data.gas %}
+    {% set rank = loop.index %}
+    {% set has_data = ga.avg_glance is not none %}
+    <div class="lb-rank-item {{ 'lb-top-1' if rank == 1 and has_data else ('lb-top-2' if rank == 2 and has_data else ('lb-top-3' if rank == 3 and has_data else '')) }}">
+        <div class="lb-rank-badge {{ 'rank-' ~ rank if rank <= 3 and has_data else '' }}">
+            {% if rank == 1 and has_data %}
+                &#x1F947;
+            {% elif rank == 2 and has_data %}
+                &#x1F948;
+            {% elif rank == 3 and has_data %}
+                &#x1F949;
+            {% else %}
+                #{{ rank }}
+            {% endif %}
+        </div>
+
+        <div class="lb-rank-info">
+            <div class="lb-rank-title">{{ ga.title }}</div>
+            <div class="lb-rank-meta">
+                <span>{{ ga.n_tests }} test{{ 's' if ga.n_tests != 1 else '' }}</span>
+                {% if ga.avg_s9b is not none %}
+                <span>S9b: {{ (ga.avg_s9b * 100) | round(0) }}%</span>
+                {% endif %}
+                {% if ga.avg_s2_coverage is not none %}
+                <span>S2 couverture: {{ (ga.avg_s2_coverage * 100) | round(0) }}%</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="lb-rank-scores">
+            {% if has_data %}
+                {% set pct = (ga.avg_glance * 100) | round(0) %}
+                {% if pct >= 80 %}
+                    {% set bar_color = "var(--pass)" %}
+                    {% set text_class = "pass" %}
+                {% elif pct >= 60 %}
+                    {% set bar_color = "#eab308" %}
+                    {% set text_class = "" %}
+                {% elif pct >= 40 %}
+                    {% set bar_color = "#f97316" %}
+                    {% set text_class = "" %}
+                {% else %}
+                    {% set bar_color = "var(--fail)" %}
+                    {% set text_class = "fail" %}
+                {% endif %}
+                <div class="lb-score-bar-row">
+                    <span class="lb-score-label">GLANCE</span>
+                    <div class="lb-score-bar">
+                        <div class="lb-score-bar-fill" style="width: {{ pct }}%; background: {{ bar_color }};"></div>
+                    </div>
+                    <span class="lb-score-value {{ text_class }}">{{ pct }}%</span>
+                </div>
+                {% if ga.avg_s9b is not none %}
+                    {% set s9b_pct = (ga.avg_s9b * 100) | round(0) %}
+                    {% if s9b_pct >= 80 %}
+                        {% set s9b_color = "var(--pass)" %}
+                    {% elif s9b_pct >= 60 %}
+                        {% set s9b_color = "#eab308" %}
+                    {% elif s9b_pct >= 40 %}
+                        {% set s9b_color = "#f97316" %}
+                    {% else %}
+                        {% set s9b_color = "var(--fail)" %}
+                    {% endif %}
+                    <div class="lb-score-bar-row">
+                        <span class="lb-score-label">S9b</span>
+                        <div class="lb-score-bar">
+                            <div class="lb-score-bar-fill" style="width: {{ s9b_pct }}%; background: {{ s9b_color }};"></div>
+                        </div>
+                        <span class="lb-score-value" style="color: var(--text-dim);">{{ s9b_pct }}%</span>
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="lb-no-data">
+                    <p>Pas de donnees</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% if not data.gas %}
+<div class="card" style="text-align: center;">
+    <p>Aucune GA dans ce domaine.</p>
+</div>
+{% endif %}
+{% endblock %}
