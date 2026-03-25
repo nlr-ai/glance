@@ -1473,8 +1473,9 @@ def ga_detail(request: Request, ga_id: str):
         perceptual_warp = None
         perceptual_spin = None
 
-    # ── Graph overlay SVG ──
+    # ── Graph overlay SVG + scanpath data ──
     overlay_svg = None
+    scanpath_json = "null"
     try:
         latest_graph = get_latest_graph(ga_id)
         if latest_graph:
@@ -1487,6 +1488,7 @@ def ga_detail(request: Request, ga_id: str):
                 graph_dict = latest_graph["graph"]
                 sim_full = simulate_reading(graph_dict, total_ticks=50, mode="system1")
                 overlay_svg = render_overlay_svg(graph_dict, sim_full, 900, 600)
+                scanpath_json = json.dumps(sim_full.get("scanpath", []))
     except Exception as e:
         logger.warning(f"Overlay SVG failed for ga {ga_id}: {e}")
 
@@ -1520,6 +1522,7 @@ def ga_detail(request: Request, ga_id: str):
         "ga_id": ga_id,
         "is_admin": is_admin,
         "overlay_svg": overlay_svg,
+        "scanpath_json": scanpath_json,
     })
 
 

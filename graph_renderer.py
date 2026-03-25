@@ -182,7 +182,7 @@ def assemble_render_data(graph, sim_result, image_width, image_height):
         att_ratio = attention / max_attention if max_attention > 0 else 0
 
         color_rgb = attention_to_color(att_ratio)
-        radius = 12 + weight * 28
+        radius = 3 + weight * 7  # small marble spheres
         glow = 4 + energy * 16
         opacity = 0.4 + stability * 0.6
 
@@ -404,8 +404,51 @@ def render_overlay_svg(graph, sim_result, width, height):
     parts.append(
         f'<svg viewBox="0 0 {width} {height}" '
         f'xmlns="http://www.w3.org/2000/svg" '
+        f'class="graph-overlay" '
         f'style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;">'
     )
+
+    # Defs: glow filters for animation
+    parts.append('  <defs>')
+    parts.append('    <filter id="glow-teal" x="-50%" y="-50%" width="200%" height="200%">')
+    parts.append('      <feGaussianBlur stdDeviation="6" result="blur"/>')
+    parts.append('      <feFlood flood-color="#2dd4bf" flood-opacity="0.6" result="color"/>')
+    parts.append('      <feComposite in="color" in2="blur" operator="in" result="glow"/>')
+    parts.append('      <feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge>')
+    parts.append('    </filter>')
+    parts.append('    <filter id="glow-amber" x="-50%" y="-50%" width="200%" height="200%">')
+    parts.append('      <feGaussianBlur stdDeviation="6" result="blur"/>')
+    parts.append('      <feFlood flood-color="#f59e0b" flood-opacity="0.6" result="color"/>')
+    parts.append('      <feComposite in="color" in2="blur" operator="in" result="glow"/>')
+    parts.append('      <feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge>')
+    parts.append('    </filter>')
+    parts.append('    <filter id="glow-blue" x="-50%" y="-50%" width="200%" height="200%">')
+    parts.append('      <feGaussianBlur stdDeviation="6" result="blur"/>')
+    parts.append('      <feFlood flood-color="#3b82f6" flood-opacity="0.6" result="color"/>')
+    parts.append('      <feComposite in="color" in2="blur" operator="in" result="glow"/>')
+    parts.append('      <feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge>')
+    parts.append('    </filter>')
+    # Marble texture: turbulence + specular highlight
+    parts.append('    <filter id="marble" x="-20%" y="-20%" width="140%" height="140%">')
+    parts.append('      <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="4" seed="42" result="noise"/>')
+    parts.append('      <feColorMatrix type="saturate" values="0" in="noise" result="mono"/>')
+    parts.append('      <feBlend in="SourceGraphic" in2="mono" mode="soft-light" result="textured"/>')
+    parts.append('      <feComposite in="textured" in2="SourceGraphic" operator="in"/>')
+    parts.append('    </filter>')
+    # 3D shine: radial gradient overlay
+    parts.append('    <radialGradient id="shine" cx="35%" cy="25%" r="65%">')
+    parts.append('      <stop offset="0%" stop-color="white" stop-opacity="0.35"/>')
+    parts.append('      <stop offset="50%" stop-color="white" stop-opacity="0.05"/>')
+    parts.append('      <stop offset="100%" stop-color="black" stop-opacity="0.15"/>')
+    parts.append('    </radialGradient>')
+    # Zone texture: subtle noise fill
+    parts.append('    <filter id="zone-texture" x="0" y="0" width="100%" height="100%">')
+    parts.append('      <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="3" seed="7" result="znoise"/>')
+    parts.append('      <feColorMatrix type="saturate" values="0" in="znoise" result="zmono"/>')
+    parts.append('      <feBlend in="SourceGraphic" in2="zmono" mode="overlay" result="ztextured"/>')
+    parts.append('      <feComposite in="ztextured" in2="SourceGraphic" operator="in"/>')
+    parts.append('    </filter>')
+    parts.append('  </defs>')
 
     # Layer 1: Dim overlay
     parts.append(f'  <rect width="{width}" height="{height}" fill="rgba(10,14,26,0.35)"/>')
@@ -415,23 +458,19 @@ def render_overlay_svg(graph, sim_result, width, height):
 
     # Space outlines
     for space in data["spaces"]:
-        dash = ' stroke-dasharray="4 2"' if space["is_dead"] else ""
-        fill_alpha = 0.06 if space["is_dead"] else 0.04
+        dash = ' stroke-dasharray="6 3"' if space["is_dead"] else ' stroke-dasharray="8 4"'
+        fill_alpha = 0.08 if space["is_dead"] else 0.05
         fill_rgb = (239, 68, 68) if space["is_dead"] else (45, 212, 191)
-        sw = 2 if space["is_dead"] else 1.5
+        sw = 1.5 if space["is_dead"] else 1
+        glow_color = "#ef4444" if space["is_dead"] else "#2dd4bf"
+        # Textured zone field with glow
         parts.append(
             f'    <rect x="{space["x"]:.1f}" y="{space["y"]:.1f}" '
-            f'width="{space["w"]:.1f}" height="{space["h"]:.1f}" rx="8" '
+            f'width="{space["w"]:.1f}" height="{space["h"]:.1f}" rx="6" '
             f'stroke="{space["border_color"]}" stroke-width="{sw}" '
-            f'fill="{_rgba_str(fill_rgb, fill_alpha)}"{dash}/>'
-        )
-        # Space label
-        lx = space["x"] + 4
-        ly = space["y"] + 12
-        parts.append(
-            f'    <text x="{lx:.1f}" y="{ly:.1f}" '
-            f'font-size="9" font-family="monospace" fill="{space["border_color"]}" '
-            f'opacity="0.7">{_svg_escape(space["name"])}</text>'
+            f'fill="{_rgba_str(fill_rgb, fill_alpha)}"{dash} '
+            f'filter="url(#zone-texture)" '
+            f'style="filter:drop-shadow(0 0 4px {glow_color});"/>'
         )
 
     # Links
@@ -451,14 +490,33 @@ def render_overlay_svg(graph, sim_result, width, height):
         border = node["border"]
         dash_attr = f' stroke-dasharray="{border["dasharray"]}"' if border["dasharray"] else ""
 
+        # Marble sphere: base circle + texture filter + shine overlay
+        r = node["radius"]
+        cx = node["x"]
+        cy = node["y"]
+        parts.append(f'    <g data-node-id="{_svg_escape(node["id"])}" '
+            f'data-weight="{node["weight"]:.3f}" '
+            f'data-attention-ratio="{node["att_ratio"]:.3f}" '
+            f'data-energy="{node.get("glow", 0):.1f}" '
+            f'data-color="{node["color"]}">')
+        # Base sphere with marble texture
         parts.append(
-            f'    <circle cx="{node["x"]:.1f}" cy="{node["y"]:.1f}" r="{node["radius"]:.1f}" '
+            f'      <circle cx="{cx:.1f}" cy="{cy:.1f}" r="{r:.1f}" '
             f'fill="{node["color"]}" opacity="{node["opacity"]:.2f}" '
             f'stroke="{border["color"]}" stroke-width="{border["width"]}"{dash_attr} '
-            f'style="filter:drop-shadow(0 0 {glow_px:.0f}px {node["color"]});">'
-            f'<title>{_svg_escape(node["name"])} (w={node["weight"]:.2f}, att={node["att_ratio"]*100:.0f}%)</title>'
-            f'</circle>'
+            f'filter="url(#marble)" '
+            f'style="filter:drop-shadow(0 0 {glow_px:.0f}px {node["color"]});"/>'
         )
+        # 3D shine highlight
+        parts.append(
+            f'      <circle cx="{cx:.1f}" cy="{cy:.1f}" r="{r:.1f}" '
+            f'fill="url(#shine)" opacity="0.9" pointer-events="none"/>'
+        )
+        # Tooltip
+        parts.append(
+            f'      <title>{_svg_escape(node["name"])} (w={node["weight"]:.2f}, att={node["att_ratio"]*100:.0f}%)</title>'
+        )
+        parts.append('    </g>')
 
         # Narrative badges — small dots at bottom-right
         for bi, badge in enumerate(node["narrative_badges"]):
@@ -479,16 +537,7 @@ def render_overlay_svg(graph, sim_result, width, height):
             if mark:
                 parts.append(mark)
 
-        # Node label (only for top nodes by weight, max 7)
-    labeled = sorted(data["nodes"], key=lambda n: -n["weight"])[:7]
-    for node in labeled:
-        ly = node["y"] + node["radius"] + 14
-        parts.append(
-            f'    <text x="{node["x"]:.1f}" y="{ly:.1f}" '
-            f'font-size="10" fill="white" text-anchor="middle" '
-            f'opacity="0.8" font-family="sans-serif">'
-            f'{_svg_escape(_truncate(node["name"], 25))}</text>'
-        )
+        # No node labels — clean overlay, hover for details
 
     parts.append('  </g>')
 
@@ -558,6 +607,15 @@ def render_overlay_svg(graph, sim_result, width, height):
             )
 
     parts.append('  </g>')
+
+    # Empty group for animation particle effects (JS will inject here)
+    parts.append('  <g class="layer-particles"></g>')
+
+    # Eye dot for scanpath animation (hidden initially)
+    parts.append('  <circle class="eye-dot" cx="0" cy="0" r="6" fill="white" opacity="0" style="display:none;"/>')
+
+    # Scanpath trail polyline for animation (empty initially)
+    parts.append('  <polyline class="anim-trail" points="" fill="none" stroke="#f59e0b" stroke-width="2" stroke-dasharray="6 4" opacity="0.6"/>')
 
     parts.append('</svg>')
 

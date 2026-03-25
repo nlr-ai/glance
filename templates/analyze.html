@@ -693,6 +693,10 @@
     .an-info { grid-template-columns: 1fr; padding: 0 1rem; }
     .an-submit { width: 100%; justify-content: center; }
 }
+@keyframes burst-particle {
+    0% { opacity: 1; r: 2; }
+    100% { opacity: 0; r: 14; }
+}
 </style>
 {% endblock %}
 
@@ -748,8 +752,17 @@
                     <div id="overlayWrap" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;">
                         {{ overlay_svg | safe }}
                     </div>
+                    <div class="scanpath-timer" id="spTimer" style="display:none;position:absolute;top:8px;right:12px;font-family:monospace;font-size:0.75rem;color:rgba(255,255,255,0.7);z-index:5;pointer-events:none;background:rgba(10,14,26,0.6);padding:2px 8px;border-radius:4px;">0.0s</div>
+                    <div id="spProgress" style="display:none;position:absolute;bottom:0;left:0;height:3px;background:#f59e0b;border-radius:0 0 8px 8px;z-index:5;width:0%;transition:width 100ms linear;"></div>
+                    <div id="spStats" style="position:absolute;bottom:12px;left:50%;transform:translateX(-50%);font-family:monospace;font-size:0.8rem;color:rgba(255,255,255,0.9);background:rgba(10,14,26,0.75);padding:6px 16px;border-radius:6px;z-index:5;pointer-events:none;opacity:0;transition:opacity 0.5s;white-space:nowrap;"></div>
+                    <button id="spReplay" onclick="window._scanpathReplay && window._scanpathReplay()" style="position:absolute;bottom:12px;right:12px;z-index:6;font-size:0.75rem;padding:4px 12px;border-radius:6px;border:1px solid rgba(245,158,11,0.5);background:rgba(10,14,26,0.7);color:#f59e0b;cursor:pointer;opacity:0;transition:opacity 0.5s;pointer-events:none;">Rejouer</button>
                     {% endif %}
                 </div>
+                {% if overlay_svg %}
+                <script>
+                const SCANPATH_DATA = {{ scanpath_json | safe }};
+                </script>
+                {% endif %}
                 <h3 style="font-size:1rem;font-weight:700;color:var(--an-text);margin:0 0 0.5rem;">{{ active_ga.title or active_ga.filename }}</h3>
 
                 <!-- Quick stats from sim -->
@@ -889,7 +902,7 @@
                             <span class="an-format-tag">JPG</span>
                             <span class="an-format-tag">WebP</span>
                             <span class="an-format-tag">PDF</span>
-                            <span style="color:var(--an-text-muted);font-size:0.6875rem;align-self:center;">max 10 Mo</span>
+                            <span style="color:var(--an-text-muted);font-size:0.6875rem;align-self:center;">max 20 Mo</span>
                         </div>
                         <input type="file" name="file" id="fileInput" accept=".png,.jpg,.jpeg,.webp,.pdf">
                     </div>
@@ -926,11 +939,34 @@
                                 <span>Simulation de lecture + recommandations</span>
                             </div>
                         </div>
-                        <p style="font-size:0.75rem;color:var(--an-text-muted);font-style:italic;margin-top:1.25rem;line-height:1.5;max-width:500px;text-align:center;">
-                            Gemini Vision identifie chaque element visuel de votre figure, construit un graphe
-                            de transmission (zones &rarr; elements &rarr; messages), puis un lecteur virtuel
-                            simule 5 secondes de lecture pour mesurer quels messages sont effectivement transmis.
-                        </p>
+                        <p id="loadingFact" style="font-size:0.75rem;color:var(--an-text-muted);font-style:italic;margin-top:1.25rem;line-height:1.5;max-width:500px;text-align:center;transition:opacity 0.4s;"></p>
+                        <script>
+                        (function(){
+                            var facts = [
+                                "Gemini Vision identifie chaque element visuel de votre figure : graphiques, icones, texte, fleches...",
+                                "Un graphe de transmission est construit : zones visuelles \u2192 elements concrets \u2192 messages scientifiques.",
+                                "70 canaux visuels sont evalues : couleur, forme, taille, position, groupement, contraste...",
+                                "Un lecteur virtuel simule 5 secondes de lecture pour mesurer quels messages sont transmis.",
+                                "Les anti-patterns sont detectes : element fragile, signaux contradictoires, importance invisible...",
+                                "Chaque element recoit une bounding box pour localiser precisement sa position sur l'image.",
+                                "Le score de clarte mesure le % de messages scientifiques effectivement transmis au lecteur.",
+                                "Les zones mortes sont identifiees : les parties de votre figure que personne ne regarde."
+                            ];
+                            var el = document.getElementById('loadingFact');
+                            var i = 0;
+                            if(el){
+                                el.textContent = facts[0];
+                                setInterval(function(){
+                                    el.style.opacity = '0';
+                                    setTimeout(function(){
+                                        i = (i + 1) % facts.length;
+                                        el.textContent = facts[i];
+                                        el.style.opacity = '1';
+                                    }, 400);
+                                }, 10000);
+                            }
+                        })();
+                        </script>
                     </div>
 
                     <!-- Submit -->
@@ -1227,6 +1263,201 @@
             showError('Erreur : ' + (err.message || 'Analyse impossible. Reessayez.'));
         });
     });
+})();
+</script>
+<script>
+/* ── Live Scanpath Animation V1 (shared with ga_detail) ──────────── */
+(function() {
+    'use strict';
+    var scanpath = (typeof SCANPATH_DATA !== 'undefined') ? SCANPATH_DATA : null;
+    if (!scanpath || !scanpath.length) return;
+
+    var svg = document.querySelector('.graph-overlay');
+    if (!svg) return;
+
+    var TICK_MS = 100;
+    var TOTAL_DURATION = scanpath[scanpath.length - 1].time_ms + TICK_MS;
+    var SVG_NS = 'http://www.w3.org/2000/svg';
+
+    var vb = (svg.getAttribute('viewBox') || '').split(/\s+/);
+    var vbW = parseFloat(vb[2]) || 900;
+    var vbH = parseFloat(vb[3]) || 600;
+
+    var timeline = [];
+    var cur = null;
+    for (var i = 0; i < scanpath.length; i++) {
+        var s = scanpath[i];
+        if (!cur || cur.node_id !== s.node_id) {
+            if (cur) timeline.push(cur);
+            cur = {
+                node_id: s.node_id, start_ms: s.time_ms, end_ms: s.time_ms + TICK_MS,
+                x: s.x, y: s.y, name: s.node_name || '', fixation_total: s.fixation || 0
+            };
+        } else {
+            cur.end_ms = s.time_ms + TICK_MS;
+            cur.fixation_total += (s.fixation || 0);
+        }
+    }
+    if (cur) timeline.push(cur);
+
+    var nodeEls = {};
+    svg.querySelectorAll('[data-node-id]').forEach(function(el) {
+        nodeEls[el.dataset.nodeId] = el;
+    });
+
+    var eyeDot = svg.querySelector('.eye-dot');
+    var trail = svg.querySelector('.anim-trail');
+    var timerEl = document.getElementById('spTimer');
+    var progressEl = document.getElementById('spProgress');
+    var statsEl = document.getElementById('spStats');
+    var replayEl = document.getElementById('spReplay');
+
+    function attColor(ratio) {
+        ratio = Math.max(0, Math.min(1, ratio));
+        if (ratio <= 0.2) return '#3b82f6';
+        if (ratio <= 0.5) return '#2dd4bf';
+        if (ratio <= 0.8) return '#f59e0b';
+        return '#fbbf24';
+    }
+
+    function spawnBurst(cx, cy, color) {
+        var g = document.createElementNS(SVG_NS, 'g');
+        var particleLayer = svg.querySelector('.layer-particles');
+        for (var j = 0; j < 8; j++) {
+            var angle = (j / 8) * Math.PI * 2;
+            var dx = Math.cos(angle) * 25;
+            var dy = Math.sin(angle) * 25;
+            var p = document.createElementNS(SVG_NS, 'circle');
+            p.setAttribute('cx', cx + dx);
+            p.setAttribute('cy', cy + dy);
+            p.setAttribute('r', '2');
+            p.setAttribute('fill', color);
+            p.style.animation = 'burst-particle 400ms ease-out forwards';
+            g.appendChild(p);
+        }
+        (particleLayer || svg).appendChild(g);
+        setTimeout(function() { g.remove(); }, 500);
+    }
+
+    function resetNodes() {
+        Object.keys(nodeEls).forEach(function(nid) {
+            var el = nodeEls[nid];
+            el.setAttribute('fill', '#475569');
+            el.setAttribute('opacity', '0.4');
+            el.style.filter = 'none';
+            el.style.transition = 'fill 200ms ease, opacity 200ms ease, filter 200ms ease';
+            el.style.transform = '';
+            el.style.transformOrigin = '';
+        });
+    }
+
+    var visited, cumulativeAtt, maxAtt, trailPoints, startTime, lastStepIdx, animId;
+
+    function initState() {
+        visited = {};
+        cumulativeAtt = {};
+        maxAtt = 0.001;
+        trailPoints = [];
+        startTime = null;
+        lastStepIdx = -1;
+        animId = null;
+        trail.setAttribute('points', '');
+        eyeDot.setAttribute('opacity', '0');
+        eyeDot.style.display = 'none';
+        if (statsEl) { statsEl.style.opacity = '0'; }
+        if (replayEl) { replayEl.style.opacity = '0'; replayEl.style.pointerEvents = 'none'; }
+        if (timerEl) { timerEl.style.display = 'block'; timerEl.textContent = '0.0s'; }
+        if (progressEl) { progressEl.style.display = 'block'; progressEl.style.width = '0%'; }
+        resetNodes();
+    }
+
+    function findStepIdx(elapsed) {
+        for (var k = 0; k < timeline.length; k++) {
+            if (timeline[k].start_ms <= elapsed && elapsed < timeline[k].end_ms) return k;
+        }
+        return -1;
+    }
+
+    function animate(timestamp) {
+        if (!startTime) startTime = timestamp;
+        var elapsed = timestamp - startTime;
+
+        if (timerEl) timerEl.textContent = (elapsed / 1000).toFixed(1) + 's';
+        if (progressEl) progressEl.style.width = Math.min(100, (elapsed / TOTAL_DURATION) * 100) + '%';
+
+        var stepIdx = findStepIdx(elapsed);
+        var step = stepIdx >= 0 ? timeline[stepIdx] : null;
+
+        if (step) {
+            if (!cumulativeAtt[step.node_id]) cumulativeAtt[step.node_id] = 0;
+            cumulativeAtt[step.node_id] += 0.016;
+            maxAtt = Math.max(maxAtt, cumulativeAtt[step.node_id]);
+        }
+
+        if (step && stepIdx !== lastStepIdx) {
+            var px = step.x * vbW;
+            var py = step.y * vbH;
+            if (!visited[step.node_id]) {
+                var ratio = cumulativeAtt[step.node_id] / maxAtt;
+                spawnBurst(px, py, ratio > 0.5 ? '#f59e0b' : '#2dd4bf');
+            }
+            trailPoints.push(px.toFixed(1) + ',' + py.toFixed(1));
+            trail.setAttribute('points', trailPoints.join(' '));
+            visited[step.node_id] = true;
+        }
+        lastStepIdx = stepIdx;
+
+        if (step) {
+            eyeDot.style.display = '';
+            eyeDot.setAttribute('cx', step.x * vbW);
+            eyeDot.setAttribute('cy', step.y * vbH);
+            eyeDot.setAttribute('opacity', (0.7 + Math.sin(elapsed / 200) * 0.3).toFixed(2));
+            eyeDot.style.transition = 'cx 150ms ease, cy 150ms ease';
+        }
+
+        for (var nid in nodeEls) {
+            var el = nodeEls[nid];
+            var nRatio = (cumulativeAtt[nid] || 0) / maxAtt;
+            var isActive = step && step.node_id === nid;
+
+            if (isActive) {
+                var col = attColor(nRatio);
+                el.setAttribute('fill', col);
+                el.setAttribute('opacity', '1');
+                el.style.filter = 'drop-shadow(0 0 14px ' + col + ')';
+                el.style.transformOrigin = el.getAttribute('cx') + 'px ' + el.getAttribute('cy') + 'px';
+                el.style.transform = 'scale(1.15)';
+            } else if (visited[nid]) {
+                var col2 = attColor(nRatio);
+                el.setAttribute('fill', col2);
+                el.setAttribute('opacity', '0.85');
+                el.style.filter = 'drop-shadow(0 0 6px ' + col2 + ')';
+                el.style.transform = 'scale(1)';
+            }
+        }
+
+        if (elapsed < TOTAL_DURATION) {
+            animId = requestAnimationFrame(animate);
+        } else {
+            eyeDot.setAttribute('opacity', '0');
+            eyeDot.style.display = 'none';
+            if (progressEl) progressEl.style.width = '100%';
+            if (timerEl) timerEl.textContent = (TOTAL_DURATION / 1000).toFixed(1) + 's';
+            var visitedCount = Object.keys(visited).length;
+            var totalCount = Object.keys(nodeEls).length;
+            if (statsEl) { statsEl.textContent = visitedCount + '/' + totalCount + ' elements lus'; statsEl.style.opacity = '1'; }
+            if (replayEl) { replayEl.style.opacity = '1'; replayEl.style.pointerEvents = 'auto'; }
+        }
+    }
+
+    window._scanpathReplay = function() {
+        if (animId) cancelAnimationFrame(animId);
+        initState();
+        animId = requestAnimationFrame(animate);
+    };
+
+    initState();
+    setTimeout(function() { animId = requestAnimationFrame(animate); }, 1000);
 })();
 </script>
 {% endblock %}

@@ -295,11 +295,48 @@
 
     {% if overlay_svg %}
     <!-- Graph Overlay -->
+    <style>
+    @keyframes burst-particle {
+        0% { opacity: 1; r: 2; }
+        100% { opacity: 0; r: 14; }
+    }
+    .scanpath-timer {
+        position:absolute;top:8px;right:12px;font-family:var(--gd-font-mono);
+        font-size:0.75rem;color:rgba(255,255,255,0.7);z-index:5;pointer-events:none;
+        background:rgba(10,14,26,0.6);padding:2px 8px;border-radius:4px;
+    }
+    .scanpath-progress {
+        position:absolute;bottom:0;left:0;height:3px;background:#f59e0b;
+        border-radius:0 0 var(--gd-radius) var(--gd-radius);z-index:5;
+        transition:width 100ms linear;
+    }
+    .scanpath-stats {
+        position:absolute;bottom:12px;left:50%;transform:translateX(-50%);
+        font-family:var(--gd-font-mono);font-size:0.8rem;color:rgba(255,255,255,0.9);
+        background:rgba(10,14,26,0.75);padding:6px 16px;border-radius:6px;
+        z-index:5;pointer-events:none;opacity:0;transition:opacity 0.5s;
+        white-space:nowrap;
+    }
+    .scanpath-stats.visible { opacity:1; }
+    .scanpath-replay {
+        position:absolute;bottom:12px;right:12px;z-index:6;
+        font-size:0.75rem;padding:4px 12px;border-radius:6px;
+        border:1px solid rgba(245,158,11,0.5);background:rgba(10,14,26,0.7);
+        color:#f59e0b;cursor:pointer;opacity:0;transition:opacity 0.5s;
+        pointer-events:auto;
+    }
+    .scanpath-replay.visible { opacity:1; pointer-events:auto; }
+    .scanpath-replay:hover { background:rgba(245,158,11,0.15); }
+    </style>
     <div style="position:relative;margin:1rem auto;max-width:900px;">
         <img src="/ga/{{ image.filename }}" style="width:100%;display:block;border-radius:var(--gd-radius);" id="gaImageOverlay">
         <div id="overlayContainer" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;">
             {{ overlay_svg | safe }}
         </div>
+        <div class="scanpath-timer" id="spTimer" style="display:none;">0.0s</div>
+        <div class="scanpath-progress" id="spProgress" style="width:0%;display:none;"></div>
+        <div class="scanpath-stats" id="spStats"></div>
+        <button class="scanpath-replay" id="spReplay" onclick="window._scanpathReplay && window._scanpathReplay()">Rejouer</button>
         <div style="display:flex;gap:0.5rem;margin-top:0.75rem;">
             <button onclick="toggleLayer('attention')" style="padding:0.4rem 0.8rem;border-radius:6px;border:1px solid var(--gd-border);background:var(--gd-card);color:var(--gd-text);cursor:pointer;font-size:0.75rem;" id="btn-attention">Attention ON</button>
             <button onclick="toggleLayer('scanpath')" style="padding:0.4rem 0.8rem;border-radius:6px;border:1px solid var(--gd-border);background:var(--gd-card);color:var(--gd-text-dim);cursor:pointer;font-size:0.75rem;" id="btn-scanpath">Scanpath OFF</button>
@@ -316,6 +353,251 @@
         btn.textContent = name.charAt(0).toUpperCase() + name.slice(1) + (visible ? ' OFF' : ' ON');
         btn.style.color = visible ? 'var(--gd-text-dim)' : 'var(--gd-text)';
     }
+    </script>
+    <script>
+    const SCANPATH_DATA = {{ scanpath_json | safe }};
+    </script>
+    <script>
+    /* ── Live Scanpath Animation V1 ────────────────────────────────── */
+    (function() {
+        'use strict';
+        var scanpath = (typeof SCANPATH_DATA !== 'undefined') ? SCANPATH_DATA : null;
+        if (!scanpath || !scanpath.length) return;
+
+        var svg = document.querySelector('.graph-overlay');
+        if (!svg) return;
+
+        var TICK_MS = 100;
+        var TOTAL_DURATION = scanpath[scanpath.length - 1].time_ms + TICK_MS;
+        var SVG_NS = 'http://www.w3.org/2000/svg';
+
+        // Parse viewBox for coordinate mapping
+        var vb = (svg.getAttribute('viewBox') || '').split(/\s+/);
+        var vbW = parseFloat(vb[2]) || 900;
+        var vbH = parseFloat(vb[3]) || 600;
+
+        // Build timeline: group consecutive ticks on same node
+        var timeline = [];
+        var cur = null;
+        for (var i = 0; i < scanpath.length; i++) {
+            var s = scanpath[i];
+            if (!cur || cur.node_id !== s.node_id) {
+                if (cur) timeline.push(cur);
+                cur = {
+                    node_id: s.node_id,
+                    start_ms: s.time_ms,
+                    end_ms: s.time_ms + TICK_MS,
+                    x: s.x, y: s.y,
+                    name: s.node_name || '',
+                    fixation_total: s.fixation || 0
+                };
+            } else {
+                cur.end_ms = s.time_ms + TICK_MS;
+                cur.fixation_total += (s.fixation || 0);
+            }
+        }
+        if (cur) timeline.push(cur);
+
+        // Get all node circle elements with data-node-id
+        var nodeEls = {};
+        var nodeOriginal = {}; // store original fill/opacity for restoration
+        svg.querySelectorAll('[data-node-id]').forEach(function(el) {
+            var nid = el.dataset.nodeId;
+            nodeEls[nid] = el;
+            nodeOriginal[nid] = {
+                fill: el.getAttribute('fill'),
+                opacity: el.getAttribute('opacity'),
+                filter: el.style.filter
+            };
+        });
+
+        // Get existing SVG elements for animation
+        var eyeDot = svg.querySelector('.eye-dot');
+        var trail = svg.querySelector('.anim-trail');
+
+        // UI elements
+        var timerEl = document.getElementById('spTimer');
+        var progressEl = document.getElementById('spProgress');
+        var statsEl = document.getElementById('spStats');
+        var replayEl = document.getElementById('spReplay');
+
+        // Attention color function (matches Python color anchors)
+        function attColor(ratio) {
+            ratio = Math.max(0, Math.min(1, ratio));
+            if (ratio <= 0.2) return '#3b82f6';
+            if (ratio <= 0.5) return '#2dd4bf';
+            if (ratio <= 0.8) return '#f59e0b';
+            return '#fbbf24';
+        }
+
+        // Spawn burst particles at a point
+        function spawnBurst(cx, cy, color) {
+            var g = document.createElementNS(SVG_NS, 'g');
+            var particleLayer = svg.querySelector('.layer-particles');
+            for (var j = 0; j < 8; j++) {
+                var angle = (j / 8) * Math.PI * 2;
+                var dx = Math.cos(angle) * 25;
+                var dy = Math.sin(angle) * 25;
+                var p = document.createElementNS(SVG_NS, 'circle');
+                p.setAttribute('cx', cx + dx);
+                p.setAttribute('cy', cy + dy);
+                p.setAttribute('r', '2');
+                p.setAttribute('fill', color);
+                p.style.animation = 'burst-particle 400ms ease-out forwards';
+                g.appendChild(p);
+            }
+            (particleLayer || svg).appendChild(g);
+            setTimeout(function() { g.remove(); }, 500);
+        }
+
+        // Reset all nodes to grey (pre-animation state)
+        function resetNodes() {
+            Object.keys(nodeEls).forEach(function(nid) {
+                var el = nodeEls[nid];
+                el.setAttribute('fill', '#475569');
+                el.setAttribute('opacity', '0.4');
+                el.style.filter = 'none';
+                el.style.transition = 'fill 200ms ease, opacity 200ms ease, filter 200ms ease';
+                el.style.transform = '';
+                el.style.transformOrigin = '';
+            });
+        }
+
+        // Animation state
+        var visited, cumulativeAtt, maxAtt, trailPoints, startTime, lastStepIdx, animId;
+
+        function initState() {
+            visited = {};
+            cumulativeAtt = {};
+            maxAtt = 0.001;
+            trailPoints = [];
+            startTime = null;
+            lastStepIdx = -1;
+            animId = null;
+            // Reset trail
+            trail.setAttribute('points', '');
+            // Reset eye
+            eyeDot.setAttribute('opacity', '0');
+            eyeDot.style.display = 'none';
+            // Reset UI
+            statsEl.classList.remove('visible');
+            replayEl.classList.remove('visible');
+            timerEl.style.display = 'block';
+            progressEl.style.display = 'block';
+            progressEl.style.width = '0%';
+            timerEl.textContent = '0.0s';
+            // Reset nodes to grey
+            resetNodes();
+        }
+
+        function findStepIdx(elapsed) {
+            for (var k = 0; k < timeline.length; k++) {
+                if (timeline[k].start_ms <= elapsed && elapsed < timeline[k].end_ms) return k;
+            }
+            return -1;
+        }
+
+        function animate(timestamp) {
+            if (!startTime) startTime = timestamp;
+            var elapsed = timestamp - startTime;
+
+            // Timer + progress
+            timerEl.textContent = (elapsed / 1000).toFixed(1) + 's';
+            progressEl.style.width = Math.min(100, (elapsed / TOTAL_DURATION) * 100) + '%';
+
+            // Find current step
+            var stepIdx = findStepIdx(elapsed);
+            var step = stepIdx >= 0 ? timeline[stepIdx] : null;
+
+            // Accumulate attention for active node
+            if (step) {
+                if (!cumulativeAtt[step.node_id]) cumulativeAtt[step.node_id] = 0;
+                cumulativeAtt[step.node_id] += 0.016; // ~1 frame
+                maxAtt = Math.max(maxAtt, cumulativeAtt[step.node_id]);
+            }
+
+            // Burst on NEW node landing
+            if (step && stepIdx !== lastStepIdx) {
+                var px = step.x * vbW;
+                var py = step.y * vbH;
+                if (!visited[step.node_id]) {
+                    var ratio = cumulativeAtt[step.node_id] / maxAtt;
+                    spawnBurst(px, py, ratio > 0.5 ? '#f59e0b' : '#2dd4bf');
+                }
+                trailPoints.push(px.toFixed(1) + ',' + py.toFixed(1));
+                trail.setAttribute('points', trailPoints.join(' '));
+                visited[step.node_id] = true;
+            }
+            lastStepIdx = stepIdx;
+
+            // Update eye dot
+            if (step) {
+                var ex = step.x * vbW;
+                var ey = step.y * vbH;
+                eyeDot.style.display = '';
+                eyeDot.setAttribute('cx', ex);
+                eyeDot.setAttribute('cy', ey);
+                eyeDot.setAttribute('opacity', (0.7 + Math.sin(elapsed / 200) * 0.3).toFixed(2));
+                eyeDot.style.transition = 'cx 150ms ease, cy 150ms ease';
+            }
+
+            // Update node visuals
+            for (var nid in nodeEls) {
+                var el = nodeEls[nid];
+                var nRatio = (cumulativeAtt[nid] || 0) / maxAtt;
+                var isActive = step && step.node_id === nid;
+
+                if (isActive) {
+                    var col = attColor(nRatio);
+                    el.setAttribute('fill', col);
+                    el.setAttribute('opacity', '1');
+                    el.style.filter = 'drop-shadow(0 0 14px ' + col + ')';
+                    var cx = el.getAttribute('cx');
+                    var cy = el.getAttribute('cy');
+                    el.style.transformOrigin = cx + 'px ' + cy + 'px';
+                    el.style.transform = 'scale(1.15)';
+                } else if (visited[nid]) {
+                    var col2 = attColor(nRatio);
+                    el.setAttribute('fill', col2);
+                    el.setAttribute('opacity', '0.85');
+                    el.style.filter = 'drop-shadow(0 0 6px ' + col2 + ')';
+                    el.style.transform = 'scale(1)';
+                }
+                // else: stays grey from resetNodes
+            }
+
+            if (elapsed < TOTAL_DURATION) {
+                animId = requestAnimationFrame(animate);
+            } else {
+                // ── End state ──
+                eyeDot.setAttribute('opacity', '0');
+                eyeDot.style.display = 'none';
+                progressEl.style.width = '100%';
+                timerEl.textContent = (TOTAL_DURATION / 1000).toFixed(1) + 's';
+
+                // Count stats
+                var visitedCount = Object.keys(visited).length;
+                var totalCount = Object.keys(nodeEls).length;
+                // Build stats text
+                statsEl.textContent = visitedCount + '/' + totalCount + ' elements lus';
+                statsEl.classList.add('visible');
+                replayEl.classList.add('visible');
+            }
+        }
+
+        // Replay function
+        window._scanpathReplay = function() {
+            if (animId) cancelAnimationFrame(animId);
+            initState();
+            animId = requestAnimationFrame(animate);
+        };
+
+        // Auto-start after 1s delay
+        initState();
+        setTimeout(function() {
+            animId = requestAnimationFrame(animate);
+        }, 1000);
+    })();
     </script>
     {% endif %}
 
