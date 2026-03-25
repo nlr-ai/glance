@@ -1448,24 +1448,15 @@ def ga_detail(request: Request, ga_id: str):
                 _coverage = _s1.get("narrative_coverage", 0) or 0
                 _verdict = _s1.get("complexity_verdict", "")
                 _skipped = _s1.get("nodes_skipped", 0) or 0
+                _dead = _s1.get("dead_space_count", 0) or 0
                 _pct_read = round(_visited / max(_total, 1) * 100)
                 _narr_pct = round(_coverage * 100)
 
-                if _skipped > 0:
-                    share_text_dynamic = (
-                        f"Que voient vos lecteurs en 5 secondes sur votre Graphical Abstract ?\n\n"
-                        f"{_pct_read}% des éléments lus — {_narr_pct}% des messages transmis.\n"
-                        f"{_skipped} éléments jamais atteints.\n\n"
-                        f"Testez le vôtre →")
-                elif _narr_pct < 100:
-                    share_text_dynamic = (
-                        f"Que voient vos lecteurs en 5 secondes sur votre Graphical Abstract ?\n\n"
-                        f"Tous les éléments sont vus, mais seulement {_narr_pct}% des messages passent.\n\n"
-                        f"Testez le vôtre →")
-                else:
-                    share_text_dynamic = (
-                        f"Ce Graphical Abstract transmet 100% de ses messages en 5 secondes. Limpide.\n\n"
-                        f"Testez le vôtre →")
+                # Build share text — narrative coverage is the headline
+                share_text_dynamic = (
+                    f"Que voient vos lecteurs en 5 secondes sur votre Graphical Abstract ?\n\n"
+                    f"{_narr_pct}% des messages scientifiques transmis.\n\n"
+                    f"Testez le vôtre →")
     except Exception:
         pass
 
