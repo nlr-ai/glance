@@ -23,7 +23,7 @@ from db import get_all_tests, get_image_count, get_all_images, add_ga_image
 from db import get_image_by_id, get_image_by_slug, get_tests_for_image, get_tests_for_participant, get_landing_stats, get_example_ga
 from db import get_referral_count, get_top_referrers, save_analysis_lead
 from db import get_latest_graph, get_reading_sims, save_graph
-from db import create_auth_token, verify_auth_token, get_user_gas, add_designer
+from db import create_auth_token, verify_auth_token, get_user_gas, add_designer, swap_ga_image, get_image_iteration
 from scoring import score_test, classify_speed_accuracy
 from analytics import (
     compute_aggregate_stats,
@@ -1673,6 +1673,7 @@ def ga_detail(request: Request, ga_id: str):
         "scanpath_json": scanpath_json,
         "graphs_history": graphs_history,
         "graphs_history_json": json.dumps(graphs_history),
+        "iteration": get_image_iteration(ga_id),
     })
 
 
@@ -2059,6 +2060,147 @@ async def analyze_submit(request: Request, file: UploadFile = File(...), public:
     # Redirect back to /analyze with the GA active (tools ready)
     redirect_key = ga_slug or ga_id
     return RedirectResponse(url=f"/analyze?ga={redirect_key}", status_code=303)
+
+
+@app.post("/analyze/swap-image/{ga_slug}")
+async def analyze_swap_image(ga_slug: str, file: UploadFile = File(...)):
+    """Swap the image on an existing GA, preserving the graph as prior_graph.
+
+    The old image is recorded in image_history. The existing graph is kept
+    and used as prior_graph for re-analysis with the new image.
+    """
+    image = get_image_by_slug(ga_slug)
+    if not image:
+        raise HTTPException(status_code=404, detail="GA not found")
+
+    ga_id = image["id"]
+
+    # Validate file type
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="No file uploaded")
+
+    ext = file.filename.rsplit(".", 1)[-1].lower() if "." in file.filename else ""
+    allowed_exts = {"png", "jpg", "jpeg", "webp"}
+    if ext not in allowed_exts:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Format non supporte : .{ext}. Utilisez PNG, JPG, ou WebP.",
+        )
+
+    # Read file bytes
+    image_bytes = await file.read()
+    if len(image_bytes) > 20 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="Fichier trop volumineux (max 20 Mo)")
+
+    # Auto-resize large images to max 2000px
+    if len(image_bytes) > 2 * 1024 * 1024:
+        try:
+            from PIL import Image as PILImage
+            import io
+            img = PILImage.open(io.BytesIO(image_bytes))
+            if img.width > 2000:
+                ratio = 2000 / img.width
+                img = img.resize((2000, int(img.height * ratio)), PILImage.LANCZOS)
+                buf = io.BytesIO()
+                img.save(buf, format="PNG", optimize=True)
+                image_bytes = buf.getvalue()
+                ext = "png"
+                logger.info(f"Swap: resized to 2000px ({len(image_bytes)//1024}KB)")
+        except Exception as e:
+            logger.warning(f"Auto-resize failed on swap: {e}")
+
+    # Compute hash for the new image
+    import hashlib
+    img_hash = hashlib.sha256(image_bytes).hexdigest()
+
+    # Save new image file
+    timestamp = int(time.time())
+    safe_name = re.sub(r'[^\w\-.]', '_', file.filename)
+    upload_filename = f"user_uploads/{timestamp}_{safe_name}"
+    persist_dir = os.path.join(os.environ.get("GLANCE_DATA_DIR", os.path.join(BASE, "ga_library")), "user_uploads")
+    local_dir = os.path.join(BASE, "ga_library", "user_uploads")
+    os.makedirs(persist_dir, exist_ok=True)
+    os.makedirs(local_dir, exist_ok=True)
+    persist_path = os.path.join(persist_dir, f"{timestamp}_{safe_name}")
+    with open(persist_path, "wb") as f:
+        f.write(image_bytes)
+    upload_path = os.path.join(BASE, "ga_library", upload_filename)
+    with open(upload_path, "wb") as f:
+        f.write(image_bytes)
+
+    # Get existing graph BEFORE swapping (this is the prior_graph)
+    existing_graph = get_latest_graph(ga_id)
+    prior_graph_dict = existing_graph["graph"] if existing_graph else None
+
+    # Swap the image in DB (preserves graph, records history)
+    iteration = swap_ga_image(ga_id, upload_filename, new_image_hash=img_hash)
+    logger.info(f"Image swapped for GA {ga_id} ({ga_slug}) — iteration {iteration}")
+
+    # Re-analyze with prior_graph so Gemini extends rather than starts fresh
+    import threading
+
+    def _swap_reanalyze_bg(ga_img_id, img_path, prior_graph):
+        """Background: re-analyze swapped image using existing graph as prior."""
+        try:
+            from vision_scorer import analyze_ga_image
+            with open(img_path, "rb") as f:
+                img_bytes = f.read()
+            result = analyze_ga_image(
+                img_bytes,
+                filename=os.path.basename(img_path),
+                prior_graph=prior_graph if prior_graph else True,
+            )
+            graph = result["graph"]
+            graph_id = save_graph(graph, ga_image_id=ga_img_id,
+                                  graph_type="vision", source="image_swap")
+            logger.info(f"Swap re-analysis for GA {ga_img_id}: graph {graph_id}")
+
+            # Auto-improve: channels + advise (same as initial upload)
+            time.sleep(5)
+            from channel_analyzer import analyze_ga_channels
+            graph_path = result.get("saved_path", "")
+            if graph_path and os.path.exists(graph_path):
+                enriched = analyze_ga_channels(img_path, graph_path, prior_graph=True)
+                if enriched:
+                    save_graph(enriched, ga_image_id=ga_img_id,
+                               graph_type="enriched", source="swap_auto_enrich")
+                    logger.info(f"Swap auto-enriched GA {ga_img_id}")
+
+            time.sleep(4)
+            from db import get_latest_graph as _glg, get_reading_sims as _grs
+            latest = _glg(ga_img_id)
+            if latest:
+                sims = _grs(graph_id=latest["id"])
+                s1 = next((s for s in sims if s["mode"] == "system1"), None)
+                intent = ""
+                if s1 and s1.get("narrative_text"):
+                    intent = s1["narrative_text"]
+                if not intent:
+                    intent = "Proposer des ameliorations de clarte visuelle."
+                _tmp = os.path.join(BASE, "data", f"swap_adv_{ga_img_id}_{int(time.time())}.yaml")
+                os.makedirs(os.path.dirname(_tmp), exist_ok=True)
+                with open(_tmp, "w", encoding="utf-8") as f:
+                    yaml.dump(latest["graph"], f, default_flow_style=False, allow_unicode=True)
+                try:
+                    from ga_advisor import advise
+                    advised = advise(img_path, _tmp, intent, prior_graph=True)
+                    if advised:
+                        save_graph(advised, ga_image_id=ga_img_id,
+                                   graph_type="advised", source="swap_auto_advise")
+                        logger.info(f"Swap auto-advised GA {ga_img_id}")
+                finally:
+                    try:
+                        os.remove(_tmp)
+                    except OSError:
+                        pass
+        except Exception as e:
+            logger.warning(f"Swap re-analysis failed for GA {ga_img_id}: {e}")
+
+    t = threading.Thread(target=_swap_reanalyze_bg,
+                         args=(ga_id, upload_path, prior_graph_dict), daemon=True)
+    t.start()
+
+    return RedirectResponse(url=f"/analyze?ga={ga_slug}", status_code=303)
 
 
 @app.get("/analyze/poll/{ga_slug}")
@@ -2653,10 +2795,15 @@ async def admin_batch_analyze(pwd: str = "", batch_size: int = 5):
             try:
                 with open(image_path, "rb") as f:
                     image_bytes = f.read()
-                result = analyze_ga_image(image_bytes, filename=filename)
+                # Use existing graph as prior_graph if available
+                existing = get_latest_graph(ga_id)
+                prior = existing["graph"] if existing else True
+                result = analyze_ga_image(image_bytes, filename=filename,
+                                          prior_graph=prior)
                 graph_id = save_graph(result["graph"], ga_image_id=ga_id,
                                      graph_type="vision", source="batch_analyze")
-                _log.info(f"Batch: GA {ga_id} ({img['slug']}) → graph {graph_id}")
+                _log.info(f"Batch: GA {ga_id} ({img['slug']}) → graph {graph_id}"
+                          f"{' (prior_graph used)' if existing else ''}")
             except Exception as e:
                 _log.warning(f"Batch: GA {ga_id} failed: {e}")
             time.sleep(6)  # gentle rate limit

@@ -331,6 +331,10 @@ def init_db():
     _migrate_add_columns(conn, "ga_images", [
         ("abstract", "TEXT"),
     ])
+    # Migrate: add image_history column to ga_images (JSON array of previous images)
+    _migrate_add_columns(conn, "ga_images", [
+        ("image_history", "TEXT"),
+    ])
     # Migrate: ensure auth_tokens table exists (for existing DBs)
     conn.execute("""
         CREATE TABLE IF NOT EXISTS auth_tokens (
@@ -682,6 +686,61 @@ def get_image_by_slug(slug: str):
     row = db.execute("SELECT * FROM ga_images WHERE slug = ?", (slug,)).fetchone()
     db.close()
     return dict(row) if row else None
+
+
+def swap_ga_image(ga_image_id: int, new_filename: str, new_image_hash: str = None):
+    """Swap the image file for an existing GA, preserving the graph.
+
+    Appends the old filename to image_history (JSON array) and updates
+    the filename and image_hash to the new values. Does NOT touch graphs.
+
+    Returns:
+        int: iteration number (1-based count of total images including current)
+    """
+    db = get_db()
+    row = db.execute("SELECT filename, image_hash, image_history FROM ga_images WHERE id = ?",
+                     (ga_image_id,)).fetchone()
+    if not row:
+        db.close()
+        return 0
+
+    old_filename = row["filename"]
+    old_hash = row["image_hash"]
+    history_raw = row["image_history"]
+
+    # Parse existing history or start fresh
+    history = json.loads(history_raw) if history_raw else []
+    history.append({
+        "filename": old_filename,
+        "image_hash": old_hash,
+        "swapped_at": datetime.utcnow().isoformat(),
+    })
+
+    db.execute(
+        """UPDATE ga_images
+           SET filename = ?, image_hash = ?, image_history = ?
+           WHERE id = ?""",
+        (new_filename, new_image_hash, json.dumps(history), ga_image_id),
+    )
+    db.commit()
+    db.close()
+    return len(history) + 1  # iteration = number of past images + current
+
+
+def get_image_iteration(ga_image_id: int) -> int:
+    """Return the iteration number for a GA (1 = original, 2+ = swapped).
+
+    Returns:
+        int: 1 if no swaps, N+1 if N swaps have occurred
+    """
+    db = get_db()
+    row = db.execute("SELECT image_history FROM ga_images WHERE id = ?",
+                     (ga_image_id,)).fetchone()
+    db.close()
+    if not row or not row["image_history"]:
+        return 1
+    history = json.loads(row["image_history"])
+    return len(history) + 1
 
 
 def create_participant(token, clinical_domain, experience_years, data_literacy, grade_familiar, colorblind_status, input_mode="text", referred_by=None):

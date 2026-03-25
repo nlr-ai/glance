@@ -256,6 +256,7 @@
                     <span class="gd-hero-tag">{{ detail.n_tests }} test{{ 's' if detail.n_tests != 1 else '' }}</span>
                     {% if image.is_control %}<span class="gd-hero-tag">Control</span>{% else %}<span class="gd-hero-tag">VEC</span>{% endif %}
                     {% if sidecar.get('description') %}<span class="gd-hero-tag">{{ sidecar.description[:60] }}{% if sidecar.description|length > 60 %}...{% endif %}</span>{% endif %}
+                    {% if iteration is defined and iteration > 1 %}<span class="gd-hero-tag" style="background:rgba(13,148,136,0.25);color:#5eead4;">Iteration {{ iteration }}</span>{% endif %}
                 </div>
                 {% if domain_rank and domain_rank.rank > 0 %}
                 {% set top_pct = ((domain_rank.rank / domain_rank.total_in_domain) * 100) | round(0) | int %}
