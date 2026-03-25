@@ -787,6 +787,63 @@
                 </div>
                 {% endif %}
 
+                <!-- Evolution chart -->
+                {% if graphs_history and graphs_history|length >= 2 %}
+                <div style="margin-bottom:1rem;padding:1rem;background:var(--an-card);border:1px solid var(--an-border);border-radius:var(--an-radius-sm);">
+                    <div style="font-size:0.8rem;font-weight:600;color:var(--an-text);margin-bottom:0.75rem;">Evolution du graphe ({{ graphs_history|length }} versions)</div>
+                    <canvas id="evolutionChart" height="200"></canvas>
+                </div>
+                <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+                <script>
+                const histData = {{ graphs_history_json | safe }};
+                new Chart(document.getElementById('evolutionChart'), {
+                    type: 'line',
+                    data: {
+                        labels: histData.map((d,i) => 'V' + (i+1)),
+                        datasets: [
+                            {
+                                label: 'Nodes',
+                                data: histData.map(d => d.node_count),
+                                borderColor: '#3b82f6',
+                                tension: 0.3,
+                                yAxisID: 'y',
+                            },
+                            {
+                                label: 'Links',
+                                data: histData.map(d => d.link_count),
+                                borderColor: '#06b6d4',
+                                tension: 0.3,
+                                yAxisID: 'y',
+                            },
+                            {
+                                label: 'Couverture narrative %',
+                                data: histData.map(d => d.narrative_coverage ? Math.round(d.narrative_coverage * 100) : null),
+                                borderColor: '#10b981',
+                                tension: 0.3,
+                                yAxisID: 'y1',
+                            },
+                            {
+                                label: 'Efficacite %',
+                                data: histData.map(d => d.avg_effectiveness ? Math.round(d.avg_effectiveness * 100) : null),
+                                borderColor: '#f59e0b',
+                                tension: 0.3,
+                                yAxisID: 'y1',
+                            },
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        interaction: { mode: 'index', intersect: false },
+                        plugins: { legend: { labels: { font: {size: 11}, boxWidth: 12 } } },
+                        scales: {
+                            y: { position: 'left', title: { display: true, text: 'Count', font: {size: 10} }, grid: { color: '#e2e8f0' } },
+                            y1: { position: 'right', min: 0, max: 100, title: { display: true, text: '%', font: {size: 10} }, grid: { drawOnChartArea: false } },
+                        }
+                    }
+                });
+                </script>
+                {% endif %}
+
                 <!-- Narrative text -->
                 {% if narrative_text %}
                 <details style="margin-bottom:1rem;border:1px solid var(--an-border);border-radius:var(--an-radius-sm);padding:0.75rem;background:var(--an-bg);">

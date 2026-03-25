@@ -1587,6 +1587,25 @@ def ga_detail(request: Request, ga_id: str):
         perceptual_warp = None
         perceptual_spin = None
 
+    # ── Graphs history for evolution chart ──
+    graphs_history = []
+    try:
+        db_hist = get_db()
+        rows = db_hist.execute("""
+            SELECT g.id, g.graph_type, g.created_at, g.node_count, g.link_count,
+                   g.avg_effectiveness, g.anti_pattern_count,
+                   rs.narrative_coverage, rs.budget_pressure, rs.complexity_verdict,
+                   rs.nodes_visited, rs.nodes_total
+            FROM ga_graphs g
+            LEFT JOIN reading_simulations rs ON rs.graph_id = g.id AND rs.mode = 'system1'
+            WHERE g.ga_image_id = ?
+            ORDER BY g.id ASC
+        """, (ga_id,)).fetchall()
+        db_hist.close()
+        graphs_history = [dict(r) for r in rows]
+    except Exception:
+        pass
+
     # ── Graph overlay SVG + scanpath data ──
     overlay_svg = None
     scanpath_json = "null"
@@ -1637,6 +1656,8 @@ def ga_detail(request: Request, ga_id: str):
         "is_admin": is_admin,
         "overlay_svg": overlay_svg,
         "scanpath_json": scanpath_json,
+        "graphs_history": graphs_history,
+        "graphs_history_json": json.dumps(graphs_history),
     })
 
 
@@ -1674,6 +1695,25 @@ def analyze_page(request: Request, ga: str = ""):
             except Exception as e:
                 logger.warning(f"Analyze overlay failed: {e}")
 
+    graphs_history = []
+    if active_ga:
+        try:
+            db_hist = get_db()
+            rows = db_hist.execute("""
+                SELECT g.id, g.graph_type, g.created_at, g.node_count, g.link_count,
+                       g.avg_effectiveness, g.anti_pattern_count,
+                       rs.narrative_coverage, rs.budget_pressure, rs.complexity_verdict,
+                       rs.nodes_visited, rs.nodes_total
+                FROM ga_graphs g
+                LEFT JOIN reading_simulations rs ON rs.graph_id = g.id AND rs.mode = 'system1'
+                WHERE g.ga_image_id = ?
+                ORDER BY g.id ASC
+            """, (active_ga["id"],)).fetchall()
+            db_hist.close()
+            graphs_history = [dict(r) for r in rows]
+        except Exception:
+            pass
+
     sim_stats = None
     narrative_text = None
     if active_ga:
@@ -1704,6 +1744,8 @@ def analyze_page(request: Request, ga: str = ""):
         "scanpath_json": scanpath_json,
         "sim_stats": sim_stats,
         "narrative_text": narrative_text,
+        "graphs_history": graphs_history,
+        "graphs_history_json": json.dumps(graphs_history),
         "og_title": "Analyse ton Graphical Abstract — GLANCE",
         "og_description": "Depose ton Graphical Abstract et recois une analyse IA en 30 secondes : score, archetype, forces, faiblesses, recommandations.",
     })
