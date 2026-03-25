@@ -425,36 +425,51 @@ def save_graph(graph, ga_image_id, graph_type="vision", source="gemini_vision",
         with open(yaml_path, "w", encoding="utf-8") as f:
             f.write(graph_yaml)
 
-    # ── Async reader simulation listener ──
-    def _run_reader_sim_async(graph_dict, gimg_id, gid):
-        """Background thread: run S1 + S2 reader sim and persist results."""
+    # ── Async post-save listener ──
+    def _post_save_async(graph_dict, gimg_id, gid):
+        """Background thread: run reader sim + graph health after every graph save."""
+        import logging
+        log = logging.getLogger("db.post_save")
+
+        # ── 1. Reader simulation (S1 + S2) ──
         try:
             from reader_sim import simulate_reading, generate_reading_narrative
 
-            # System 1 — 5s glance
             sim_s1 = simulate_reading(graph_dict, total_ticks=50, mode="system1")
             narr_s1 = generate_reading_narrative(sim_s1, graph_dict)
             save_reading_simulation(sim_s1, narr_s1,
                                     ga_image_id=gimg_id, graph_id=gid, mode="system1")
 
-            # System 2 — 90s deliberate
             sim_s2 = simulate_reading(graph_dict, total_ticks=900, mode="system2")
             narr_s2 = generate_reading_narrative(sim_s2, graph_dict)
             save_reading_simulation(sim_s2, narr_s2,
                                     ga_image_id=gimg_id, graph_id=gid, mode="system2")
 
-            import logging
-            logging.getLogger("db").info(
-                f"Reader sim complete for graph {gid}: "
-                f"S1={sim_s1['stats']['complexity_verdict']} "
-                f"S2={sim_s2['stats']['complexity_verdict']}")
+            log.info(f"Reader sim for graph {gid}: "
+                     f"S1={sim_s1['stats']['complexity_verdict']} "
+                     f"S2={sim_s2['stats']['complexity_verdict']}")
         except Exception as e:
-            import logging
-            logging.getLogger("db").warning(f"Async reader sim failed for graph {gid}: {e}")
+            log.warning(f"Reader sim failed for graph {gid}: {e}")
+
+        # ── 2. Graph health (transmission chains) ──
+        try:
+            from graph_health import check_transmission_health
+
+            health = check_transmission_health(graph_dict)
+            # Update the graph row with health score
+            db2 = get_db()
+            db2.execute(
+                "UPDATE ga_graphs SET avg_effectiveness = ? WHERE id = ?",
+                (health.get("overall_score", 0), gid))
+            db2.commit()
+            db2.close()
+            log.info(f"Graph health for {gid}: score={health.get('overall_score', 0):.3f}")
+        except Exception as e:
+            log.warning(f"Graph health failed for graph {gid}: {e}")
 
     # Fire and forget — non-blocking
     t = threading.Thread(
-        target=_run_reader_sim_async,
+        target=_post_save_async,
         args=(graph, ga_image_id, graph_id),
         daemon=True,
     )

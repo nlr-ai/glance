@@ -2,14 +2,17 @@
 GA Auto-Improve — Autonomous iteration loop.
 
 Runs the full GLANCE feedback loop automatically:
-  ANALYZE → SCORE → DIAGNOSE → ADVISE → APPLY → RE-SCORE → REPEAT
+  ANALYZE → ENRICH → SIMULATE → DIAGNOSE → ADVISE → RE-SCORE → REPEAT
 
 Each turn:
-  1. vision_scorer → L3 graph
+  1. vision_scorer → L3 graph (with prior_graph from previous turn)
   2. channel_analyzer → enriched graph + anti-patterns
-  3. archetype classifier → score/tier
+  3a. archetype classifier → score/tier
+  3b. reader_sim → S1 (5s) + S2 (90s) simulated reading
+       → narrative text describing what the reader saw/missed
   4. ga_advisor → modified graph with fixes
-  5. Log the turn: score delta, changes made, anti-patterns resolved
+     (intent = reader narrative + anti-pattern diagnosis + sim prompts)
+  5. Log the turn: score delta, changes made, reader sim stats
 
 Stops when:
   - max_turns reached (default 5)
@@ -309,6 +312,29 @@ def auto_improve(image_path, abstract=None, max_turns=5,
         )
         turn_data["composite_score"] = round(current_score, 3)
 
+        # ── Step 3b: Persist graph via save_graph (triggers async reader sim + scoring) ──
+        logger.info("Step 3b: Persisting graph (async sim auto-triggered)...")
+        graph_id = None
+        try:
+            from db import save_graph as _save_graph
+            enriched_graph_path = turn_data.get("graph_path", "").replace(".yaml", "_enriched.yaml")
+            if os.path.exists(enriched_graph_path):
+                with open(enriched_graph_path, encoding="utf-8") as f:
+                    persist_graph = yaml.safe_load(f)
+            else:
+                persist_graph = result["graph"]
+            graph_id = _save_graph(
+                persist_graph, ga_image_id=ga_image_id,
+                graph_type="enriched" if os.path.exists(enriched_graph_path) else "vision",
+                source="auto_improve",
+                version=f"turn_{turn}",
+                yaml_path=enriched_graph_path if not os.path.exists(enriched_graph_path) else None,
+            )
+            turn_data["graph_id"] = graph_id
+            logger.info(f"  Graph {graph_id} saved → reader sim running async")
+        except Exception as e:
+            logger.warning(f"  save_graph failed (non-blocking): {e}")
+
         # ── Log turn ──
         logger.info(f"  Archetype: {turn_data['archetype_name']} ({turn_data['confidence']:.0%})")
         logger.info(f"  S9b={turn_data['s9b']} | S10={turn_data['s10']} | Words={turn_data['word_count']}")
@@ -353,10 +379,59 @@ def auto_improve(image_path, abstract=None, max_turns=5,
             logger.info(f"\n⏰ MAX TURNS ({max_turns}) reached")
             break
 
-        # ── Step 4: Generate improvement intent ──
-        intent = _build_intent_from_diagnosis(turn_data)
+        # ── Step 4: Generate improvement intent (pull sim results from DB) ──
+        intent_parts = []
+
+        # Wait briefly for async sim to complete, then pull from DB
+        if graph_id:
+            time.sleep(3)  # async sim typically completes in <2s
+            try:
+                from db import get_reading_sims
+                sims = get_reading_sims(graph_id=graph_id)
+                sim_s1 = next((s for s in sims if s["mode"] == "system1"), None)
+                sim_s2 = next((s for s in sims if s["mode"] == "system2"), None)
+
+                if sim_s1 and sim_s1.get("narrative_text"):
+                    intent_parts.append(
+                        "## Lecture simulée (5 secondes — System 1)\n" + sim_s1["narrative_text"])
+                    turn_data["reader_sim_s1"] = json.loads(sim_s1.get("stats_json", "{}"))
+                    turn_data["reader_narrative_s1"] = sim_s1["narrative_text"]
+
+                    # S1 vs S2 divergence
+                    s1_cov = sim_s1.get("narrative_coverage", 0) or 0
+                    s2_cov = (sim_s2.get("narrative_coverage", 0) or 0) if sim_s2 else 0
+                    if s2_cov > s1_cov + 0.2:
+                        intent_parts.append(
+                            f"En 90 secondes (System 2), la couverture narrative monte à {s2_cov:.0%} "
+                            f"(vs {s1_cov:.0%} en 5s). Les messages sont présents mais pas assez "
+                            f"saillants pour un scan rapide.")
+
+                    # Sim prompts
+                    sim_prompts = json.loads(sim_s1.get("prompts_json", "[]"))
+                    if sim_prompts:
+                        intent_parts.append(
+                            "## Axes d'amélioration (depuis la simulation de lecture)\n" +
+                            "\n".join(f"- {p}" for p in sim_prompts[:3]))
+
+                    if sim_s2:
+                        turn_data["reader_sim_s2"] = json.loads(sim_s2.get("stats_json", "{}"))
+                        turn_data["reader_narrative_s2"] = sim_s2.get("narrative_text", "")
+
+                    logger.info(f"  Reader sim pulled from DB: S1={sim_s1.get('complexity_verdict')} "
+                                f"S2={sim_s2.get('complexity_verdict') if sim_s2 else 'N/A'}")
+                else:
+                    logger.info("  No sim results in DB yet (async may still be running)")
+            except Exception as e:
+                logger.warning(f"  Reader sim DB query failed: {e}")
+
+        # Anti-pattern diagnosis prompts
+        diagnosis_intent = _build_intent_from_diagnosis(turn_data)
+        if diagnosis_intent:
+            intent_parts.append("## Diagnostic anti-patterns\n" + diagnosis_intent)
+
+        intent = "\n\n".join(intent_parts) if intent_parts else diagnosis_intent
         turn_data["intent"] = intent
-        logger.info(f"Step 4: Advising with intent:\n{intent}")
+        logger.info(f"Step 4: Advising with intent:\n{intent[:500]}...")
 
         # ── Step 5: Get advised graph ──
         time.sleep(3)
@@ -441,9 +516,18 @@ def auto_improve(image_path, abstract=None, max_turns=5,
             logger.warning(f"  DB logging failed (non-blocking): {e}")
 
         prev_score = current_score
-        # Store current graph for next turn's prior_graph
+        # Store current enriched graph for next turn's prior_graph
+        # Prefer enriched (with channels) over raw vision graph
         if prior_graph:
-            prev_graph = result["graph"]
+            enriched_path = turn_data.get("graph_path", "").replace(".yaml", "_enriched.yaml")
+            if os.path.exists(enriched_path):
+                try:
+                    with open(enriched_path, encoding="utf-8") as f:
+                        prev_graph = yaml.safe_load(f)
+                except Exception:
+                    prev_graph = result["graph"]
+            else:
+                prev_graph = result["graph"]
 
         # Rate limit between turns
         if turn < max_turns:
@@ -487,8 +571,13 @@ def auto_improve(image_path, abstract=None, max_turns=5,
     # Save evolution CSV for easy plotting
     csv_path = os.path.join(output_dir, "evolution.csv")
     with open(csv_path, "w", encoding="utf-8") as f:
-        f.write("turn,archetype,s9b,s10,composite,word_count,channels_used,avg_effectiveness,anti_patterns,hierarchy_clear,delta\n")
+        f.write("turn,archetype,s9b,s10,composite,word_count,channels_used,avg_effectiveness,"
+                "anti_patterns,hierarchy_clear,delta,"
+                "sim_s1_pressure,sim_s1_visited,sim_s1_skipped,sim_s1_narr_coverage,"
+                "sim_s2_pressure,sim_s2_narr_coverage\n")
         for t in history:
+            s1 = t.get("reader_sim_s1", {})
+            s2 = t.get("reader_sim_s2", {})
             f.write(f"{t.get('turn',0)},"
                     f"{t.get('archetype','')},"
                     f"{t.get('s9b',0)},"
@@ -499,7 +588,13 @@ def auto_improve(image_path, abstract=None, max_turns=5,
                     f"{t.get('avg_effectiveness',0):.3f},"
                     f"{t.get('anti_pattern_count',0)},"
                     f"{1 if t.get('hierarchy_clear') else 0},"
-                    f"{t.get('delta','')}\n")
+                    f"{t.get('delta','')},"
+                    f"{s1.get('budget_pressure','')},"
+                    f"{s1.get('unique_nodes_visited','')},"
+                    f"{s1.get('nodes_skipped','')},"
+                    f"{s1.get('narrative_coverage','')},"
+                    f"{s2.get('budget_pressure','')},"
+                    f"{s2.get('narrative_coverage','')}\n")
     logger.info(f"Evolution CSV: {csv_path}")
 
     # Print summary
