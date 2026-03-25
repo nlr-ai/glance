@@ -669,30 +669,63 @@ def _apply_ga_treatment(ga_img: Image.Image, tier: str) -> Image.Image:
     """Apply tier-varying visual treatment to the GA background image.
 
     Channel 4: GA IMAGE TREATMENT
-        Low scores:  blur + darken  (the GA is literally opaque)
-        Mid scores:  light blur
-        High scores: brighten + saturate (crystal clear)
+        Low scores: desaturate (gray/washed out = "hard to understand")
+        NOT blur (opaque ≠ blurry) and NOT darken (hiding the GA defeats the purpose)
+        High scores: saturate + brighten (crystal clear, vibrant)
     """
     if tier == 'illisible':
-        ga_img = ga_img.filter(ImageFilter.GaussianBlur(radius=4))
-        ga_img = ImageEnhance.Brightness(ga_img).enhance(0.55)
+        # Strong desaturation — almost grayscale. "My brain can't process this"
+        ga_img = ImageEnhance.Color(ga_img).enhance(0.15)
+        ga_img = ImageEnhance.Brightness(ga_img).enhance(0.85)
     elif tier == 'opaque':
-        ga_img = ga_img.filter(ImageFilter.GaussianBlur(radius=3))
-        ga_img = ImageEnhance.Brightness(ga_img).enhance(0.6)
+        # Partial desaturation — washed out, dull. "I can see it but can't understand"
+        ga_img = ImageEnhance.Color(ga_img).enhance(0.35)
+        ga_img = ImageEnhance.Brightness(ga_img).enhance(0.9)
     elif tier == 'brumeux':
-        ga_img = ga_img.filter(ImageFilter.GaussianBlur(radius=1.5))
-        ga_img = ImageEnhance.Brightness(ga_img).enhance(0.8)
+        # Slight desaturation — muted colors. "Not clear enough"
+        ga_img = ImageEnhance.Color(ga_img).enhance(0.65)
     elif tier == 'accessible':
-        # Very slight blur
-        ga_img = ga_img.filter(ImageFilter.GaussianBlur(radius=0.5))
+        pass  # Normal — no treatment
     elif tier == 'fluide':
-        # Slight brighten
+        ga_img = ImageEnhance.Color(ga_img).enhance(1.15)
         ga_img = ImageEnhance.Brightness(ga_img).enhance(1.05)
     elif tier == 'limpide':
+        ga_img = ImageEnhance.Color(ga_img).enhance(1.3)
         ga_img = ImageEnhance.Brightness(ga_img).enhance(1.1)
-        ga_img = ImageEnhance.Color(ga_img).enhance(1.2)
+        # Subtle sparkle crystals — scattered transparent bright dots
+        import random
+        sparkle = Image.new("RGBA", ga_img.size, (0, 0, 0, 0))
+        sp_draw = ImageDraw.Draw(sparkle)
+        rng = random.Random(42)  # deterministic
+        w, h = ga_img.size
+        for _ in range(25):
+            sx = rng.randint(20, w - 20)
+            sy = rng.randint(20, h - 20)
+            size = rng.randint(2, 5)
+            alpha = rng.randint(40, 90)
+            sp_draw.ellipse(
+                [sx - size, sy - size, sx + size, sy + size],
+                fill=(255, 255, 255, alpha),
+            )
+            # Cross sparkle lines
+            sp_draw.line([(sx - size * 2, sy), (sx + size * 2, sy)],
+                         fill=(255, 255, 255, alpha // 2), width=1)
+            sp_draw.line([(sx, sy - size * 2), (sx, sy + size * 2)],
+                         fill=(255, 255, 255, alpha // 2), width=1)
+        ga_img = Image.alpha_composite(ga_img.convert("RGBA"), sparkle).convert("RGB")
 
     return ga_img
+
+
+# Reaction smileys per tier — viewer's COMPREHENSION reaction, not emotion
+TIER_REACTION = {
+    'illisible': '🫠',    # melting brain — "what am I looking at"
+    'opaque':    '❓',     # question mark — "I don't get it"
+    'brumeux':   '🤔',    # thinking — "I think I get it... maybe"
+    'accessible': '💡',   # lightbulb — "ah I see"
+    'fluide':    '✅',     # check — "got it, clear"
+    'limpide':   '🤯',    # mind blown — "I understood everything instantly"
+}
 
 
 def _build_stamp_v5(score_pct: int, score_source: str, tier: str,
