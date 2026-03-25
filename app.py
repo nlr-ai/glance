@@ -1557,12 +1557,36 @@ def analyze_page(request: Request, ga: str = ""):
             except Exception as e:
                 logger.warning(f"Analyze overlay failed: {e}")
 
+    sim_stats = None
+    narrative_text = None
+    if active_ga:
+        try:
+            _lg2 = get_latest_graph(active_ga["id"])
+            if _lg2:
+                _sims2 = get_reading_sims(graph_id=_lg2["id"])
+                _s1_2 = next((s for s in _sims2 if s["mode"] == "system1"), None)
+                if _s1_2:
+                    sim_stats = {
+                        "narrative_coverage": _s1_2.get("narrative_coverage"),
+                        "nodes_visited": _s1_2.get("nodes_visited"),
+                        "nodes_total": _s1_2.get("nodes_total"),
+                        "nodes_skipped": _s1_2.get("nodes_skipped"),
+                        "complexity_verdict": _s1_2.get("complexity_verdict"),
+                        "dead_space_count": _s1_2.get("dead_space_count"),
+                        "budget_pressure": _s1_2.get("budget_pressure"),
+                    }
+                    narrative_text = _s1_2.get("narrative_text", "")
+        except Exception:
+            pass
+
     return templates.TemplateResponse("analyze.html", {
         "request": request,
         "lang": lang,
         "active_ga": active_ga,
         "overlay_svg": overlay_svg,
         "scanpath_json": scanpath_json,
+        "sim_stats": sim_stats,
+        "narrative_text": narrative_text,
         "og_title": "Analyse ton Graphical Abstract — GLANCE",
         "og_description": "Depose ton Graphical Abstract et recois une analyse IA en 30 secondes : score, archetype, forces, faiblesses, recommandations.",
     })

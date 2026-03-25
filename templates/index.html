@@ -1085,12 +1085,40 @@
     </div>
 </div>
 
+<!-- ===== SECTION 3a: CAPABILITIES ===== -->
+<div style="background:var(--lp-bg);padding:3rem 2rem;">
+    <div style="max-width:900px;margin:0 auto;">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.5rem;">
+            <div style="background:var(--lp-card);border:1px solid var(--lp-border);border-radius:12px;padding:1.5rem;text-align:center;">
+                <div style="font-size:2rem;margin-bottom:0.5rem;">70</div>
+                <div style="font-size:0.85rem;color:var(--lp-text-dim);">canaux visuels analysés</div>
+                <div style="font-size:0.7rem;color:var(--lp-text-muted);margin-top:0.25rem;">couleur, forme, taille, position, groupement...</div>
+            </div>
+            <div style="background:var(--lp-card);border:1px solid var(--lp-border);border-radius:12px;padding:1.5rem;text-align:center;">
+                <div style="font-size:2rem;margin-bottom:0.5rem;">5s</div>
+                <div style="font-size:0.85rem;color:var(--lp-text-dim);">simulation de lecture</div>
+                <div style="font-size:0.7rem;color:var(--lp-text-muted);margin-top:0.25rem;">un lecteur virtuel scanne votre figure</div>
+            </div>
+            <div style="background:var(--lp-card);border:1px solid var(--lp-border);border-radius:12px;padding:1.5rem;text-align:center;">
+                <div style="font-size:2rem;margin-bottom:0.5rem;">4</div>
+                <div style="font-size:0.85rem;color:var(--lp-text-dim);">anti-patterns détectés</div>
+                <div style="font-size:0.7rem;color:var(--lp-text-muted);margin-top:0.25rem;">fragile, incohérent, inverse, catégorie manquante</div>
+            </div>
+            <div style="background:var(--lp-card);border:1px solid var(--lp-border);border-radius:12px;padding:1.5rem;text-align:center;">
+                <div style="font-size:2rem;margin-bottom:0.5rem;">&infin;</div>
+                <div style="font-size:0.85rem;color:var(--lp-text-dim);">amélioration itérative</div>
+                <div style="font-size:0.7rem;color:var(--lp-text-muted);margin-top:0.25rem;">diagnostic → recommandation → itération</div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- ===== SECTION 3b: EXAMPLE ANALYSIS ===== -->
 <div class="lp-example-bg">
     <div class="lp-section">
         <div class="lp-section-header">
             <h2>Exemple d'analyse</h2>
-            <p>Voici ce que GLANCE produit pour chaque GA</p>
+            <p>Score de clarté, simulation de lecture, canaux visuels, recommandations — en 30 secondes</p>
         </div>
 
         <div class="lp-example-layout">
@@ -1117,10 +1145,12 @@
                 <div class="lp-example-scores">
                     <!-- GLANCE composite — highlight card -->
                     {% set glance_pct = (example.glance * 100) | round(0) | int %}
-                    {% if glance_pct >= 70 %}{% set glance_color = "#10b981" %}{% set glance_verdict = "Clair" %}
-                    {% elif glance_pct >= 50 %}{% set glance_color = "#eab308" %}{% set glance_verdict = "Brumeux" %}
-                    {% elif glance_pct >= 30 %}{% set glance_color = "#f59e0b" %}{% set glance_verdict = "Opaque" %}
-                    {% else %}{% set glance_color = "#ef4444" %}{% set glance_verdict = "Illisible" %}{% endif %}
+                    {% if glance_pct >= 80 %}{% set glance_color = "#10b981" %}{% set glance_verdict = "Limpide" %}
+                    {% elif glance_pct >= 60 %}{% set glance_color = "#2A9D8F" %}{% set glance_verdict = "Clair" %}
+                    {% elif glance_pct >= 40 %}{% set glance_color = "#eab308" %}{% set glance_verdict = "Ambigu" %}
+                    {% elif glance_pct >= 20 %}{% set glance_color = "#f97316" %}{% set glance_verdict = "Confus" %}
+                    {% elif glance_pct >= 10 %}{% set glance_color = "#ef4444" %}{% set glance_verdict = "Obscur" %}
+                    {% else %}{% set glance_color = "#991B1B" %}{% set glance_verdict = "Incompréhensible" %}{% endif %}
                     <div class="lp-ex-score-card highlight">
                         <div class="lp-ex-score-label">Score GLANCE</div>
                         <div class="lp-ex-score-value" style="color: {{ glance_color }};">{{ glance_pct }}%</div>
@@ -1169,7 +1199,7 @@
 
                 <!-- CTA -->
                 <a href="/analyze" class="lp-example-cta">
-                    Analyse ton Graphical Abstract
+                    Analyse et améliore ton GA
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
                     </svg>

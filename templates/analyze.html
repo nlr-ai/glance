@@ -162,7 +162,7 @@
     margin: 0 auto 3rem;
     padding: 0 1.5rem;
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     gap: 2rem;
     align-items: start;
 }
@@ -751,6 +751,42 @@
                     {% endif %}
                 </div>
                 <h3 style="font-size:1rem;font-weight:700;color:var(--an-text);margin:0 0 0.5rem;">{{ active_ga.title or active_ga.filename }}</h3>
+
+                <!-- Quick stats from sim -->
+                {% if sim_stats %}
+                <div style="display:flex;flex-wrap:wrap;gap:1rem;margin-bottom:1rem;padding:0.75rem;background:var(--an-bg);border-radius:var(--an-radius-sm);">
+                    <div style="text-align:center;min-width:80px;">
+                        <div style="font-size:1.5rem;font-weight:700;color:{% if sim_stats.narrative_coverage and sim_stats.narrative_coverage >= 0.7 %}#10b981{% elif sim_stats.narrative_coverage and sim_stats.narrative_coverage >= 0.4 %}#f59e0b{% else %}#ef4444{% endif %};">{{ (sim_stats.narrative_coverage * 100) | round(0) | int if sim_stats.narrative_coverage else '?' }}%</div>
+                        <div style="font-size:0.7rem;color:var(--an-text-dim);">Messages transmis</div>
+                    </div>
+                    <div style="text-align:center;min-width:80px;">
+                        <div style="font-size:1.5rem;font-weight:700;color:var(--an-text);">{{ sim_stats.nodes_visited or '?' }}/{{ sim_stats.nodes_total or '?' }}</div>
+                        <div style="font-size:0.7rem;color:var(--an-text-dim);">Elements lus</div>
+                    </div>
+                    <div style="text-align:center;min-width:80px;">
+                        <div style="font-size:1.5rem;font-weight:700;color:{% if sim_stats.complexity_verdict == 'OK' %}#10b981{% elif sim_stats.complexity_verdict == 'DENSE' %}#f59e0b{% else %}#ef4444{% endif %};">{{ sim_stats.complexity_verdict or '?' }}</div>
+                        <div style="font-size:0.7rem;color:var(--an-text-dim);">Complexite</div>
+                    </div>
+                    <div style="text-align:center;min-width:80px;">
+                        <div style="font-size:1.5rem;font-weight:700;color:var(--an-text);">{{ sim_stats.dead_space_count or 0 }}</div>
+                        <div style="font-size:0.7rem;color:var(--an-text-dim);">Zones mortes</div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Narrative text -->
+                {% if narrative_text %}
+                <details style="margin-bottom:1rem;border:1px solid var(--an-border);border-radius:var(--an-radius-sm);padding:0.75rem;background:var(--an-bg);">
+                    <summary style="cursor:pointer;font-size:0.8rem;color:var(--an-teal);font-weight:600;">Lecture simulee (5 secondes)</summary>
+                    <p style="margin:0.75rem 0 0;font-size:0.8rem;color:var(--an-text);line-height:1.6;white-space:pre-wrap;">{{ narrative_text }}</p>
+                </details>
+                {% endif %}
+
+                <div style="display:flex;gap:0.75rem;margin-bottom:1rem;align-items:center;">
+                    <a href="/ga-detail/{{ active_ga.slug or active_ga.id }}" style="font-size:0.8rem;color:var(--an-teal);font-weight:500;">Voir l'analyse complete &rarr;</a>
+                    <a href="/analyze" style="font-size:0.75rem;color:var(--an-text-muted);">Analyser une autre figure</a>
+                </div>
+
                 <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:1rem;">
                     <button class="tool-btn" onclick="runTool('vision')" style="padding:0.5rem 1rem;border-radius:var(--an-radius-sm);border:1px solid var(--an-border);background:var(--an-card);color:var(--an-text);cursor:pointer;font-size:0.8rem;">Analyser l'image</button>
                     <button class="tool-btn" onclick="runTool('channels')" style="padding:0.5rem 1rem;border-radius:var(--an-radius-sm);border:1px solid var(--an-border);background:var(--an-card);color:var(--an-text);cursor:pointer;font-size:0.8rem;">Canaux visuels</button>
@@ -768,7 +804,6 @@
                 </div>
                 <div id="toolSpinner" style="display:none;padding:0.5rem;color:var(--an-text-dim);font-size:0.85rem;">Analyse en cours...</div>
                 <div id="toolResults"></div>
-                <a href="/analyze" style="display:inline-block;margin-top:1rem;font-size:0.8rem;color:var(--an-teal);">Analyser une autre figure</a>
             </div>
 
             <script>
@@ -891,6 +926,11 @@
                                 <span>Simulation de lecture + recommandations</span>
                             </div>
                         </div>
+                        <p style="font-size:0.75rem;color:var(--an-text-muted);font-style:italic;margin-top:1.25rem;line-height:1.5;max-width:500px;text-align:center;">
+                            Gemini Vision identifie chaque element visuel de votre figure, construit un graphe
+                            de transmission (zones &rarr; elements &rarr; messages), puis un lecteur virtuel
+                            simule 5 secondes de lecture pour mesurer quels messages sont effectivement transmis.
+                        </p>
                     </div>
 
                     <!-- Submit -->
