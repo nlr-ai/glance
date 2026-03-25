@@ -901,106 +901,252 @@
 })();
 </script>
 
-<!-- Improve section (admin only) -->
-{% if is_admin %}
+<!-- Tool panel -->
+{% if true %}
 <div style="margin-top:2rem;padding:1.5rem;border:1px solid var(--gd-border);border-radius:var(--gd-radius);background:var(--gd-card);box-shadow:var(--gd-shadow-sm);">
-    <h3 style="margin-bottom:1rem;font-size:1rem;font-weight:700;color:var(--gd-navy);">Boucle d'amelioration</h3>
-    <button id="improveBtn" onclick="runImprove()"
-            style="padding:0.75rem 1.5rem;background:var(--gd-teal);color:white;border:none;
-                   border-radius:var(--gd-radius-sm);cursor:pointer;font-size:0.9rem;font-weight:500;">
-        Ameliorer le graph
-    </button>
-    <span id="improveSpinner" style="display:none;margin-left:1rem;color:var(--gd-text-dim);">
-        Amelioration en cours...
-    </span>
-    <div id="improveResults" style="display:none;margin-top:1.5rem;"></div>
+    <h3 style="margin:0 0 1rem;font-size:1rem;font-weight:700;color:var(--gd-navy);">Outils d'analyse</h3>
+
+    <!-- Tool buttons -->
+    <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:1rem;">
+        <button class="tool-btn" onclick="runTool('vision')" data-tool="vision"
+                style="padding:0.5rem 1rem;border-radius:var(--gd-radius-sm);border:1px solid var(--gd-border);background:var(--gd-card);color:var(--gd-text);cursor:pointer;font-size:0.8rem;font-weight:500;">
+            Vision (re-analyser)
+        </button>
+        <button class="tool-btn" onclick="runTool('channels')" data-tool="channels"
+                style="padding:0.5rem 1rem;border-radius:var(--gd-radius-sm);border:1px solid var(--gd-border);background:var(--gd-card);color:var(--gd-text);cursor:pointer;font-size:0.8rem;font-weight:500;">
+            Channels (70 canaux)
+        </button>
+        <button class="tool-btn" onclick="showTextTool('advise')" data-tool="advise"
+                style="padding:0.5rem 1rem;border-radius:var(--gd-radius-sm);border:1px solid var(--gd-teal);background:var(--gd-teal-light);color:var(--gd-teal);cursor:pointer;font-size:0.8rem;font-weight:600;">
+            Adviser (intent)
+        </button>
+        <button class="tool-btn" onclick="showTextTool('rubber_duck')" data-tool="rubber_duck"
+                style="padding:0.5rem 1rem;border-radius:var(--gd-radius-sm);border:1px solid var(--gd-amber);background:var(--gd-amber-light);color:var(--gd-amber);cursor:pointer;font-size:0.8rem;font-weight:600;">
+            Rubber Duck (explorer)
+        </button>
+        <button class="tool-btn" onclick="runTool('health')" data-tool="health"
+                style="padding:0.5rem 1rem;border-radius:var(--gd-radius-sm);border:1px solid var(--gd-border);background:var(--gd-card);color:var(--gd-text);cursor:pointer;font-size:0.8rem;font-weight:500;">
+            Health (routes)
+        </button>
+        <button class="tool-btn" onclick="runTool('reader_sim')" data-tool="reader_sim"
+                style="padding:0.5rem 1rem;border-radius:var(--gd-radius-sm);border:1px solid var(--gd-border);background:var(--gd-card);color:var(--gd-text);cursor:pointer;font-size:0.8rem;font-weight:500;">
+            Lecture simulée
+        </button>
+        <button class="tool-btn" onclick="runImprove()" data-tool="improve"
+                style="padding:0.5rem 1rem;border-radius:var(--gd-radius-sm);border:1px solid var(--gd-pass);background:var(--gd-pass-bg);color:var(--gd-pass);cursor:pointer;font-size:0.8rem;font-weight:600;">
+            Auto-améliorer
+        </button>
+    </div>
+
+    <!-- Text input (shows for advise + rubber_duck) -->
+    <div id="toolTextInput" style="display:none;margin-bottom:1rem;">
+        <textarea id="toolText" rows="3" placeholder="Votre question ou intention..."
+                  style="width:100%;padding:0.75rem;border:1px solid var(--gd-border);border-radius:var(--gd-radius-sm);
+                         background:var(--gd-bg);color:var(--gd-text);font-size:0.85rem;font-family:inherit;resize:vertical;"></textarea>
+        <button id="toolTextSubmit" onclick="runTextTool()"
+                style="margin-top:0.5rem;padding:0.5rem 1.25rem;background:var(--gd-teal);color:white;border:none;
+                       border-radius:var(--gd-radius-sm);cursor:pointer;font-size:0.85rem;font-weight:500;">
+            Envoyer
+        </button>
+    </div>
+
+    <!-- Status -->
+    <div id="toolSpinner" style="display:none;padding:0.75rem;color:var(--gd-text-dim);font-size:0.85rem;">
+        Analyse en cours...
+    </div>
+
+    <!-- Results stack -->
+    <div id="toolResults"></div>
 </div>
 
 <script>
-let improveCount = 0;
+const SLUG = '{{ image.slug or image.id }}';
+const PWD = new URLSearchParams(window.location.search).get('pwd') || '';
+let pendingTextTool = null;
 
-async function runImprove() {
-    const btn = document.getElementById('improveBtn');
-    const spinner = document.getElementById('improveSpinner');
-    const resultsDiv = document.getElementById('improveResults');
+function showTextTool(toolName) {
+    pendingTextTool = toolName;
+    const input = document.getElementById('toolTextInput');
+    const textarea = document.getElementById('toolText');
+    input.style.display = 'block';
+    textarea.focus();
+    textarea.placeholder = toolName === 'advise'
+        ? "Intent : que voulez-vous améliorer ? (ex: renforcer la hiérarchie, réduire les mots...)"
+        : "Question : explorez le GA librement (ex: qu'est-ce qui capte l'attention en premier ?)";
+}
 
-    btn.disabled = true;
-    spinner.style.display = 'inline';
+function runTextTool() {
+    const text = document.getElementById('toolText').value.trim();
+    if (!text) return;
+    document.getElementById('toolTextInput').style.display = 'none';
+    runTool(pendingTextTool, text);
+}
+
+async function runTool(toolName, textInput) {
+    const spinner = document.getElementById('toolSpinner');
+    const resultsDiv = document.getElementById('toolResults');
+
+    // Disable all buttons
+    document.querySelectorAll('.tool-btn').forEach(b => b.disabled = true);
+    spinner.style.display = 'block';
+    spinner.textContent = `${toolName} en cours...`;
 
     try {
-        const slug = '{{ image.slug or image.id }}';
-        const pwd = new URLSearchParams(window.location.search).get('pwd') || '';
-        const resp = await fetch(`/analyze/improve/${slug}?pwd=${pwd}`, { method: 'POST' });
+        const fetchOpts = { method: 'POST', headers: {'Content-Type': 'application/json'} };
+        if (textInput) {
+            fetchOpts.body = JSON.stringify({ text: textInput });
+        }
 
+        const resp = await fetch(`/analyze/tool/${toolName}/${SLUG}?pwd=${PWD}`, fetchOpts);
         if (!resp.ok) {
             const err = await resp.json();
             throw new Error(err.detail || 'Erreur');
         }
-
         const data = await resp.json();
-        improveCount++;
 
-        let html = `<div style="border:1px solid var(--gd-border);border-radius:var(--gd-radius-sm);
-                         padding:1rem;margin-bottom:1rem;background:var(--gd-bg);">`;
-        html += `<h4 style="margin:0 0 0.75rem;font-size:0.85rem;color:var(--gd-text-dim);">
-                  Tour #${improveCount} — ${data.n_changes || 0} changements</h4>`;
-
-        if (data.changes && data.changes.length > 0) {
-            html += '<ul style="margin:0.5rem 0;padding-left:1.25rem;font-size:0.8rem;color:var(--gd-text-muted);">';
-            for (const c of data.changes.slice(0, 5)) {
-                html += `<li><strong>${c.node}</strong>: ${c.change}</li>`;
-            }
-            if (data.changes.length > 5) html += `<li>+${data.changes.length - 5} autres...</li>`;
-            html += '</ul>';
-        }
-
-        if (data.sim_s1) {
-            const s = data.sim_s1;
-            const verdictColor = s.verdict === 'OK' ? '#22c55e' : s.verdict === 'DENSE' ? '#eab308' : '#ef4444';
-            html += `<div style="margin-top:0.75rem;font-size:0.8rem;color:var(--gd-text-muted);">`;
-            html += `<span style="color:${verdictColor};font-weight:600;">${s.verdict}</span>`;
-            html += ` — pression ${(s.pressure || 0).toFixed(2)}x`;
-            html += ` — ${s.visited}/${s.total} visites`;
-            html += ` — couverture narrative ${Math.round((s.narrative_coverage || 0) * 100)}%`;
-
-            if (data.prev_sim_s1) {
-                const prev = data.prev_sim_s1;
-                const covDelta = ((s.narrative_coverage || 0) - (prev.narrative_coverage || 0)) * 100;
-                if (Math.abs(covDelta) >= 1) {
-                    const sign = covDelta > 0 ? '+' : '';
-                    const color = covDelta > 0 ? '#22c55e' : '#ef4444';
-                    html += ` <span style="color:${color};">(${sign}${covDelta.toFixed(0)}%)</span>`;
-                }
-            }
-            html += '</div>';
-
-            if (s.narrative_text) {
-                html += `<details style="margin-top:0.75rem;">
-                    <summary style="cursor:pointer;font-size:0.75rem;color:var(--gd-text-dim);">Lecture simulee</summary>
-                    <p style="margin:0.5rem 0 0;font-size:0.75rem;color:var(--gd-text-muted);
-                       line-height:1.5;white-space:pre-wrap;">${s.narrative_text}</p>
-                </details>`;
-            }
-        }
-
-        if (data.action === 'initial_analysis') {
-            html += `<p style="margin-top:0.5rem;font-size:0.8rem;color:var(--gd-teal);">${data.message}</p>`;
-        }
-        if (data.action === 'no_changes') {
-            html += `<p style="margin-top:0.5rem;font-size:0.8rem;color:var(--gd-text-dim);">${data.message}</p>`;
-        }
-
-        html += '</div>';
-
+        const html = renderToolResult(toolName, data);
         resultsDiv.innerHTML = html + resultsDiv.innerHTML;
-        resultsDiv.style.display = 'block';
 
     } catch (err) {
-        alert('Erreur: ' + err.message);
+        const errHtml = `<div style="border:1px solid var(--gd-fail);border-radius:var(--gd-radius-sm);padding:1rem;margin-bottom:0.75rem;background:var(--gd-fail-bg);color:var(--gd-fail);font-size:0.8rem;">${toolName}: ${err.message}</div>`;
+        resultsDiv.innerHTML = errHtml + resultsDiv.innerHTML;
     } finally {
-        btn.disabled = false;
+        document.querySelectorAll('.tool-btn').forEach(b => b.disabled = false);
         spinner.style.display = 'none';
     }
+}
+
+async function runImprove() {
+    const spinner = document.getElementById('toolSpinner');
+    const resultsDiv = document.getElementById('toolResults');
+    document.querySelectorAll('.tool-btn').forEach(b => b.disabled = true);
+    spinner.style.display = 'block';
+    spinner.textContent = 'Auto-amélioration en cours...';
+
+    try {
+        const resp = await fetch(`/analyze/improve/${SLUG}?pwd=${PWD}`, { method: 'POST' });
+        if (!resp.ok) { const err = await resp.json(); throw new Error(err.detail || 'Erreur'); }
+        const data = await resp.json();
+        const html = renderToolResult('improve', data);
+        resultsDiv.innerHTML = html + resultsDiv.innerHTML;
+    } catch (err) {
+        resultsDiv.innerHTML = `<div style="border:1px solid var(--gd-fail);border-radius:var(--gd-radius-sm);padding:1rem;margin-bottom:0.75rem;background:var(--gd-fail-bg);color:var(--gd-fail);font-size:0.8rem;">improve: ${err.message}</div>` + resultsDiv.innerHTML;
+    } finally {
+        document.querySelectorAll('.tool-btn').forEach(b => b.disabled = false);
+        spinner.style.display = 'none';
+    }
+}
+
+function renderToolResult(tool, data) {
+    const ts = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    const toolColors = {
+        vision: 'var(--gd-navy)', channels: '#6366f1', advise: 'var(--gd-teal)',
+        rubber_duck: 'var(--gd-amber)', health: '#06b6d4', reader_sim: '#a855f7',
+        improve: 'var(--gd-pass)',
+    };
+    const color = toolColors[tool] || 'var(--gd-text)';
+
+    let inner = '';
+
+    if (tool === 'vision') {
+        inner = `<div style="font-size:0.8rem;color:var(--gd-text-muted);">
+            Graph #${data.graph_id} — ${data.node_count} nodes, ${data.link_count} links<br>
+            Mots: ${data.word_count} | Hiérarchie: ${data.hierarchy_clear ? 'oui' : 'non'}<br>
+            ${data.summary ? '<em>' + data.summary + '</em>' : ''}
+        </div>`;
+    } else if (tool === 'channels') {
+        inner = `<div style="font-size:0.8rem;color:var(--gd-text-muted);">
+            ${data.channels_used}/${data.channels_total} canaux utilisés — avg eff ${(data.avg_effectiveness * 100).toFixed(0)}%<br>
+            ${data.anti_pattern_count} anti-patterns`;
+        if (data.anti_patterns && data.anti_patterns.length > 0) {
+            inner += '<ul style="margin:0.5rem 0;padding-left:1.25rem;">';
+            for (const ap of data.anti_patterns.slice(0, 5)) {
+                inner += `<li><strong>${ap.type}</strong>: ${ap.node} — ${ap.issue}</li>`;
+            }
+            inner += '</ul>';
+        }
+        inner += '</div>';
+    } else if (tool === 'advise') {
+        inner = `<div style="font-size:0.8rem;color:var(--gd-text-muted);">
+            Intent: <em>${data.intent || ''}</em><br>
+            ${data.n_changes || 0} changements`;
+        if (data.changes && data.changes.length > 0) {
+            inner += '<ul style="margin:0.5rem 0;padding-left:1.25rem;">';
+            for (const c of data.changes.slice(0, 8)) {
+                inner += `<li><strong>${c.node}</strong>: ${c.change}</li>`;
+            }
+            inner += '</ul>';
+        }
+        inner += '</div>';
+    } else if (tool === 'rubber_duck') {
+        inner = `<div style="font-size:0.8rem;color:var(--gd-text-muted);">
+            <strong>Q:</strong> ${data.question}<br>
+            <div style="margin-top:0.5rem;white-space:pre-wrap;line-height:1.5;background:var(--gd-bg);padding:0.75rem;border-radius:var(--gd-radius-sm);">${data.response}</div>
+        </div>`;
+    } else if (tool === 'health') {
+        const scoreColor = data.overall_score >= 0.7 ? 'var(--gd-pass)' : data.overall_score >= 0.4 ? 'var(--gd-amber)' : 'var(--gd-fail)';
+        inner = `<div style="font-size:0.8rem;color:var(--gd-text-muted);">
+            Score: <span style="color:${scoreColor};font-weight:700;">${(data.overall_score * 100).toFixed(0)}%</span> —
+            ${data.n_spaces} spaces, ${data.n_things} things, ${data.n_narratives} narratives`;
+        if (data.orphan_things && data.orphan_things.length > 0) {
+            inner += `<br>Orphan things: ${data.orphan_things.map(o => o.name).join(', ')}`;
+        }
+        if (data.orphan_spaces && data.orphan_spaces.length > 0) {
+            inner += `<br>Orphan spaces: ${data.orphan_spaces.map(o => o.name).join(', ')}`;
+        }
+        if (data.prompts && data.prompts.length > 0) {
+            inner += '<ul style="margin:0.5rem 0;padding-left:1.25rem;">';
+            for (const p of data.prompts.slice(0, 3)) { inner += `<li>${p}</li>`; }
+            inner += '</ul>';
+        }
+        inner += '</div>';
+    } else if (tool === 'reader_sim') {
+        const vc = data.verdict === 'OK' ? 'var(--gd-pass)' : data.verdict === 'DENSE' ? 'var(--gd-amber)' : 'var(--gd-fail)';
+        inner = `<div style="font-size:0.8rem;color:var(--gd-text-muted);">
+            <span style="color:${vc};font-weight:600;">${data.verdict}</span> —
+            pression ${(data.pressure || 0).toFixed(2)}x —
+            ${data.visited}/${data.total} visités —
+            couverture narrative ${Math.round((data.narrative_coverage || 0) * 100)}% —
+            ${data.dead_spaces || 0} zones mortes — ${data.orphan_narratives || 0} messages orphelins
+        </div>`;
+        if (data.narrative_text) {
+            inner += `<details style="margin-top:0.5rem;">
+                <summary style="cursor:pointer;font-size:0.75rem;color:var(--gd-text-dim);">Lecture simulée</summary>
+                <p style="margin:0.5rem 0 0;font-size:0.75rem;color:var(--gd-text-muted);line-height:1.5;white-space:pre-wrap;">${data.narrative_text}</p>
+            </details>`;
+        }
+        if (data.recommendations && data.recommendations.length > 0) {
+            inner += `<details style="margin-top:0.5rem;">
+                <summary style="cursor:pointer;font-size:0.75rem;color:var(--gd-text-dim);">Recommandations (${data.recommendations.length})</summary>
+                <ul style="margin:0.5rem 0;padding-left:1.25rem;font-size:0.75rem;">`;
+            for (const r of data.recommendations) {
+                inner += `<li><strong>[${r.source}]</strong> ${r.finding} ${r.question}</li>`;
+            }
+            inner += '</ul></details>';
+        }
+    } else if (tool === 'improve') {
+        inner = `<div style="font-size:0.8rem;color:var(--gd-text-muted);">${data.n_changes || 0} changements`;
+        if (data.changes && data.changes.length > 0) {
+            inner += '<ul style="margin:0.5rem 0;padding-left:1.25rem;">';
+            for (const c of data.changes.slice(0, 5)) { inner += `<li><strong>${c.node}</strong>: ${c.change}</li>`; }
+            inner += '</ul>';
+        }
+        if (data.sim_s1) {
+            const s = data.sim_s1;
+            const vc2 = s.verdict === 'OK' ? 'var(--gd-pass)' : s.verdict === 'DENSE' ? 'var(--gd-amber)' : 'var(--gd-fail)';
+            inner += `<span style="color:${vc2};font-weight:600;">${s.verdict}</span> — couverture ${Math.round((s.narrative_coverage||0)*100)}%`;
+        }
+        if (data.message) inner += `<br>${data.message}`;
+        inner += '</div>';
+    }
+
+    return `<div style="border:1px solid var(--gd-border);border-radius:var(--gd-radius-sm);padding:1rem;margin-bottom:0.75rem;background:var(--gd-bg);">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+            <span style="font-size:0.75rem;font-weight:600;color:${color};text-transform:uppercase;letter-spacing:0.05em;">${tool}</span>
+            <span style="font-size:0.65rem;color:var(--gd-text-dim);">${ts}</span>
+        </div>
+        ${inner}
+    </div>`;
 }
 </script>
 {% endif %}

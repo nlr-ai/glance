@@ -1652,9 +1652,9 @@ async def analyze_submit(request: Request, file: UploadFile = File(...)):
 @app.post("/analyze/improve/{ga_slug}")
 async def analyze_improve(ga_slug: str, pwd: str = ""):
     """Run one improvement turn on a GA. Returns JSON with turn results."""
-    admin_pwd = os.environ.get("GLANCE_ADMIN_PWD", "gL4NC3")
-    if pwd != admin_pwd:
-        raise HTTPException(status_code=403, detail="Admin password required")
+    # admin_pwd = os.environ.get("GLANCE_ADMIN_PWD", "gL4NC3")
+    # if pwd != admin_pwd:
+    #     raise HTTPException(status_code=403, detail="Admin password required")
 
     # 1. Look up GA
     image = get_image_by_slug(ga_slug)
@@ -1804,6 +1804,171 @@ async def analyze_improve(ga_slug: str, pwd: str = ""):
         }
 
     return JSONResponse(response_data)
+
+
+@app.post("/analyze/tool/{tool_name}/{ga_slug}")
+async def analyze_tool(tool_name: str, ga_slug: str, request: Request, pwd: str = ""):
+    """Run a specific analysis tool on a GA. Returns JSON."""
+    # admin_pwd = os.environ.get("GLANCE_ADMIN_PWD", "gL4NC3")
+    # if pwd != admin_pwd:
+    #     raise HTTPException(status_code=403, detail="Admin password required")
+
+    image = get_image_by_slug(ga_slug)
+    if not image:
+        raise HTTPException(status_code=404, detail="GA not found")
+
+    ga_id = image["id"]
+    filename = image["filename"]
+    image_path = os.path.join(BASE, "ga_library", filename)
+
+    # Get optional text input from request body
+    body = {}
+    try:
+        body = await request.json()
+    except Exception:
+        pass
+    text_input = body.get("text", "")
+
+    # Get latest graph
+    latest = get_latest_graph(ga_id)
+    graph = latest["graph"] if latest else None
+    graph_id = latest["id"] if latest else None
+
+    # Save graph to temp file if needed
+    graph_path_tmp = None
+    if graph:
+        graph_path_tmp = os.path.join(BASE, "data", f"tool_{ga_slug}_{int(time.time())}.yaml")
+        with open(graph_path_tmp, "w", encoding="utf-8") as f:
+            yaml.dump(graph, f, default_flow_style=False, allow_unicode=True)
+
+    try:
+        if tool_name == "vision":
+            from vision_scorer import analyze_ga_image
+            with open(image_path, "rb") as f:
+                image_bytes = f.read()
+            result = analyze_ga_image(image_bytes, filename=filename,
+                                      prior_graph=graph if graph else True)
+            new_graph = result["graph"]
+            new_graph_id = save_graph(new_graph, ga_image_id=ga_id,
+                                     graph_type="vision", source="tool_vision")
+            meta = result.get("metadata", {})
+            return JSONResponse({
+                "tool": "vision",
+                "graph_id": new_graph_id,
+                "node_count": len(new_graph.get("nodes", [])),
+                "link_count": len(new_graph.get("links", [])),
+                "summary": meta.get("executive_summary_fr", ""),
+                "word_count": meta.get("word_count", 0),
+                "hierarchy_clear": meta.get("hierarchy_clear", False),
+            })
+
+        elif tool_name == "channels":
+            if not graph_path_tmp:
+                raise HTTPException(status_code=400, detail="No graph yet — run vision first")
+            from channel_analyzer import analyze_ga_channels
+            enriched = analyze_ga_channels(image_path, graph_path_tmp, prior_graph=True)
+            ca = enriched.get("metadata", {}).get("channel_analysis", {})
+            aps = enriched.get("metadata", {}).get("anti_patterns", [])
+            # Save enriched graph
+            new_graph_id = save_graph(enriched, ga_image_id=ga_id,
+                                     graph_type="enriched", source="tool_channels")
+            return JSONResponse({
+                "tool": "channels",
+                "graph_id": new_graph_id,
+                "channels_used": ca.get("channels_used", 0),
+                "channels_total": ca.get("total_channels_analyzed", 0),
+                "avg_effectiveness": round(ca.get("avg_effectiveness", 0), 3),
+                "anti_patterns": [{"type": a.get("type"), "node": a.get("node_id", ""),
+                                   "issue": a.get("issue", "")} for a in aps[:10]],
+                "anti_pattern_count": len(aps),
+            })
+
+        elif tool_name == "advise":
+            if not graph_path_tmp:
+                raise HTTPException(status_code=400, detail="No graph yet — run vision first")
+            if not text_input:
+                text_input = "Proposer des améliorations de clarté visuelle."
+            from ga_advisor import advise
+            advised = advise(image_path, graph_path_tmp, text_input, prior_graph=True)
+            if not advised:
+                return JSONResponse({"tool": "advise", "action": "no_changes",
+                                     "message": "Aucun changement proposé."})
+            changes = [n for n in advised.get("nodes", []) if n.get("_change")]
+            new_graph_id = save_graph(advised, ga_image_id=ga_id,
+                                     graph_type="advised", source="tool_advise")
+            return JSONResponse({
+                "tool": "advise",
+                "graph_id": new_graph_id,
+                "intent": text_input,
+                "changes": [{"node": c.get("name", ""), "change": c.get("_change", "")}
+                           for c in changes],
+                "n_changes": len(changes),
+            })
+
+        elif tool_name == "rubber_duck":
+            if not graph_path_tmp:
+                raise HTTPException(status_code=400, detail="No graph yet — run vision first")
+            if not text_input:
+                text_input = "Qu'est-ce qui capte l'attention en premier dans ce GA ?"
+            from ga_rubber_duck import rubber_duck
+            duck_result = rubber_duck(image_path, graph_path_tmp, text_input, prior_graph=True)
+            return JSONResponse({
+                "tool": "rubber_duck",
+                "question": text_input,
+                "response": duck_result if isinstance(duck_result, str) else yaml.dump(duck_result, allow_unicode=True),
+            })
+
+        elif tool_name == "health":
+            if not graph:
+                raise HTTPException(status_code=400, detail="No graph yet — run vision first")
+            from graph_health import check_transmission_health
+            health = check_transmission_health(graph)
+            return JSONResponse({
+                "tool": "health",
+                "overall_score": health.get("overall_score", 0),
+                "n_spaces": health.get("n_spaces", 0),
+                "n_things": health.get("n_things", 0),
+                "n_narratives": health.get("n_narratives", 0),
+                "orphan_things": health.get("orphan_things", []),
+                "orphan_spaces": health.get("orphan_spaces", []),
+                "narratives": health.get("narratives", []),
+                "prompts": health.get("prompts", []),
+            })
+
+        elif tool_name == "reader_sim":
+            if not graph:
+                raise HTTPException(status_code=400, detail="No graph yet — run vision first")
+            from reader_sim import simulate_reading, generate_reading_narrative
+            sim = simulate_reading(graph, total_ticks=50, mode="system1")
+            narrative = generate_reading_narrative(sim, graph)
+            return JSONResponse({
+                "tool": "reader_sim",
+                "verdict": sim["stats"]["complexity_verdict"],
+                "pressure": sim["stats"]["budget_pressure"],
+                "visited": sim["stats"]["unique_nodes_visited"],
+                "total": sim["stats"]["total_things"],
+                "skipped": sim["stats"]["nodes_skipped"],
+                "narrative_coverage": sim["stats"]["narrative_coverage"],
+                "dead_spaces": sim["stats"]["dead_space_count"],
+                "orphan_narratives": sim["stats"]["orphan_narrative_count"],
+                "narrative_text": narrative,
+                "recommendations": sim.get("recommendations", []),
+            })
+
+        else:
+            raise HTTPException(status_code=400, detail=f"Unknown tool: {tool_name}")
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"{tool_name} failed: {str(e)}")
+    finally:
+        # Clean up temp file
+        if graph_path_tmp:
+            try:
+                os.remove(graph_path_tmp)
+            except OSError:
+                pass
 
 
 @app.post("/analyze/unlock/{ga_id}")
