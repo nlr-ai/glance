@@ -1617,6 +1617,14 @@ async def analyze_submit(request: Request, file: UploadFile = File(...)):
         logger.error(f"DB insert failed: {e}")
         raise HTTPException(status_code=500, detail="Erreur base de donnees")
 
+    # Persist graph in DB → triggers async reader sim S1+S2 + health
+    try:
+        save_graph(graph, ga_image_id=ga_id, graph_type="vision",
+                   source="analyze_upload", yaml_path=graph_path)
+        logger.info(f"Graph saved for GA {ga_id} — async sim launched")
+    except Exception as e:
+        logger.warning(f"save_graph failed (non-blocking): {e}")
+
     # Save sidecar JSON with analysis metadata (for ga_detail page)
     sidecar_path = os.path.join(
         BASE, "ga_library",
