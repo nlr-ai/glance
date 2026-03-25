@@ -654,37 +654,37 @@
 
     <!-- Tool buttons -->
     <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:1rem;">
-        <button class="tool-btn" onclick="runTool('vision')" data-tool="vision"
+        <button class="tool-btn" onclick="runTool('vision')" data-tool="vision" title="Gemini Vision decompose l'image en graphe L3 : zones, elements, messages"
                 style="padding:0.5rem 1rem;border-radius:var(--gd-radius-sm);border:1px solid var(--gd-border);background:var(--gd-card);color:var(--gd-text);cursor:pointer;font-size:0.8rem;font-weight:500;">
-            Analyser l'image
+            👁 Analyser
         </button>
-        <button class="tool-btn" onclick="runTool('channels')" data-tool="channels"
+        <button class="tool-btn" onclick="runTool('channels')" data-tool="channels" title="Evalue 70 canaux visuels (couleur, forme, taille, position) et detecte les anti-patterns"
                 style="padding:0.5rem 1rem;border-radius:var(--gd-radius-sm);border:1px solid var(--gd-border);background:var(--gd-card);color:var(--gd-text);cursor:pointer;font-size:0.8rem;font-weight:500;">
-            Canaux visuels
+            📡 Canaux
         </button>
-        <button class="tool-btn" onclick="showTextTool('advise')" data-tool="advise"
+        <button class="tool-btn" onclick="showTextTool('advise')" data-tool="advise" title="Decrivez ce que vous voulez ameliorer — l'IA propose des modifications concretes sur le graphe"
                 style="padding:0.5rem 1rem;border-radius:var(--gd-radius-sm);border:1px solid var(--gd-teal);background:var(--gd-teal-light);color:var(--gd-teal);cursor:pointer;font-size:0.8rem;font-weight:600;">
-            Recommander
+            💡 Recommander
         </button>
-        <button class="tool-btn" onclick="showTextTool('rubber_duck')" data-tool="rubber_duck"
+        <button class="tool-btn" onclick="showTextTool('rubber_duck')" data-tool="rubber_duck" title="Posez n'importe quelle question sur votre GA — exploration libre avec l'IA"
                 style="padding:0.5rem 1rem;border-radius:var(--gd-radius-sm);border:1px solid var(--gd-amber);background:var(--gd-amber-light);color:var(--gd-amber);cursor:pointer;font-size:0.8rem;font-weight:600;">
-            Explorer
+            🦆 Explorer
         </button>
-        <button class="tool-btn" onclick="runTool('health')" data-tool="health"
+        <button class="tool-btn" onclick="runTool('health')" data-tool="health" title="Verifie que chaque message scientifique est porte par un element visuel — detecte les routes cassees"
                 style="padding:0.5rem 1rem;border-radius:var(--gd-radius-sm);border:1px solid var(--gd-border);background:var(--gd-card);color:var(--gd-text);cursor:pointer;font-size:0.8rem;font-weight:500;">
-            Routes de transmission
+            🔗 Routes
         </button>
-        <button class="tool-btn" onclick="runTool('reader_sim')" data-tool="reader_sim"
+        <button class="tool-btn" onclick="runTool('reader_sim')" data-tool="reader_sim" title="Un lecteur virtuel scanne votre figure pendant 5 secondes — montre ce qu'il voit et ce qu'il rate"
                 style="padding:0.5rem 1rem;border-radius:var(--gd-radius-sm);border:1px solid var(--gd-border);background:var(--gd-card);color:var(--gd-text);cursor:pointer;font-size:0.8rem;font-weight:500;">
-            Simuler la lecture
+            👀 Lecture 5s
         </button>
-        <button class="tool-btn" onclick="runTool('reader_sim_s2')" data-tool="reader_sim_s2"
+        <button class="tool-btn" onclick="runTool('reader_sim_s2')" data-tool="reader_sim_s2" title="Lecture deliberee de 90 secondes — le lecteur prend son temps, explore chaque zone"
                 style="padding:0.5rem 1rem;border-radius:var(--gd-radius-sm);border:1px solid var(--gd-border);background:var(--gd-card);color:var(--gd-text);cursor:pointer;font-size:0.8rem;font-weight:500;">
-            Lecture approfondie (90s)
+            🔍 Lecture 90s
         </button>
-        <button class="tool-btn" onclick="runImprove()" data-tool="improve"
+        <button class="tool-btn" onclick="runImprove()" data-tool="improve" title="Lance un tour complet : diagnostic + recommandations + application automatique des corrections"
                 style="padding:0.5rem 1rem;border-radius:var(--gd-radius-sm);border:1px solid var(--gd-pass);background:var(--gd-pass-bg);color:var(--gd-pass);cursor:pointer;font-size:0.8rem;font-weight:600;">
-            Amélioration auto
+            ⚡ Auto-fix
         </button>
     </div>
 
