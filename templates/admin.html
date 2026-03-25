@@ -1,0 +1,765 @@
+{% extends "base.html" %}
+{% block title %}Admin Analytics — GLANCE{% endblock %}
+
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<style>
+    /* ── Admin-specific overrides ── */
+    .admin-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem 1.5rem;
+    }
+    .admin-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 2rem;
+    }
+    .admin-header h1 {
+        margin-bottom: 0;
+        font-size: 1.75rem;
+    }
+    .admin-header .back-link {
+        color: var(--text-dim);
+        text-decoration: none;
+        font-size: var(--text-sm);
+    }
+    .admin-header .back-link:hover {
+        color: var(--text);
+    }
+
+    /* KPI row */
+    .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2.5rem;
+    }
+    .kpi-card {
+        background: var(--surface);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-lg);
+        padding: 1.25rem 1rem;
+        text-align: center;
+    }
+    .kpi-value {
+        font-size: 1.75rem;
+        font-weight: 700;
+        font-family: var(--font-mono);
+        letter-spacing: -0.02em;
+        line-height: 1.2;
+        color: var(--text);
+        margin-bottom: 0.25rem;
+    }
+    .kpi-label {
+        font-size: 0.75rem;
+        color: var(--text-dim);
+        line-height: 1.3;
+    }
+
+    /* Section headers */
+    .section-title {
+        font-size: var(--text-sm);
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-weight: 600;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid var(--border-subtle);
+    }
+
+    /* Chart containers */
+    .chart-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    .chart-box {
+        background: var(--surface);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-lg);
+        padding: 1.25rem;
+    }
+    .chart-box h3 {
+        font-size: var(--text-sm);
+        color: var(--text-muted);
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+    .chart-box canvas {
+        width: 100% !important;
+        max-height: 300px;
+    }
+    .chart-full {
+        grid-column: 1 / -1;
+    }
+
+    /* Response table */
+    .table-controls {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+    }
+    .table-controls select,
+    .table-controls input {
+        background: var(--bg-subtle);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        color: var(--text);
+        font-size: var(--text-sm);
+        padding: 0.5rem 0.75rem;
+        font-family: var(--font-sans);
+    }
+    .table-controls select:focus,
+    .table-controls input:focus {
+        outline: none;
+        border-color: var(--primary);
+    }
+    .btn-export {
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: var(--radius);
+        padding: 0.5rem 1rem;
+        font-size: var(--text-sm);
+        font-weight: 500;
+        cursor: pointer;
+        margin-left: auto;
+    }
+    .btn-export:hover {
+        background: var(--primary-hover);
+    }
+    .table-scroll {
+        overflow-x: auto;
+        max-height: 600px;
+        overflow-y: auto;
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-lg);
+    }
+    .admin-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: var(--text-xs);
+        white-space: nowrap;
+    }
+    .admin-table th {
+        position: sticky;
+        top: 0;
+        background: var(--surface);
+        color: var(--text-dim);
+        font-weight: 600;
+        font-size: 0.65rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 0.6rem 0.5rem;
+        border-bottom: 2px solid var(--border);
+        cursor: pointer;
+        user-select: none;
+        z-index: 2;
+    }
+    .admin-table th:hover {
+        color: var(--text);
+    }
+    .admin-table th .sort-arrow {
+        margin-left: 0.25rem;
+        opacity: 0.4;
+    }
+    .admin-table th.sorted .sort-arrow {
+        opacity: 1;
+        color: var(--primary);
+    }
+    .admin-table td {
+        padding: 0.5rem;
+        border-bottom: 1px solid var(--border-subtle);
+        color: var(--text-muted);
+        vertical-align: middle;
+    }
+    .admin-table tbody tr:nth-child(even) {
+        background: var(--bg-subtle);
+    }
+    .admin-table tbody tr:hover {
+        background: var(--surface-hover);
+    }
+    .admin-table .q1-col {
+        max-width: 200px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .admin-table .pass { color: var(--pass); }
+    .admin-table .fail { color: var(--fail); }
+    .admin-table .mono {
+        font-family: var(--font-mono);
+    }
+
+    /* Empty state */
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: var(--text-dim);
+        font-size: var(--text-sm);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .admin-container { padding: 1rem; }
+        .chart-row { grid-template-columns: 1fr; }
+        .kpi-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 480px) {
+        .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <div class="admin-header">
+        <h1>Admin Analytics</h1>
+        <a href="/dashboard" class="back-link">&#8592; Dashboard</a>
+    </div>
+
+    {% set kpis = analytics.kpis %}
+    {% set has_data = kpis.n_tests > 0 %}
+
+    <!-- ── Section 1: Overview KPIs ── -->
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <div class="kpi-value">{{ kpis.n_participants }}</div>
+            <div class="kpi-label">Participants</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-value">{{ kpis.n_tests }}</div>
+            <div class="kpi-label">Tests completes</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-value">{{ kpis.tests_today }} / {{ kpis.tests_this_week }}</div>
+            <div class="kpi-label">Aujourd'hui / 7j</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-value">{{ kpis.avg_glance }}%</div>
+            <div class="kpi-label">GLANCE moyen</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-value">{{ kpis.avg_session_s }}s</div>
+            <div class="kpi-label">Duree moy. session</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-value">{{ kpis.completion_rate }}%</div>
+            <div class="kpi-label">Taux de completion</div>
+        </div>
+    </div>
+
+    {% if not has_data %}
+    <div class="empty-state">
+        <p>Pas encore de donnees. Les graphiques apparaitront apres le premier test.</p>
+    </div>
+    {% endif %}
+
+    {% if has_data %}
+    <!-- ── Section 2: Activity over time ── -->
+    <h2 class="section-title">Activite (30 derniers jours)</h2>
+    <div class="chart-row">
+        <div class="chart-box chart-full">
+            <canvas id="activityChart"></canvas>
+        </div>
+    </div>
+
+    <!-- ── Section 3 & 4: Score distribution + S9b by domain ── -->
+    <h2 class="section-title">Distributions</h2>
+    <div class="chart-row">
+        <div class="chart-box">
+            <h3>Distribution des scores GLANCE</h3>
+            <canvas id="scoreDistChart"></canvas>
+        </div>
+        <div class="chart-box">
+            <h3>Taux S9b par domaine</h3>
+            <canvas id="domainS9bChart"></canvas>
+        </div>
+    </div>
+
+    <!-- ── Section 5: VEC vs Control ── -->
+    {% if analytics.vec_vs_control %}
+    <h2 class="section-title">VEC vs Controle</h2>
+    <div class="chart-row">
+        <div class="chart-box chart-full">
+            <h3>Taux S9b — VEC vs Controle par domaine</h3>
+            <canvas id="vecControlChart"></canvas>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ── Section 7: Participant profiles ── -->
+    <h2 class="section-title">Profils participants</h2>
+    <div class="chart-row">
+        <div class="chart-box">
+            <h3>Domaine clinique</h3>
+            <canvas id="clinicalPieChart"></canvas>
+        </div>
+        <div class="chart-box">
+            <h3>Litteracie donnees</h3>
+            <canvas id="literacyPieChart"></canvas>
+        </div>
+    </div>
+    <div class="chart-row">
+        <div class="chart-box">
+            <h3>Annees d'experience</h3>
+            <canvas id="experienceBarChart"></canvas>
+        </div>
+        <!-- ── Section 8: Voice vs Text ── -->
+        <div class="chart-box">
+            <h3>Voice vs Text — score S9a moyen</h3>
+            <canvas id="inputModeChart"></canvas>
+        </div>
+    </div>
+
+    <!-- ── Section 6: Response details table ── -->
+    <h2 class="section-title">Tous les tests ({{ analytics.response_table | length }})</h2>
+    <div class="table-controls">
+        <label style="color: var(--text-dim); font-size: var(--text-sm);">Domaine:</label>
+        <select id="domainFilter" onchange="filterTable()">
+            <option value="all">Tous</option>
+            {% for ds in analytics.domain_scores %}
+            <option value="{{ ds.domain }}">{{ ds.domain }}</option>
+            {% endfor %}
+        </select>
+        <input type="text" id="searchInput" placeholder="Rechercher..." oninput="filterTable()" style="min-width: 160px;">
+        <button class="btn-export" onclick="exportCSV()">Exporter CSV</button>
+    </div>
+    <div class="table-scroll">
+        <table class="admin-table" id="responseTable">
+            <thead>
+                <tr>
+                    <th onclick="sortTable(0)">Date <span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(1)">Profil <span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(2)">GA <span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(3)">Domaine <span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(4)">Mode <span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(5)">Input <span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(6)">S9a <span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(7)">S9b <span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(8)">S9c <span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(9)">GLANCE <span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(10)">RT2 <span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(11)">Speed-Acc <span class="sort-arrow">&#9650;</span></th>
+                    <th>Q1</th>
+                    <th>Q2</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in analytics.response_table %}
+                <tr data-domain="{{ r.domain }}">
+                    <td class="mono">{{ r.date }}</td>
+                    <td>{{ r.profile }}</td>
+                    <td>{{ r.ga_title }}</td>
+                    <td>{{ r.domain }}</td>
+                    <td>{{ r.mode }}</td>
+                    <td>{{ r.input_mode }}</td>
+                    <td class="{{ 'pass' if r.s9a else 'fail' }} mono">{{ '%.1f' | format(r.s9a_score * 100) }}%</td>
+                    <td class="{{ 'pass' if r.s9b else 'fail' }} mono">{{ 'OK' if r.s9b else 'X' }}</td>
+                    <td class="{{ 'pass' if r.s9c else 'fail' }} mono">{{ 'OK' if r.s9c else 'X' }}</td>
+                    <td class="mono">{{ r.glance }}%</td>
+                    <td class="mono">{{ r.rt2 }}s</td>
+                    <td>{{ r.speed_accuracy }}</td>
+                    <td class="q1-col" title="{{ r.q1_text }}">{{ r.q1_text }}</td>
+                    <td>{{ r.q2_choice }}</td>
+                </tr>
+                {% endfor %}
+                {% if not analytics.response_table %}
+                <tr><td colspan="14" class="empty-state">Aucun test enregistre.</td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// ── Data from backend ──
+const DATA = {{ analytics_json | safe }};
+
+// ── Chart.js dark theme defaults ──
+Chart.defaults.color = '#94a3b8';
+Chart.defaults.borderColor = '#293548';
+Chart.defaults.font.family = "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif";
+
+const CHART_COLORS = {
+    primary: '#3b82f6',
+    primaryAlpha: 'rgba(59, 130, 246, 0.4)',
+    pass: '#22c55e',
+    passAlpha: 'rgba(34, 197, 94, 0.5)',
+    fail: '#ef4444',
+    failAlpha: 'rgba(239, 68, 68, 0.5)',
+    surface: '#1e293b',
+    grid: '#293548',
+    text: '#94a3b8',
+};
+
+// Gradient red->green for score distribution bins
+function binColor(i) {
+    const r = Math.round(239 - (239 - 34) * (i / 9));
+    const g = Math.round(68 + (197 - 68) * (i / 9));
+    const b = Math.round(68 + (94 - 68) * (i / 9));
+    return `rgba(${r}, ${g}, ${b}, 0.75)`;
+}
+
+// Only render charts if there is data
+if (DATA.kpis.n_tests > 0) {
+
+    // ── Section 2: Activity line chart ──
+    new Chart(document.getElementById('activityChart'), {
+        type: 'line',
+        data: {
+            labels: DATA.tests_per_day.map(d => d.date.slice(5)),  // MM-DD
+            datasets: [{
+                label: 'Tests / jour',
+                data: DATA.tests_per_day.map(d => d.count),
+                borderColor: CHART_COLORS.primary,
+                backgroundColor: CHART_COLORS.primaryAlpha,
+                fill: true,
+                tension: 0.3,
+                pointRadius: 3,
+                pointHoverRadius: 6,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: { display: false },
+            },
+            scales: {
+                x: {
+                    grid: { color: CHART_COLORS.grid },
+                    ticks: { maxTicksLimit: 10 },
+                },
+                y: {
+                    beginAtZero: true,
+                    grid: { color: CHART_COLORS.grid },
+                    ticks: { stepSize: 1 },
+                }
+            }
+        }
+    });
+
+    // ── Section 3: Score distribution histogram ──
+    new Chart(document.getElementById('scoreDistChart'), {
+        type: 'bar',
+        data: {
+            labels: ['0-10%', '10-20%', '20-30%', '30-40%', '40-50%', '50-60%', '60-70%', '70-80%', '80-90%', '90-100%'],
+            datasets: [{
+                label: 'Tests',
+                data: DATA.score_distribution,
+                backgroundColor: DATA.score_distribution.map((_, i) => binColor(i)),
+                borderWidth: 0,
+                borderRadius: 4,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+            },
+            scales: {
+                x: {
+                    grid: { display: false },
+                    ticks: { font: { size: 10 } },
+                },
+                y: {
+                    beginAtZero: true,
+                    grid: { color: CHART_COLORS.grid },
+                    ticks: { stepSize: 1 },
+                }
+            }
+        }
+    });
+
+    // ── Section 4: S9b by domain ──
+    const domainLabels = DATA.domain_scores.map(d => d.domain);
+    const domainS9b = DATA.domain_scores.map(d => (d.avg_s9b * 100));
+    const domainColors = domainS9b.map(v => v >= 80 ? CHART_COLORS.pass : v >= 50 ? '#eab308' : CHART_COLORS.fail);
+
+    new Chart(document.getElementById('domainS9bChart'), {
+        type: 'bar',
+        data: {
+            labels: domainLabels,
+            datasets: [{
+                label: 'Taux S9b (%)',
+                data: domainS9b,
+                backgroundColor: domainColors.map(c => c + '99'),
+                borderColor: domainColors,
+                borderWidth: 1,
+                borderRadius: 4,
+            }]
+        },
+        options: {
+            responsive: true,
+            indexAxis: 'y',
+            plugins: {
+                legend: { display: false },
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    max: 100,
+                    grid: { color: CHART_COLORS.grid },
+                    ticks: { callback: v => v + '%' },
+                },
+                y: {
+                    grid: { display: false },
+                }
+            }
+        }
+    });
+
+    // ── Section 5: VEC vs Control ──
+    if (DATA.vec_vs_control && DATA.vec_vs_control.length > 0) {
+        const vcLabels = DATA.vec_vs_control.map(d => d.domain);
+        new Chart(document.getElementById('vecControlChart'), {
+            type: 'bar',
+            data: {
+                labels: vcLabels,
+                datasets: [
+                    {
+                        label: 'VEC S9b (%)',
+                        data: DATA.vec_vs_control.map(d => (d.vec_s9b * 100)),
+                        backgroundColor: CHART_COLORS.passAlpha,
+                        borderColor: CHART_COLORS.pass,
+                        borderWidth: 1,
+                        borderRadius: 4,
+                    },
+                    {
+                        label: 'Controle S9b (%)',
+                        data: DATA.vec_vs_control.map(d => (d.control_s9b * 100)),
+                        backgroundColor: CHART_COLORS.failAlpha,
+                        borderColor: CHART_COLORS.fail,
+                        borderWidth: 1,
+                        borderRadius: 4,
+                    },
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        labels: { boxWidth: 14, padding: 16 },
+                    },
+                },
+                scales: {
+                    x: { grid: { display: false } },
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        grid: { color: CHART_COLORS.grid },
+                        ticks: { callback: v => v + '%' },
+                    }
+                }
+            }
+        });
+    }
+
+    // ── Section 7: Profile pie charts ──
+    function renderPie(canvasId, dataObj) {
+        const labels = Object.keys(dataObj);
+        const values = Object.values(dataObj);
+        if (labels.length === 0) return;
+
+        const palette = [
+            '#3b82f6', '#22c55e', '#eab308', '#ef4444', '#a855f7',
+            '#06b6d4', '#f97316', '#ec4899', '#6366f1', '#14b8a6',
+        ];
+
+        new Chart(document.getElementById(canvasId), {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: values,
+                    backgroundColor: labels.map((_, i) => palette[i % palette.length] + 'cc'),
+                    borderColor: CHART_COLORS.surface,
+                    borderWidth: 2,
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            boxWidth: 12,
+                            padding: 10,
+                            font: { size: 11 },
+                        },
+                    },
+                },
+            }
+        });
+    }
+
+    renderPie('clinicalPieChart', DATA.profile_distribution.clinical_domain);
+    renderPie('literacyPieChart', DATA.profile_distribution.data_literacy);
+
+    // Experience years bar chart
+    const expLabels = Object.keys(DATA.profile_distribution.experience_years);
+    const expValues = Object.values(DATA.profile_distribution.experience_years);
+    if (expLabels.length > 0) {
+        new Chart(document.getElementById('experienceBarChart'), {
+            type: 'bar',
+            data: {
+                labels: expLabels,
+                datasets: [{
+                    label: 'Participants',
+                    data: expValues,
+                    backgroundColor: CHART_COLORS.primaryAlpha,
+                    borderColor: CHART_COLORS.primary,
+                    borderWidth: 1,
+                    borderRadius: 4,
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { grid: { display: false } },
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: CHART_COLORS.grid },
+                        ticks: { stepSize: 1 },
+                    }
+                }
+            }
+        });
+    }
+
+    // ── Section 8: Voice vs Text input ──
+    const imData = DATA.input_mode_comparison;
+    new Chart(document.getElementById('inputModeChart'), {
+        type: 'bar',
+        data: {
+            labels: ['Voice', 'Text'],
+            datasets: [{
+                label: 'Score S9a moyen',
+                data: [imData.voice.avg_s9a, imData.text.avg_s9a],
+                backgroundColor: [CHART_COLORS.primaryAlpha, CHART_COLORS.passAlpha],
+                borderColor: [CHART_COLORS.primary, CHART_COLORS.pass],
+                borderWidth: 1,
+                borderRadius: 4,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        afterLabel: function(ctx) {
+                            const mode = ctx.dataIndex === 0 ? 'voice' : 'text';
+                            return `N = ${imData[mode].n}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: { grid: { display: false } },
+                y: {
+                    beginAtZero: true,
+                    max: 1.0,
+                    grid: { color: CHART_COLORS.grid },
+                }
+            }
+        }
+    });
+}
+
+// ── Table sorting ──
+let sortCol = -1;
+let sortAsc = true;
+
+function sortTable(colIdx) {
+    const table = document.getElementById('responseTable');
+    const tbody = table.tBodies[0];
+    const rows = Array.from(tbody.rows);
+
+    // Toggle direction
+    if (sortCol === colIdx) {
+        sortAsc = !sortAsc;
+    } else {
+        sortCol = colIdx;
+        sortAsc = true;
+    }
+
+    // Update header arrows
+    table.querySelectorAll('th').forEach((th, i) => {
+        th.classList.toggle('sorted', i === colIdx);
+        const arrow = th.querySelector('.sort-arrow');
+        if (arrow) {
+            arrow.innerHTML = (i === colIdx && !sortAsc) ? '&#9660;' : '&#9650;';
+        }
+    });
+
+    rows.sort((a, b) => {
+        let va = a.cells[colIdx]?.textContent?.trim() || '';
+        let vb = b.cells[colIdx]?.textContent?.trim() || '';
+
+        // Try numeric sort
+        const na = parseFloat(va.replace('%', '').replace('s', ''));
+        const nb = parseFloat(vb.replace('%', '').replace('s', ''));
+        if (!isNaN(na) && !isNaN(nb)) {
+            return sortAsc ? na - nb : nb - na;
+        }
+
+        return sortAsc ? va.localeCompare(vb) : vb.localeCompare(va);
+    });
+
+    rows.forEach(row => tbody.appendChild(row));
+}
+
+// ── Table filtering ──
+function filterTable() {
+    const domain = document.getElementById('domainFilter').value;
+    const search = (document.getElementById('searchInput').value || '').toLowerCase();
+    const table = document.getElementById('responseTable');
+    const rows = table.tBodies[0].rows;
+
+    for (const row of rows) {
+        const rowDomain = row.getAttribute('data-domain') || '';
+        const text = row.textContent.toLowerCase();
+        const matchDomain = domain === 'all' || rowDomain === domain;
+        const matchSearch = !search || text.includes(search);
+        row.style.display = (matchDomain && matchSearch) ? '' : 'none';
+    }
+}
+
+// ── CSV export ──
+function exportCSV() {
+    const table = document.getElementById('responseTable');
+    const rows = table.querySelectorAll('tr');
+    let csv = '';
+
+    rows.forEach(row => {
+        if (row.style.display === 'none') return;
+        const cells = row.querySelectorAll('th, td');
+        const values = Array.from(cells).map(c => {
+            let val = c.textContent.trim().replace(/"/g, '""');
+            return `"${val}"`;
+        });
+        csv += values.join(',') + '\n';
+    });
+
+    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `glance_admin_export_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+</script>
+{% endblock %}

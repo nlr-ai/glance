@@ -1011,6 +1011,43 @@ def get_score_distributions() -> dict:
     return distributions
 
 
+def compute_kpi_evolution(tests: list[dict]) -> dict:
+    """Compute week-over-week KPI evolution indicators.
+
+    Compares this week's metrics to last week's to show trends.
+
+    Returns:
+        {
+            "n_tests_delta": int,           # tests this week - tests last week
+            "glance_delta": float,          # avg GLANCE score change
+            "s9b_delta": float,             # S9b rate change
+        }
+    """
+    from datetime import datetime, timedelta
+
+    now = datetime.utcnow()
+    week_ago = (now - timedelta(days=7)).strftime("%Y-%m-%d")
+    two_weeks_ago = (now - timedelta(days=14)).strftime("%Y-%m-%d")
+
+    this_week = [t for t in tests if t.get("created_at") and t["created_at"][:10] >= week_ago]
+    last_week = [t for t in tests if t.get("created_at") and two_weeks_ago <= t["created_at"][:10] < week_ago]
+
+    n_this = len(this_week)
+    n_last = len(last_week)
+
+    glance_this = sum(float(t.get("glance_score") or 0) for t in this_week) / n_this if n_this else 0
+    glance_last = sum(float(t.get("glance_score") or 0) for t in last_week) / n_last if n_last else 0
+
+    s9b_this = sum(1 for t in this_week if t.get("s9b_pass")) / n_this if n_this else 0
+    s9b_last = sum(1 for t in last_week if t.get("s9b_pass")) / n_last if n_last else 0
+
+    return {
+        "n_tests_delta": n_this - n_last,
+        "glance_delta": round(glance_this - glance_last, 4),
+        "s9b_delta": round(s9b_this - s9b_last, 4),
+    }
+
+
 def get_admin_analytics() -> dict:
     """Return comprehensive platform analytics for admin dashboard.
 
