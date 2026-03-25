@@ -3084,24 +3084,29 @@ def changelog_page(request: Request):
 @app.get("/sitemap.xml")
 def sitemap():
     """Dynamic sitemap for Google indexing."""
-    db = get_db()
-
-    # All public GA pages (fallback if public column doesn't exist yet)
     try:
-        gas = db.execute(
-            "SELECT slug, created_at FROM ga_images WHERE public = 1 AND slug IS NOT NULL ORDER BY id DESC"
-        ).fetchall()
-        domains = db.execute(
-            "SELECT DISTINCT domain FROM ga_images WHERE public = 1"
-        ).fetchall()
-    except Exception:
-        gas = db.execute(
-            "SELECT slug, created_at FROM ga_images WHERE domain != 'user_upload' AND slug IS NOT NULL ORDER BY id DESC"
-        ).fetchall()
-        domains = db.execute(
-            "SELECT DISTINCT domain FROM ga_images WHERE domain != 'user_upload'"
-        ).fetchall()
-    db.close()
+        db = get_db()
+        try:
+            gas = [dict(r) for r in db.execute(
+                "SELECT slug FROM ga_images WHERE public = 1 AND slug IS NOT NULL ORDER BY id DESC"
+            ).fetchall()]
+        except Exception:
+            gas = [dict(r) for r in db.execute(
+                "SELECT slug FROM ga_images WHERE domain != 'user_upload' AND slug IS NOT NULL ORDER BY id DESC"
+            ).fetchall()]
+        try:
+            domains = [dict(r) for r in db.execute(
+                "SELECT DISTINCT domain FROM ga_images WHERE public = 1"
+            ).fetchall()]
+        except Exception:
+            domains = [dict(r) for r in db.execute(
+                "SELECT DISTINCT domain FROM ga_images WHERE domain != 'user_upload'"
+            ).fetchall()]
+        db.close()
+    except Exception as e:
+        logger.warning(f"Sitemap DB error: {e}")
+        gas = []
+        domains = []
 
     base = "https://glance.scisense.fr"
 
