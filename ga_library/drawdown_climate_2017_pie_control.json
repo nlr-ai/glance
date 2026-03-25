@@ -27,5 +27,35 @@
             "la réduction du gaspillage alimentaire a le plus grand potentiel de réduction de CO2 avec 70.5 gigatonnes",
             "food-related solutions (waste reduction and plant-rich diets) outweigh energy and transport solutions in total CO2 impact"
         ]
-    }
+    },
+    "ocr_text": "Project Drawdown\nPie chart (control)\nElectric vehicles\n(10.8 GT)\nSolar farms\n6%\n(36.9 GT)\nReduced food waste\n(70.5 GT)\n20%\n38%\n35%\nPlant-rich diets\n(65.0 GT)",
+    "ocr_words": [
+        "Project",
+        "Drawdown",
+        "Pie",
+        "chart",
+        "control",
+        "Electric",
+        "vehicles",
+        "10.8",
+        "GT",
+        "6%",
+        "Solar",
+        "farms",
+        "36.9",
+        "GT",
+        "20%",
+        "Plant-rich",
+        "diets",
+        "65.0",
+        "GT",
+        "35%",
+        "Reduced",
+        "food",
+        "waste",
+        "70.5",
+        "GT",
+        "38%"
+    ],
+    "ocr_word_count": 26
 }

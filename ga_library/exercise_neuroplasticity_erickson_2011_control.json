@@ -30,5 +30,38 @@
             "control group shows 1.5% hippocampal decline highlighting age-related atrophy"
         ]
     },
-    "is_control": true
+    "is_control": true,
+    "ocr_text": "Exercise and Hippocampal Volume Change\nPie chart (control)\nAerobic exercise (+2)\nWalking (+0.5)\nStretching (-1.4)\nControl (-1.5)\nErickson, K. I. et al. (2011). Exercise training increases hippocampal volume. PNAS.",
+    "ocr_words": [
+        "Exercise",
+        "and",
+        "Hippocampal",
+        "Volume",
+        "Change",
+        "Pie",
+        "chart",
+        "control",
+        "Aerobic",
+        "exercise",
+        "+2",
+        "Walking",
+        "+0.5",
+        "Stretching",
+        "1.4",
+        "Control",
+        "1.5",
+        "Erickson",
+        "K",
+        "I",
+        "et",
+        "al",
+        "2011",
+        "Exercise",
+        "training",
+        "increases",
+        "hippocampal",
+        "volume",
+        "PNAS"
+    ],
+    "ocr_word_count": 29
 }

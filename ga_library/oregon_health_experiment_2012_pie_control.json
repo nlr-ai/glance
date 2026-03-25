@@ -27,5 +27,31 @@
             "le dépistage de la dépression a montré le plus grand effet positif de la couverture Medicaid",
             "Medicaid increased emergency visits and depression detection but showed no significant physical health improvement"
         ]
-    }
+    },
+    "ocr_text": "Oregon Health Insurance Experiment — Pie (control)\nPhysical health (0%) 5%\nFinancial strain (-25%) 25%\nDepression screening (+30%) 30%\nEmergency visits (+40%) 40%",
+    "ocr_words": [
+        "Oregon",
+        "Health",
+        "Insurance",
+        "Experiment",
+        "Pie",
+        "control",
+        "Physical",
+        "health",
+        "0%",
+        "5%",
+        "Financial",
+        "strain",
+        "25%",
+        "25%",
+        "Depression",
+        "screening",
+        "+30%",
+        "30%",
+        "Emergency",
+        "visits",
+        "+40%",
+        "40%"
+    ],
+    "ocr_word_count": 22
 }

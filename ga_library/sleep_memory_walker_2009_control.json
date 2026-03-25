@@ -30,5 +30,42 @@
             "even napping (85%) significantly outperforms sleep deprivation for memory"
         ]
     },
-    "is_control": true
+    "is_control": true,
+    "ocr_text": "Sleep Stages and Memory Consolidation — Pie chart (control)\nFull night sleep (94)\nNap (85)\nFragmented sleep (72)\nSleep deprived (60)\nWalker, M. P. (2009). The Role of Sleep in Cognition and Emotion. ANYAS.",
+    "ocr_words": [
+        "Sleep",
+        "Stages",
+        "and",
+        "Memory",
+        "Consolidation",
+        "Pie",
+        "chart",
+        "control",
+        "Full",
+        "night",
+        "sleep",
+        "94",
+        "Nap",
+        "85",
+        "Fragmented",
+        "sleep",
+        "72",
+        "Sleep",
+        "deprived",
+        "60",
+        "Walker",
+        "M",
+        "P",
+        "2009",
+        "The",
+        "Role",
+        "of",
+        "Sleep",
+        "in",
+        "Cognition",
+        "and",
+        "Emotion",
+        "ANYAS"
+    ],
+    "ocr_word_count": 33
 }

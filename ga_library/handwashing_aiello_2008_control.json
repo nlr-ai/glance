@@ -30,5 +30,42 @@
             "education alone achieves only 10% reduction highlighting need for behavioral intervention"
         ]
     },
-    "is_control": true
+    "is_control": true,
+    "ocr_text": "Handwashing and Respiratory Infections — Pie chart (control)\nSoap and water (24)\nHand sanitizer (21)\nEducation only (10)\nControl (0)\nAiello, A. E. et al. (2008). Effect of hand hygiene on infectious disease. AJPH.",
+    "ocr_words": [
+        "Handwashing",
+        "and",
+        "Respiratory",
+        "Infections",
+        "Pie",
+        "chart",
+        "control",
+        "Soap",
+        "and",
+        "water",
+        "24",
+        "Hand",
+        "sanitizer",
+        "21",
+        "Education",
+        "only",
+        "10",
+        "Control",
+        "0",
+        "Aiello",
+        "A",
+        "E",
+        "et",
+        "al",
+        "2008",
+        "Effect",
+        "of",
+        "hand",
+        "hygiene",
+        "on",
+        "infectious",
+        "disease",
+        "AJPH"
+    ],
+    "ocr_word_count": 33
 }

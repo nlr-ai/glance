@@ -196,12 +196,11 @@ constants:
   mcnemar_min_pairs: 10
 
   # -- System 2 Deep Analysis (scoring.py) --
-  # PRIOR: cosine similarity threshold for a reference node to count as
-  # "received" during deliberate free recall. Lower than S9a (0.40) because
-  # System 2 matches casual verbal descriptions against academic reference
-  # texts — the semantic gap is larger. 0.25 keeps "obvious meta-talk" out
-  # while accepting paraphrased recall. TO CALIBRATE on first N=10 transcripts.
-  s2_coverage_threshold: 0.25
+  # CALIBRATED: cosine similarity threshold for a reference node to count
+  # as "received" during deliberate free recall. Uses same threshold as S9a
+  # (S2b_Mathematics.md) — the reasoning is identical: below 0.40 the
+  # participant's language is too far from the reference to count as a match.
+  s2_coverage_threshold: 0.40
 
   # -- System 2 timing --
   # PHENOMENON: 90-second cap for System 2 free recall.

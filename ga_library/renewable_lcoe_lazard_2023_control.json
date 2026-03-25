@@ -30,5 +30,35 @@
             "nuclear LCOE at $141/MWh is nearly 6x more expensive than solar"
         ]
     },
-    "is_control": true
+    "is_control": true,
+    "ocr_text": "Renewable Energy LCOE Comparison — Pie chart (control)\nSolar utility (24)\nWind onshore (29)\nGas combined (45)\nNuclear (141)\nLazard's Levelized Cost of Energy Analysis, v16.0 (2023).",
+    "ocr_words": [
+        "Renewable",
+        "Energy",
+        "LCOE",
+        "Comparison",
+        "Pie",
+        "chart",
+        "control",
+        "Solar",
+        "utility",
+        "24",
+        "Wind",
+        "onshore",
+        "29",
+        "Gas",
+        "combined",
+        "45",
+        "Nuclear",
+        "141",
+        "Lazard's",
+        "Levelized",
+        "Cost",
+        "of",
+        "Energy",
+        "Analysis",
+        "v16.0",
+        "2023"
+    ],
+    "ocr_word_count": 26
 }

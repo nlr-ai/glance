@@ -3,8 +3,13 @@
     "version": "Vaswani2017-pie-control",
     "is_control": true,
     "correct_product": "Transformer (Big)",
-    "products": ["Transformer (Big)", "Transformer (Base)", "ConvS2S", "GNMT+RL"],
-    "title": "Machine Translation — Pie chart (contr\u00f4le)",
+    "products": [
+        "Transformer (Big)",
+        "Transformer (Base)",
+        "ConvS2S",
+        "GNMT+RL"
+    ],
+    "title": "Machine Translation — Pie chart (contrôle)",
     "semantic_references": {
         "L1_broad": [
             "machine learning",
@@ -21,8 +26,53 @@
         ],
         "L3_detailed": [
             "the Transformer architecture achieves the highest BLEU score on WMT 2014 EN-DE translation",
-            "le Transformer surpasse les r\u00e9seaux r\u00e9currents et convolutifs gr\u00e2ce au m\u00e9canisme d'attention",
+            "le Transformer surpasse les réseaux récurrents et convolutifs grâce au mécanisme d'attention",
             "self-attention alone outperforms LSTM and CNN on translation benchmarks"
         ]
-    }
+    },
+    "ocr_text": "Machine Translation — BLEU Score Distribution (WMT 2014 EN-DE)\nPie chart encoding — area-based, perceptually misleading for close values\n26.9%\n23.3%\n25.9%\n23.9%\nTransformer (Big): 28.4 BLEU\nTransformer (Base): 27.3 BLEU\nConvS2S: 25.2 BLEU\nGNMT+RL: 24.6 BLEU\nSource: Vaswani et al., NeurIPS 2017",
+    "ocr_words": [
+        "Machine",
+        "Translation",
+        "BLEU",
+        "Score",
+        "Distribution",
+        "WMT",
+        "2014",
+        "EN-DE",
+        "Pie",
+        "chart",
+        "encoding",
+        "area-based",
+        "perceptually",
+        "misleading",
+        "for",
+        "close",
+        "values",
+        "26.9%",
+        "23.3%",
+        "25.9%",
+        "23.9%",
+        "Transformer",
+        "Big",
+        "28.4",
+        "BLEU",
+        "Transformer",
+        "Base",
+        "27.3",
+        "BLEU",
+        "ConvS2S",
+        "25.2",
+        "BLEU",
+        "GNMT+RL",
+        "24.6",
+        "BLEU",
+        "Source",
+        "Vaswani",
+        "et",
+        "al",
+        "NeurIPS",
+        "2017"
+    ],
+    "ocr_word_count": 41
 }

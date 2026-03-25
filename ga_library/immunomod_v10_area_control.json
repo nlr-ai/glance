@@ -3,8 +3,13 @@
     "version": "V10-area-control",
     "is_control": true,
     "correct_product": "OM-85",
-    "products": ["OM-85", "PMBL", "MV130", "CRL1505"],
-    "title": "Immunomodulateurs RTIs — Encodage par aire (contr\u00f4le)",
+    "products": [
+        "OM-85",
+        "PMBL",
+        "MV130",
+        "CRL1505"
+    ],
+    "title": "Immunomodulateurs RTIs — Encodage par aire (contrôle)",
     "semantic_references": {
         "L1_broad": [
             "immunologie",
@@ -23,5 +28,41 @@
             "le lysat bacterien OM-85 est le mieux documente pour reduire les episodes de RTI chez les enfants",
             "hierarchie de preuves cliniques entre OM-85, PMBL, MV130 et CRL1505 pour les RTIs pediatriques"
         ]
-    }
+    },
+    "ocr_text": "Immunomodulateurs — Niveau de preuve clinique\nEncodage par aire (cercles proportionnels)\nOM-85 18 RCTs\nPMBL 5 RCTs\nMV130 1 RCT\nCRL1505 Preclinical\nArea encoding: Stevens β=0.7 — perceptual compression\nSource: Inchauspe, MDPI Children 2026",
+    "ocr_words": [
+        "Immunomodulateurs",
+        "Niveau",
+        "de",
+        "preuve",
+        "clinique",
+        "Encodage",
+        "par",
+        "aire",
+        "cercles",
+        "proportionnels",
+        "OM-85",
+        "18",
+        "RCTs",
+        "PMBL",
+        "5",
+        "RCTs",
+        "MV130",
+        "1",
+        "RCT",
+        "CRL1505",
+        "Preclinical",
+        "Area",
+        "encoding",
+        "Stevens",
+        "β=0.7",
+        "perceptual",
+        "compression",
+        "Source",
+        "Inchauspe",
+        "MDPI",
+        "Children",
+        "2026"
+    ],
+    "ocr_word_count": 32
 }

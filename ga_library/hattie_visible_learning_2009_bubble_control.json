@@ -27,5 +27,34 @@
             "le feedback a l'effet le plus fort (d=0.73) parmi les interventions pédagogiques analysées par Hattie",
             "homework shows the weakest effect size (d=0.29) compared to feedback, direct instruction, and peer tutoring"
         ]
-    }
+    },
+    "ocr_text": "Visible Learning — Bubble chart (control)\n1.0\n0.8\nFeedback d=0.73\nDirect instruction d=0.59\nPeer tutoring d=0.55\n0.6\n0.4\nHomework d=0.29\n0.2\n0.0\nEffect size (Cohen's d)",
+    "ocr_words": [
+        "Visible",
+        "Learning",
+        "Bubble",
+        "chart",
+        "control",
+        "1.0",
+        "0.8",
+        "Feedback",
+        "d=0.73",
+        "Direct",
+        "instruction",
+        "d=0.59",
+        "Peer",
+        "tutoring",
+        "d=0.55",
+        "0.6",
+        "0.4",
+        "Homework",
+        "d=0.29",
+        "0.2",
+        "0.0",
+        "Effect",
+        "size",
+        "Cohen's",
+        "d"
+    ],
+    "ocr_word_count": 25
 }

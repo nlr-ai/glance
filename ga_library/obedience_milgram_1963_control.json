@@ -29,5 +29,34 @@
             "proximity to the victim reduces obedience from 65% to 30% in touch condition"
         ]
     },
-    "is_control": true
+    "is_control": true,
+    "ocr_text": "Obedience to Authority — Pie chart (control)\nBaseline (65)\nRemote feedback (40)\nTouch proximity (30)\nExperimenter absent (20)\nMilgram, S. (1963). Behavioral Study of Obedience. JASP.",
+    "ocr_words": [
+        "Obedience",
+        "to",
+        "Authority",
+        "Pie",
+        "chart",
+        "control",
+        "Baseline",
+        "65",
+        "Remote",
+        "feedback",
+        "40",
+        "Touch",
+        "proximity",
+        "30",
+        "Experimenter",
+        "absent",
+        "20",
+        "Milgram",
+        "S",
+        "1963",
+        "Behavioral",
+        "Study",
+        "of",
+        "Obedience",
+        "JASP"
+    ],
+    "ocr_word_count": 25
 }

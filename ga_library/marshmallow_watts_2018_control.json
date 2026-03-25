@@ -29,5 +29,38 @@
             "BMI and behavioral problems show negligible effects of delayed gratification"
         ]
     },
-    "is_control": true
+    "is_control": true,
+    "ocr_text": "Marshmallow Test Replication — Pie chart (control)\nAcademic achievement (0.32)\nBehavioral problems (0.12)\nSAT scores (0.08)\nBMI (0.05)\nWatts, T. W. et al. (2018). Revisiting the Marshmallow Test. Psych Science.",
+    "ocr_words": [
+        "Marshmallow",
+        "Test",
+        "Replication",
+        "Pie",
+        "chart",
+        "control",
+        "Academic",
+        "achievement",
+        "0.32",
+        "Behavioral",
+        "problems",
+        "0.12",
+        "SAT",
+        "scores",
+        "0.08",
+        "BMI",
+        "0.05",
+        "Watts",
+        "T",
+        "W",
+        "et",
+        "al",
+        "2018",
+        "Revisiting",
+        "the",
+        "Marshmallow",
+        "Test",
+        "Psych",
+        "Science"
+    ],
+    "ocr_word_count": 29
 }

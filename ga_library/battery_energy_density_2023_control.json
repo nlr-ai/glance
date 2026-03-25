@@ -30,5 +30,29 @@
             "lead-acid at 40 Wh/kg highlights the 10x improvement in modern battery tech"
         ]
     },
-    "is_control": true
+    "is_control": true,
+    "ocr_text": "Battery Technologies\nPie chart (control)\nSolid-state (400)\nLithium-ion (250)\nSodium-ion (160)\nLead-acid (40)\nCompiled from DOE & industry benchmarks (2023).",
+    "ocr_words": [
+        "Battery",
+        "Technologies",
+        "Pie",
+        "chart",
+        "control",
+        "Solid-state",
+        "400",
+        "Lithium-ion",
+        "250",
+        "Sodium-ion",
+        "160",
+        "Lead-acid",
+        "40",
+        "Compiled",
+        "from",
+        "DOE",
+        "&",
+        "industry",
+        "benchmarks",
+        "2023"
+    ],
+    "ocr_word_count": 20
 }

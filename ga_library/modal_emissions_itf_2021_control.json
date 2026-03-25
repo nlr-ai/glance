@@ -30,5 +30,37 @@
             "cars emit 170g CO2/pkm, 12x more than trains at 14g"
         ]
     },
-    "is_control": true
+    "is_control": true,
+    "ocr_text": "CO₂ Emissions per Passenger-km by Transport Mode — Pie chart (control)\nCar (170)\nBus (65)\nTrain (14)\nBicycle (0)\nInternational Transport Forum (2021). Transport CO₂ and the Paris Agreement.",
+    "ocr_words": [
+        "CO₂",
+        "Emissions",
+        "per",
+        "Passenger-km",
+        "by",
+        "Transport",
+        "Mode",
+        "Pie",
+        "chart",
+        "control",
+        "Car",
+        "170",
+        "Bus",
+        "65",
+        "Train",
+        "14",
+        "Bicycle",
+        "0",
+        "International",
+        "Transport",
+        "Forum",
+        "2021",
+        "Transport",
+        "CO₂",
+        "and",
+        "the",
+        "Paris",
+        "Agreement"
+    ],
+    "ocr_word_count": 28
 }
