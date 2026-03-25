@@ -9,6 +9,25 @@
         {# Auto-dismiss countdown in top-right corner #}
         <div class="reveal-countdown" id="revealCountdown">5</div>
 
+        {# ── Blur overlay — click to reveal ── #}
+        <div class="reveal-blur-gate" id="revealBlurGate" style="
+            position:absolute; top:0; left:0; right:0; bottom:0; z-index:10;
+            display:flex; align-items:center; justify-content:center;
+            background:rgba(15,23,42,0.6); backdrop-filter:blur(8px);
+            border-radius:inherit; cursor:pointer;
+            transition: opacity 0.4s ease;
+        ">
+            <button id="revealUnblurBtn" style="
+                background:linear-gradient(135deg,#0d9488,#0ea5e9); color:#fff;
+                border:none; padding:1rem 2.5rem; border-radius:12px;
+                font-size:1.1rem; font-weight:700; cursor:pointer;
+                box-shadow:0 4px 20px rgba(13,148,136,0.4);
+                transition: transform 0.2s ease, box-shadow 0.2s ease;
+            " onmouseover="this.style.transform='scale(1.05)';this.style.boxShadow='0 6px 28px rgba(13,148,136,0.5)'"
+               onmouseout="this.style.transform='scale(1)';this.style.boxShadow='0 4px 20px rgba(13,148,136,0.4)'"
+            >Découvrir mes résultats</button>
+        </div>
+
         {% if s10_hit == false %}
         {# ── MODE A: S10 Miss — Rejection Autopsy ── #}
         <div class="reveal-body reveal-miss">
@@ -54,7 +73,10 @@
                 </button>
             </div>
             <div class="rejection-other hidden" id="rejection-other-input">
-                <textarea id="rejection-other-text" rows="2" placeholder="Decrivez..."></textarea>
+                <div class="comment-input-wrap">
+                    <textarea id="rejection-other-text" rows="2" placeholder="Decrivez..."></textarea>
+                    <button type="button" class="btn-comment-mic" id="btn-rejection-mic" title="Dicter votre raison">&#127908;</button>
+                </div>
                 <button class="btn btn-primary rejection-btn-submit" id="rejection-other-submit">Envoyer</button>
             </div>
 
@@ -244,12 +266,128 @@
 
         // Free-text "Autre raison" submit
         document.getElementById('rejection-other-submit').addEventListener('click', function() {
+            if (window._rejMicRec && window._rejMicRecording) {
+                window._rejMicRec.stop();
+            }
             var text = document.getElementById('rejection-other-text').value;
             var reason = 'other:' + text;
             fetch('/reject/' + testId + '?reason=' + encodeURIComponent(reason))
                 .catch(function() {});
             otherDiv.classList.add('hidden');
             thanksDiv.classList.remove('hidden');
+        });
+
+        // ── Voice input for rejection "Autre raison" ──
+        (function() {
+            var SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+            var micBtn = document.getElementById('btn-rejection-mic');
+            if (!SpeechRec || !micBtn) {
+                if (micBtn) micBtn.style.display = 'none';
+                return;
+            }
+
+            var rejInput = document.getElementById('rejection-other-text');
+            var rec = new SpeechRec();
+            rec.lang = 'fr-FR';
+            rec.continuous = true;
+            rec.interimResults = true;
+
+            var isRecording = false;
+            var silenceTimer = null;
+            var finalTranscript = '';
+
+            window._rejMicRec = rec;
+            window._rejMicRecording = false;
+
+            function stopRec() {
+                if (silenceTimer) { clearTimeout(silenceTimer); silenceTimer = null; }
+                rec.stop();
+            }
+
+            function resetSilence() {
+                if (silenceTimer) clearTimeout(silenceTimer);
+                silenceTimer = setTimeout(function() { stopRec(); }, 5000);
+            }
+
+            micBtn.addEventListener('click', function() {
+                if (isRecording) {
+                    stopRec();
+                } else {
+                    finalTranscript = rejInput.value;
+                    rec.start();
+                    resetSilence();
+                }
+            });
+
+            rec.addEventListener('start', function() {
+                isRecording = true;
+                window._rejMicRecording = true;
+                micBtn.classList.add('recording');
+            });
+
+            rec.onresult = function(event) {
+                var interim = '';
+                var newFinal = '';
+                for (var i = 0; i < event.results.length; i++) {
+                    if (event.results[i].isFinal) {
+                        newFinal += event.results[i][0].transcript;
+                    } else {
+                        interim += event.results[i][0].transcript;
+                    }
+                }
+                var prefix = finalTranscript ? finalTranscript + ' ' : '';
+                rejInput.value = prefix + newFinal + (interim ? interim : '');
+                resetSilence();
+            };
+
+            rec.addEventListener('end', function() {
+                isRecording = false;
+                window._rejMicRecording = false;
+                micBtn.classList.remove('recording');
+                if (silenceTimer) { clearTimeout(silenceTimer); silenceTimer = null; }
+            });
+
+            rec.onerror = function(event) {
+                isRecording = false;
+                window._rejMicRecording = false;
+                micBtn.classList.remove('recording');
+                if (silenceTimer) { clearTimeout(silenceTimer); silenceTimer = null; }
+                if (event.error === 'not-allowed') {
+                    rejInput.placeholder = 'Acces micro refuse — tapez votre raison';
+                    micBtn.style.display = 'none';
+                }
+            };
+        })();
+    }
+
+    // ── Blur gate — click to reveal ──
+    var blurGate = document.getElementById('revealBlurGate');
+    var unblurBtn = document.getElementById('revealUnblurBtn');
+    if (blurGate && unblurBtn) {
+        // Stop countdown while blurred
+        if (timer) { clearInterval(timer); countdownEl.textContent = ''; }
+
+        unblurBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            blurGate.style.opacity = '0';
+            blurGate.style.pointerEvents = 'none';
+            setTimeout(function() { blurGate.style.display = 'none'; }, 400);
+
+            // Restart countdown after reveal
+            if (!isS10Miss && hasMore) {
+                seconds = 5;
+                countdownEl.textContent = seconds;
+                timer = setInterval(function() {
+                    seconds--;
+                    if (seconds <= 0) {
+                        clearInterval(timer);
+                        countdownEl.textContent = '';
+                        autoContinue();
+                    } else {
+                        countdownEl.textContent = seconds;
+                    }
+                }, 1000);
+            }
         });
     }
 
