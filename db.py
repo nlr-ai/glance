@@ -76,6 +76,7 @@ CREATE TABLE IF NOT EXISTS ga_graphs (
     link_count INTEGER,
     avg_effectiveness REAL,
     anti_pattern_count INTEGER,
+    overlay_path TEXT,
     FOREIGN KEY (ga_image_id) REFERENCES ga_images(id)
 );
 
@@ -303,6 +304,10 @@ def init_db():
     _migrate_add_columns(conn, "participants", [
         ("is_admin", "INTEGER DEFAULT 0"),
     ])
+    # Migrate: add overlay_path column to ga_graphs
+    _migrate_add_columns(conn, "ga_graphs", [
+        ("overlay_path", "TEXT"),
+    ])
     # Generate slugs for any images that don't have one yet
     _backfill_slugs(conn)
     conn.close()
@@ -442,6 +447,7 @@ def save_graph(graph, ga_image_id, graph_type="vision", source="gemini_vision",
         log = logging.getLogger("db.post_save")
 
         # ── 1. Reader simulation (S1 + S2) ──
+        sim_s1 = None
         try:
             from reader_sim import simulate_reading, generate_reading_narrative
 
@@ -476,6 +482,29 @@ def save_graph(graph, ga_image_id, graph_type="vision", source="gemini_vision",
             log.info(f"Graph health for {gid}: score={health.get('overall_score', 0):.3f}")
         except Exception as e:
             log.warning(f"Graph health failed for graph {gid}: {e}")
+
+        # ── 3. Overlay PNG ──
+        try:
+            if sim_s1 is None:
+                raise ValueError("No S1 sim available — skipping overlay")
+            from graph_renderer import render_overlay_png
+            ga_image_path = None
+            # Find the GA image path
+            db3 = get_db()
+            row = db3.execute("SELECT filename FROM ga_images WHERE id = ?", (gimg_id,)).fetchone()
+            db3.close()
+            if row:
+                ga_image_path = os.path.join(os.path.dirname(__file__), "ga_library", row[0])
+            if ga_image_path and os.path.exists(ga_image_path):
+                overlay_path = render_overlay_png(graph_dict, sim_s1, ga_image_path)
+                if overlay_path:
+                    db4 = get_db()
+                    db4.execute("UPDATE ga_graphs SET overlay_path = ? WHERE id = ?", (overlay_path, gid))
+                    db4.commit()
+                    db4.close()
+                    log.info(f"Overlay rendered for graph {gid}: {overlay_path}")
+        except Exception as e:
+            log.warning(f"Overlay render failed for graph {gid}: {e}")
 
     # Fire and forget — non-blocking
     t = threading.Thread(
