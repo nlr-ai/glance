@@ -3022,6 +3022,43 @@ def og_ga_image(ga_id: int):
 _gif_cache: dict[str, bytes] = {}
 
 
+@app.get("/overlay/ga/{ga_slug}.png")
+def ga_overlay(ga_slug: str):
+    """Serve the graph overlay PNG for a GA (composite: GA image + overlay)."""
+    image = get_image_by_slug(ga_slug)
+    if not image:
+        raise HTTPException(status_code=404, detail="GA not found")
+
+    ga_id = image["id"]
+    latest = get_latest_graph(ga_id)
+
+    if not latest:
+        raise HTTPException(status_code=404, detail="No graph yet")
+
+    # Try to generate overlay on-the-fly
+    try:
+        from graph_renderer import render_overlay_png
+        from reader_sim import simulate_reading
+
+        image_path = os.path.join(BASE, "ga_library", image["filename"])
+        if not os.path.exists(image_path):
+            raise HTTPException(status_code=404, detail="Image file not found")
+
+        graph_dict = latest["graph"]
+        sim = simulate_reading(graph_dict, total_ticks=50, mode="system1")
+        png_path = render_overlay_png(graph_dict, sim, image_path)
+
+        if png_path and os.path.exists(png_path):
+            with open(png_path, "rb") as f:
+                png_bytes = f.read()
+            return Response(content=png_bytes, media_type="image/png",
+                            headers={"Cache-Control": "public, max-age=3600"})
+    except Exception as e:
+        logger.warning(f"Overlay generation failed: {e}")
+
+    raise HTTPException(status_code=500, detail="Overlay generation failed")
+
+
 @app.get("/video/ga/{ga_slug}.gif")
 def ga_video(ga_slug: str):
     """Generate or serve cached animated GIF of the scanpath simulation."""
