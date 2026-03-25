@@ -121,7 +121,7 @@
 }
 
 .domain-card {
-    background: var(--surface);
+    background: linear-gradient(135deg, var(--surface) 0%, rgba(255,255,255,0.03) 100%);
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-lg);
     padding: var(--sp-6);
@@ -234,6 +234,18 @@
     font-family: var(--font-mono);
     font-weight: 600;
     color: var(--text);
+}
+
+/* --- "Non evalué" pill for domain cards --- */
+.dc-no-eval-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: var(--text-xs);
+    font-weight: 600;
+    background: var(--bg-subtle);
+    color: var(--text-dim);
 }
 
 /* --- Empty card state --- */
@@ -359,7 +371,7 @@
                         <div class="dc-verdict" style="background:{{ v_color }}20;color:{{ v_color }};">{{ verdict_label(domain_data.avg_score) }}</div>
                     </div>
                 {% else %}
-                    <span class="dc-score-dash">&mdash;</span>
+                    <span class="dc-no-eval-pill">Non &eacute;valu&eacute;</span>
                 {% endif %}
             </div>
 

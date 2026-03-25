@@ -4,11 +4,44 @@ All formulas from sections 2-7 of the mathematical model.
 """
 
 import math
+import os
+import json
 import statistics
 from datetime import datetime, timedelta
 
 from scoring import classify_speed_accuracy, classify_rt2, score_glance_composite
 from config_loader import get_constant
+
+# Base directory for sidecar JSON lookups
+_ANALYTICS_BASE = os.path.dirname(os.path.abspath(__file__))
+
+
+def _get_predicted_score(filename):
+    """Try to get predicted score from sidecar JSON.
+
+    Priority: predicted_score > approximated_scores.s9b
+    Returns (score_0_to_1, source_label) or (None, None).
+    """
+    if not filename:
+        return None, None
+    slug = os.path.splitext(filename)[0]
+    sidecar_path = os.path.join(_ANALYTICS_BASE, "ga_library", f"{slug}.json")
+    if not os.path.exists(sidecar_path):
+        return None, None
+    try:
+        with open(sidecar_path, encoding="utf-8") as f:
+            data = json.load(f)
+        # Priority: predicted_score > approximated_scores.s9b
+        ps = data.get("predicted_score")
+        if ps is not None:
+            return ps / 100 if ps > 1 else ps, "predicted"
+        approx = data.get("approximated_scores", {})
+        s9b = approx.get("s9b")
+        if s9b is not None:
+            return s9b, "approximated"
+    except Exception:
+        pass
+    return None, None
 
 # ── Configurable constants ────────────────────────────────────────────────
 MCNEMAR_MIN_PAIRS = get_constant("mcnemar_min_pairs", 10)
@@ -685,6 +718,15 @@ def get_leaderboard_data(domain_config: dict) -> dict:
                 n_tests = 0
                 avg_s2 = None
 
+            # Predicted score fallback when no real tests
+            score_source = "measured" if avg_glance is not None else None
+            display_score = avg_glance
+            if avg_glance is None:
+                pred_score, pred_source = _get_predicted_score(img["filename"])
+                if pred_score is not None:
+                    display_score = pred_score
+                    score_source = pred_source
+
             gas.append({
                 "ga_image_id": gid,
                 "slug": img.get("slug") or str(gid),
@@ -692,19 +734,27 @@ def get_leaderboard_data(domain_config: dict) -> dict:
                 "filename": img["filename"],
                 "domain": d,
                 "avg_glance": round(avg_glance, 4) if avg_glance is not None else None,
+                "display_score": round(display_score, 4) if display_score is not None else None,
+                "score_source": score_source,
                 "avg_s9b": round(avg_s9b, 4) if avg_s9b is not None else None,
                 "n_tests": n_tests,
                 "avg_s2_coverage": round(avg_s2, 4) if avg_s2 is not None else None,
             })
 
-        # Sort: GAs with data first (by avg_glance desc), then GAs without data
+        # Sort: GAs with real data first (by avg_glance desc),
+        # then predicted scores, then no data at all
         gas_with_data = sorted(
             [g for g in gas if g["avg_glance"] is not None],
             key=lambda g: g["avg_glance"],
             reverse=True,
         )
-        gas_no_data = [g for g in gas if g["avg_glance"] is None]
-        sorted_gas = gas_with_data + gas_no_data
+        gas_predicted = sorted(
+            [g for g in gas if g["avg_glance"] is None and g["display_score"] is not None],
+            key=lambda g: g["display_score"],
+            reverse=True,
+        )
+        gas_no_data = [g for g in gas if g["avg_glance"] is None and g["display_score"] is None]
+        sorted_gas = gas_with_data + gas_predicted + gas_no_data
 
         all_scores = [g["avg_glance"] for g in gas_with_data]
         total_tests = sum(g["n_tests"] for g in gas)
@@ -899,6 +949,15 @@ def get_domain_leaderboard(domain: str, domain_config: dict) -> dict | None:
             n_tests = 0
             avg_s2 = None
 
+        # Predicted score fallback when no real tests
+        score_source = "measured" if avg_glance is not None else None
+        display_score = avg_glance
+        if avg_glance is None:
+            pred_score, pred_source = _get_predicted_score(img["filename"])
+            if pred_score is not None:
+                display_score = pred_score
+                score_source = pred_source
+
         gas.append({
             "ga_image_id": gid,
             "slug": img.get("slug") or str(gid),
@@ -906,20 +965,27 @@ def get_domain_leaderboard(domain: str, domain_config: dict) -> dict | None:
             "filename": img["filename"],
             "domain": domain,
             "avg_glance": round(avg_glance, 4) if avg_glance is not None else None,
+            "display_score": round(display_score, 4) if display_score is not None else None,
+            "score_source": score_source,
             "avg_s9b": round(avg_s9b, 4) if avg_s9b is not None else None,
             "avg_s9a": round(avg_s9a, 4) if avg_s9a is not None else None,
             "n_tests": n_tests,
             "avg_s2_coverage": round(avg_s2, 4) if avg_s2 is not None else None,
         })
 
-    # Sort: data first by avg_glance desc, then no-data
+    # Sort: real data first (by avg_glance desc), then predicted, then no data
     gas_with_data = sorted(
         [g for g in gas if g["avg_glance"] is not None],
         key=lambda g: g["avg_glance"],
         reverse=True,
     )
-    gas_no_data = [g for g in gas if g["avg_glance"] is None]
-    sorted_gas = gas_with_data + gas_no_data
+    gas_predicted = sorted(
+        [g for g in gas if g["avg_glance"] is None and g["display_score"] is not None],
+        key=lambda g: g["display_score"],
+        reverse=True,
+    )
+    gas_no_data = [g for g in gas if g["avg_glance"] is None and g["display_score"] is None]
+    sorted_gas = gas_with_data + gas_predicted + gas_no_data
 
     all_scores = [g["avg_glance"] for g in gas_with_data]
     total_tests = sum(g["n_tests"] for g in gas)
