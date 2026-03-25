@@ -1003,6 +1003,7 @@
 (function() {
     var form = document.getElementById('analyzeForm');
     var dropzone = document.getElementById('dropzone');
+    if (!form || !dropzone) return;  // active_ga mode — no dropzone
     var fileInput = document.getElementById('fileInput');
     var preview = document.getElementById('preview');
     var previewImg = document.getElementById('previewImg');
