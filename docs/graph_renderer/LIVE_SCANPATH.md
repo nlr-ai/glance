@@ -1,0 +1,302 @@
+# Live Scanpath — Real-time Reading Simulation Animation
+
+## Concept
+
+The user clicks "Play" and watches a virtual eye scan their GA in real-time. 5 seconds = 5 seconds. Spheres light up one by one as the eye reaches them. Gold energy flows along filaments as attention transmits to narratives. Dead zones stay dark. The user FEELS what a reader experiences.
+
+This is the hero moment of GLANCE. Not a score. Not a report. A lived experience.
+
+---
+
+## UX Flow
+
+1. User is on `/analyze?ga=slug` or `/ga-detail/slug`
+2. GA image displayed with transparent overlay (spheres positioned but all grey/dim)
+3. User clicks **"Simuler la lecture"** button
+4. **5-second animation begins:**
+   - t=0ms: Entry point (top-left) pulses green. First sphere lights up gold.
+   - t=100ms: Each tick, the "eye" moves to the next sphere in Z-order
+   - Sphere transitions: grey → blue → teal → amber → gold (proportional to fixation time)
+   - Gold filaments light up as attention flows to narratives
+   - Narrative badges (gold dots) appear when a narrative is reached
+   - Dead zones stay dark — the absence IS the message
+5. After 5s: final state holds. Stats appear: "14/17 elements lus — 3 messages transmis sur 4"
+6. Button changes to **"Rejouer"**
+
+Optional: speed control (1x = 5s real-time, 2x = 2.5s, 5x = 1s)
+
+---
+
+## Architecture
+
+### No WebSocket needed
+
+The reader sim runs in <1ms. We don't need server-sent events. We pre-compute the full scanpath on page load and animate client-side with JavaScript `requestAnimationFrame`.
+
+```
+Page load → fetch /analyze/tool/reader_sim/{slug} → get full scanpath
+         → build animation timeline from scanpath data
+         → user clicks Play → JS animates through timeline
+```
+
+### Data Structure (from reader_sim result)
+
+The scanpath already has everything we need:
+
+```json
+{
+  "scanpath": [
+    {"tick": 0, "time_ms": 0, "node_id": "thing:title", "x": 0.15, "y": 0.05, "attention": 1.0, "fixation": 0.85},
+    {"tick": 1, "time_ms": 100, "node_id": "thing:title", "x": 0.15, "y": 0.05, "attention": 1.0, "fixation": 0.85},
+    {"tick": 3, "time_ms": 300, "node_id": "thing:chart", "x": 0.5, "y": 0.4, "attention": 0.95, "fixation": 0.76},
+    ...
+  ],
+  "plan_vs_actual": [...],
+  "heatmap": [...],
+  "narrative_details": [
+    {"id": "narrative:main", "name": "...", "received": 0.92, "status": "reached"},
+    ...
+  ],
+  "dead_spaces": [...],
+  "skipped_nodes": [...],
+  "recommendations": [...]
+}
+```
+
+### Animation Timeline
+
+Convert scanpath ticks to animation keyframes:
+
+```javascript
+const TICK_MS = 100;  // 100ms per tick in sim
+const SPEED = 1.0;    // 1x = real-time
+
+// Pre-process: group consecutive ticks on same node
+// [{node_id, start_ms, end_ms, total_fixation, x, y}]
+const timeline = buildTimeline(scanpath);
+
+// Animation loop
+let startTime = null;
+function animate(timestamp) {
+    if (!startTime) startTime = timestamp;
+    const elapsed = (timestamp - startTime) * SPEED;
+
+    // Find which node is being fixated at this time
+    const currentStep = timeline.find(s => s.start_ms <= elapsed && elapsed < s.end_ms);
+
+    // Update all nodes
+    for (const node of allNodes) {
+        const nodeTimeline = timeline.filter(t => t.node_id === node.id);
+        const visited = nodeTimeline.some(t => t.start_ms <= elapsed);
+        const isActive = currentStep && currentStep.node_id === node.id;
+
+        if (isActive) {
+            // Currently being fixated — bright, pulsing
+            node.el.style.fill = attentionToColor(node.cumulativeAttention);
+            node.el.style.filter = `drop-shadow(0 0 20px ${attentionToColor(node.cumulativeAttention)})`;
+            node.el.style.transform = 'scale(1.15)';
+        } else if (visited) {
+            // Previously visited — steady glow
+            node.el.style.fill = attentionToColor(node.cumulativeAttention);
+            node.el.style.filter = `drop-shadow(0 0 8px ${attentionToColor(node.cumulativeAttention)})`;
+            node.el.style.transform = 'scale(1)';
+        } else {
+            // Not yet visited — dim grey
+            node.el.style.fill = '#475569';
+            node.el.style.filter = 'none';
+            node.el.style.opacity = '0.4';
+        }
+    }
+
+    // Update eye position (scanning dot)
+    if (currentStep) {
+        eyeDot.style.cx = currentStep.x;
+        eyeDot.style.cy = currentStep.y;
+        eyeDot.style.display = '';
+    }
+
+    // Update scanpath trail (gold dotted line)
+    const visitedPoints = timeline
+        .filter(t => t.start_ms <= elapsed)
+        .map(t => `${t.x},${t.y}`);
+    scanpathLine.setAttribute('points', visitedPoints.join(' '));
+
+    // Update narrative badges (appear when reached)
+    // Update filaments (light up when both endpoints visited)
+    // Update progress bar
+
+    if (elapsed < totalDuration) {
+        requestAnimationFrame(animate);
+    } else {
+        showFinalStats();
+    }
+}
+```
+
+### Visual Elements During Animation
+
+| Element | Before animation | During fixation | After fixation | Never reached |
+|---------|-----------------|----------------|---------------|---------------|
+| **Sphere** | Grey, dim, opacity 0.4 | Bright color, scale 1.15, intense glow, pulse | Steady color, scale 1.0, soft glow | Stays grey |
+| **Eye dot** | Hidden | Bright white dot (6px) at current position | N/A | N/A |
+| **Scanpath trail** | Hidden | Gold dotted line grows as eye moves | Full line visible | N/A |
+| **Filament** | Dark grey | N/A | Lights up gold when both endpoints visited | Stays dark |
+| **Narrative badge** | Hidden | N/A | Gold dot appears when narrative reached | Red dot at end |
+| **Space outline** | Faint grey | Teal when eye enters | Teal (visited) | Red dashed (dead) |
+| **Progress bar** | 0% | Grows proportionally | 100% | N/A |
+| **Timer** | "0.0s" | Counts up in real-time | "5.0s" | N/A |
+
+### Saccade Animation
+
+When the eye jumps between nodes (saccade):
+- Eye dot moves along a smooth bezier curve (not teleport)
+- Duration: 150ms per saccade (fast but visible)
+- A faint gold trail follows the eye during the jump
+- The trail fades after 300ms
+
+### Sound Design (V2, optional)
+
+- Soft "ping" when a sphere lights up (pitch proportional to weight)
+- Low hum during fixation (volume proportional to attention)
+- Warning tone when entering a dead zone
+- Completion chime at 5s
+
+---
+
+## Implementation Plan
+
+### Phase 1: Static → Animated
+
+1. The overlay SVG already has all spheres positioned (from graph_renderer)
+2. Add animation JS that reads the scanpath data
+3. On click "Play": animate through the scanpath in real-time
+4. Show progress bar + timer
+
+### Phase 2: Enhanced
+
+5. Saccade bezier animations for eye movement
+6. Filament progressive lighting
+7. Narrative badge pop-in
+8. Speed control (0.5x, 1x, 2x, 5x)
+
+### Phase 3: Interactive
+
+9. Click on any tick point to jump to that moment
+10. Hover shows "at this moment, the reader was looking at X"
+11. Side-by-side: System 1 (5s) vs System 2 (90s) animation
+
+---
+
+## Data Flow
+
+```
+/analyze?ga=slug (page load)
+    │
+    ├─ GET /ga/{filename} → GA image
+    │
+    ├─ graph + sim already in DB (from save_graph auto-trigger)
+    │
+    ├─ render_overlay_svg(graph, sim) → SVG with all spheres (grey)
+    │
+    └─ sim.scanpath → embedded as JSON in page
+                │
+                └─ User clicks "Play"
+                        │
+                        └─ JS requestAnimationFrame loop
+                            ├─ Updates sphere colors/glow
+                            ├─ Moves eye dot
+                            ├─ Extends scanpath trail
+                            ├─ Lights filaments
+                            └─ Shows badges + stats at end
+```
+
+No server calls during animation. Everything client-side.
+
+---
+
+## Hover: Node Detail Card
+
+When the user hovers a sphere (during or after animation), a floating card appears next to the sphere:
+
+```
+┌──────────────────────────────────────┐
+│  OM-85 (w=1.00)                      │
+│  Attention: 300ms — 13% du total     │
+│  ────────────────────────────────     │
+│  Messages portés:                    │
+│  ✓ Fracture du Cycle (92%)           │
+│  ⚠ Hiérarchie d'Évidence (18%)       │
+│  ✗ Axe Intestin-Poumon (0%)          │
+│  ────────────────────────────────     │
+│  Canaux: color_hue (0.95),           │
+│          size (0.80), position (0.70) │
+│  Anti-pattern: aucun                 │
+└──────────────────────────────────────┘
+```
+
+Data sources for the card:
+- `name`, `weight` → graph node
+- Attention ms, % → reader sim heatmap
+- Messages portés → linked narratives + sim narrative_attention
+- Canaux → visual_channels from enriched graph (if available)
+- Anti-pattern → graph metadata anti_patterns
+
+The card follows the cursor but stays within viewport bounds.
+During animation: card shows "En cours de lecture..." until the sphere is reached, then shows real data.
+
+## Hover: Space Zone
+
+Hovering a space outline shows:
+```
+┌──────────────────────────────────┐
+│  Zone: Header (gauche)           │
+│  4 éléments — 3 lus, 1 raté     │
+│  Message: "Résultat principal"   │
+│  Statut: ✓ transmis (85%)       │
+└──────────────────────────────────┘
+```
+
+## Post-Animation: Reading Interpretation
+
+After the 5s animation completes, a **reading interpretation panel** slides in below the overlay:
+
+```
+┌─────────────────────────────────────────────────────┐
+│  LECTURE SIMULÉE — 5.0s                             │
+│                                                     │
+│  Le lecteur entre par 'OM-85' dans le header,       │
+│  qui reçoit 300ms d'attention. Il parcourt ensuite  │
+│  la zone centrale (Épithélium, Lamina Propria)      │
+│  mais n'atteint jamais les conclusions en bas.       │
+│                                                     │
+│  Messages transmis: 3/4                             │
+│  ✓ "Fracture du Cycle" — bien porté par OM-85       │
+│  ✓ "Hiérarchie d'Évidence" — via les barres         │
+│  ✓ "Axe Intestin-Poumon" — perception faible (18%)  │
+│  ✗ "Spécificité par Couche" — jamais atteint        │
+│                                                     │
+│  Verdict: CONFUS (pression 1.02x)                   │
+│  Le visuel contient plus que le lecteur ne peut      │
+│  absorber en 5 secondes.                            │
+│                                                     │
+│  [Améliorer]  [Rejouer]  [System 2 (90s)]           │
+└─────────────────────────────────────────────────────┘
+```
+
+This text IS the `generate_reading_narrative()` output — already implemented. We just display it nicely after the animation finishes, so the user has both the visual AND the verbal interpretation.
+
+The three buttons at the bottom:
+- **Améliorer** → calls `/analyze/improve/{slug}` (auto-improvement turn)
+- **Rejouer** → replays the animation
+- **System 2 (90s)** → runs the 90s sim and plays that animation (accelerated to ~10s playback)
+
+---
+
+## Key Decisions
+
+1. **Client-side only** — the sim data is already computed. No streaming needed.
+2. **requestAnimationFrame** — smooth 60fps, synced to display refresh
+3. **CSS transitions** for sphere color changes (200ms ease) — not instant, feels organic
+4. **Scale pulse** on active fixation (1.15x) — the eye "lands" on the element
+5. **Progressive reveal** — the overlay starts grey, builds up color. The ABSENCE of color at the end is the dead zone diagnostic.
+6. **Real-time by default** — 5s = 5s. The user experiences the reader's time pressure.
