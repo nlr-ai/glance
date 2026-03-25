@@ -141,7 +141,40 @@
 .gd-archetype-detail-desc{font-size:0.875rem;color:var(--gd-text);line-height:1.6;margin-bottom:0.625rem}
 .gd-archetype-detail-rec{font-size:0.8125rem;color:var(--gd-text-dim);line-height:1.5;padding:0.75rem 1rem;background:var(--gd-bg);border-radius:6px}
 .gd-archetype-confidence{font-size:0.6875rem;color:var(--gd-text-muted);font-family:var(--gd-font-mono);margin-top:0.375rem}
-@media print{body{background:#fff!important;color:#000!important}.gd-page{max-width:100%;padding:0}.gd-hero{margin:0 0 1.5rem;padding:1.5rem;border-radius:0;background:#f0f4f8!important}.gd-hero-backdrop,.gd-hero-overlay{display:none!important}.gd-hero-title,.gd-gauge-verdict,.gd-gauge-sub{color:#000!important}.gd-hero-tag{color:#333!important;background:#e2e8f0!important}.gd-share-btn,.gd-nav,.gd-toast{display:none!important}.gd-score-card,.gd-rec-card,.gd-pair-card,.gd-warning-item{break-inside:avoid;box-shadow:none;border:1px solid #ccc}.gd-gauge-text{fill:#000!important}.gd-gauge-label-text{fill:#666!important}}
+/* Email gate — locked state */
+.gd-gate-wrapper{position:relative}
+.gd-gate-blurred{filter:blur(8px);pointer-events:none;user-select:none;-webkit-user-select:none}
+.gd-gate-overlay{position:absolute;top:0;left:0;right:0;z-index:10;display:flex;justify-content:center;padding-top:2rem}
+.gd-gate-cards{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;max-width:720px;width:100%;align-items:start}
+.gd-gate-cards:has(> :only-child){grid-template-columns:1fr;max-width:440px}
+.gd-gate-card{background:#fff;border:1px solid var(--gd-border);border-radius:var(--gd-radius);padding:2rem 1.75rem;box-shadow:0 8px 28px rgba(26,35,50,0.1);text-align:center}
+.gd-gate-card h3{font-size:1.125rem;font-weight:700;color:var(--gd-navy);margin:0 0 0.375rem}
+.gd-gate-card p{font-size:0.875rem;color:var(--gd-text-dim);margin:0 0 1.25rem;line-height:1.5}
+.gd-gate-card-paid{border:2px solid var(--gd-teal);box-shadow:0 12px 40px rgba(13,148,136,0.18);position:relative}
+.gd-gate-card-paid::before{content:'';position:absolute;inset:-2px;border-radius:var(--gd-radius);background:linear-gradient(135deg,rgba(13,148,136,0.06),rgba(13,148,136,0.02));z-index:-1;pointer-events:none}
+.gd-gate-price{font-family:var(--gd-font-mono);font-size:2.25rem;font-weight:800;color:var(--gd-navy);line-height:1;margin-bottom:0.25rem}
+.gd-gate-price-sub{font-size:0.75rem;color:var(--gd-text-muted);margin-bottom:1rem}
+.gd-gate-features{list-style:none;padding:0;margin:0 0 1.25rem;text-align:left}
+.gd-gate-features li{display:flex;align-items:flex-start;gap:0.5rem;padding:0.25rem 0;font-size:0.8125rem;color:var(--gd-text);line-height:1.4}
+.gd-gate-features li .check{color:#22c55e;font-weight:700;flex-shrink:0}
+.gd-gate-form{display:flex;gap:0.5rem;margin-bottom:0.75rem}
+.gd-gate-input{flex:1;padding:0.75rem 1rem;border:1px solid var(--gd-border);border-radius:8px;font-size:0.9375rem;outline:none;transition:border-color 0.2s}
+.gd-gate-input:focus{border-color:var(--gd-teal);box-shadow:0 0 0 3px rgba(13,148,136,0.12)}
+.gd-gate-btn{padding:0.75rem 1.5rem;background:var(--gd-teal);color:#fff;border:none;border-radius:8px;font-size:0.9375rem;font-weight:600;cursor:pointer;transition:background 0.2s;white-space:nowrap;width:100%}
+.gd-gate-btn:hover{background:#0f766e}
+.gd-gate-btn-free{background:#64748b}
+.gd-gate-btn-free:hover{background:#475569}
+.gd-gate-fine{font-size:0.75rem;color:var(--gd-text-muted);margin:0}
+/* Upsell card */
+.gd-upsell-card{background:linear-gradient(135deg,#f0fdfa 0%,#fff 100%);border:1px solid rgba(13,148,136,0.2);border-radius:var(--gd-radius);padding:2rem 2rem 1.75rem;box-shadow:var(--gd-shadow-md);margin-top:2.5rem}
+.gd-upsell-card h3{font-size:1.125rem;font-weight:700;color:var(--gd-navy);margin:0 0 0.5rem}
+.gd-upsell-card>p{font-size:0.9rem;color:var(--gd-text-dim);margin:0 0 1rem;line-height:1.5}
+.gd-upsell-card ul{margin:0 0 1.25rem 1.25rem;padding:0;font-size:0.875rem;color:var(--gd-text);line-height:1.8}
+.gd-upsell-cta{display:inline-flex;align-items:center;gap:0.5rem;background:var(--gd-teal);color:#fff;text-decoration:none;padding:0.75rem 1.75rem;border-radius:100px;font-size:0.9375rem;font-weight:600;transition:background 0.2s;box-shadow:0 4px 12px rgba(13,148,136,0.25)}
+.gd-upsell-cta:hover{background:#0f766e}
+@media(max-width:640px){.gd-gate-cards{grid-template-columns:1fr}.gd-gate-card{padding:1.75rem 1.25rem}}
+@media(max-width:480px){.gd-gate-form{flex-direction:column}}
+@media print{body{background:#fff!important;color:#000!important}.gd-page{max-width:100%;padding:0}.gd-hero{margin:0 0 1.5rem;padding:1.5rem;border-radius:0;background:#f0f4f8!important}.gd-hero-backdrop,.gd-hero-overlay{display:none!important}.gd-hero-title,.gd-gauge-verdict,.gd-gauge-sub{color:#000!important}.gd-hero-tag{color:#333!important;background:#e2e8f0!important}.gd-share-btn,.gd-nav,.gd-toast{display:none!important}.gd-score-card,.gd-rec-card,.gd-pair-card,.gd-warning-item{break-inside:avoid;box-shadow:none;border:1px solid #ccc}.gd-gauge-text{fill:#000!important}.gd-gauge-label-text{fill:#666!important}.gd-gate-overlay,.gd-upsell-card{display:none!important}.gd-gate-blurred{filter:none!important;pointer-events:auto!important;user-select:auto!important}}
 </style>
 {% endblock %}
 
@@ -280,6 +313,44 @@
         <div class="gd-abstract-title">Contenu du GA</div>
         <div class="gd-abstract-text">{{ ga_abstract }}</div>
     </div>
+    {% endif %}
+
+    <!-- Email gate wrapper for user_upload GAs -->
+    {% if is_locked %}
+    <div class="gd-gate-wrapper">
+        <div class="gd-gate-overlay" id="gdGateOverlay">
+            <div class="gd-gate-cards">
+                <!-- Option A: Free (email lead capture) -->
+                <div class="gd-gate-card">
+                    <h3>Analyse gratuite</h3>
+                    <p>Recevez votre analyse par email</p>
+                    <form class="gd-gate-form" id="gdGateForm" action="/analyze/unlock/{{ image.id }}" method="post" style="flex-direction:column;">
+                        <input type="email" name="email" class="gd-gate-input" placeholder="votre@email.com" required autocomplete="email" autofocus>
+                        <button type="submit" class="gd-gate-btn gd-gate-btn-free">Debloquer gratuitement</button>
+                    </form>
+                    <p class="gd-gate-fine">Pas de spam. Uniquement pour vous envoyer votre rapport.</p>
+                </div>
+                <!-- Option B: Paid (Stripe Checkout) -->
+                {% if stripe_enabled %}
+                <div class="gd-gate-card gd-gate-card-paid">
+                    <div class="gd-gate-price">29 &euro;</div>
+                    <div class="gd-gate-price-sub">paiement unique</div>
+                    <h3>Analyse Instantanee + PDF</h3>
+                    <ul class="gd-gate-features">
+                        <li><span class="check">&#10003;</span> Archetype, score, radar perceptuel</li>
+                        <li><span class="check">&#10003;</span> Recommandations prioritaires</li>
+                        <li><span class="check">&#10003;</span> Rapport PDF exportable</li>
+                        <li><span class="check">&#10003;</span> Acces permanent a votre analyse</li>
+                    </ul>
+                    <form action="/checkout/analyse_instantanee/{{ image.id }}" method="post">
+                        <button type="submit" class="gd-gate-btn">Debloquer avec rapport &mdash; 29 &euro;</button>
+                    </form>
+                    <p class="gd-gate-fine" style="margin-top:0.625rem;">Paiement securise par Stripe</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="gd-gate-blurred">
     {% endif %}
 
     {% if detail.n_tests > 0 %}
@@ -474,6 +545,26 @@
         <svg class="gd-empty-icon" viewBox="0 0 24 24" fill="none" stroke="var(--gd-text-muted)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
         <p>En attente de données</p>
         <p style="font-size:0.8125rem;margin-top:0.5rem;">Les scores apparaîtront après le premier test.</p>
+    </div>
+    {% endif %}
+
+    {% if is_locked %}
+        </div><!-- /.gd-gate-blurred -->
+    </div><!-- /.gd-gate-wrapper -->
+    {% endif %}
+
+    <!-- Upsell card (user_upload GAs only, always visible) -->
+    {% if is_user_upload %}
+    <div class="gd-upsell-card">
+        <h3>Allez plus loin avec l'Audit Complet</h3>
+        <p>L'analyse IA est instantanee. L'Audit Complet confronte votre GA a 10 lecteurs reels — des donnees publiables pour votre paper.</p>
+        <ul>
+            <li>Test avec N=10 lecteurs de profils varies</li>
+            <li>Analyse System 2 (couverture nodale)</li>
+            <li>Taxonomie Spin/Drift/Warp</li>
+            <li>Rapport PDF detaille</li>
+        </ul>
+        <a href="mailto:aurore.inchauspe@scisense.fr?subject=Audit%20Complet%20GLANCE%20%E2%80%94%20GA%20%23{{ image.id }}" class="gd-upsell-cta">Demander un Audit Complet — 99 &#8364;</a>
     </div>
     {% endif %}
 </div>

@@ -1303,6 +1303,17 @@ def ga_detail(request: Request, ga_id: int):
     ga_abstract = _generate_ga_abstract(sidecar, image)
     executive_summary = _generate_executive_summary(sidecar, image, detail, recommendations)
 
+    # Email gate: lock user_upload GAs unless unlock cookie is present
+    is_user_upload = (image.get("domain") == "user_upload")
+    is_locked = False
+    if is_user_upload:
+        unlock_cookie = request.cookies.get(f"glance_unlock_{ga_id}")
+        is_locked = not bool(unlock_cookie)
+
+    # Stripe availability (graceful degradation: hide payment option if not configured)
+    from payments import is_stripe_configured
+    stripe_enabled = is_stripe_configured()
+
     # OG meta for sharing
     ga_title = image.get("title", image.get("filename", "GA"))
     n_tests = detail.get("n_tests", 0)
@@ -1332,6 +1343,9 @@ def ga_detail(request: Request, ga_id: int):
         "study_ref": study_ref,
         "ga_abstract": ga_abstract,
         "archetype": archetype_result,
+        "is_locked": is_locked,
+        "is_user_upload": is_user_upload,
+        "stripe_enabled": stripe_enabled,
         "og_title": og_title,
         "og_description": og_desc,
         "og_image": og_image,
@@ -1502,6 +1516,80 @@ async def analyze_submit(request: Request, file: UploadFile = File(...)):
         logger.warning(f"Graph YAML copy failed: {e}")
 
     # Redirect to the ga-detail page
+    return RedirectResponse(url=f"/ga-detail/{ga_id}", status_code=303)
+
+
+@app.post("/analyze/unlock/{ga_id}")
+async def unlock_analysis(ga_id: int, email: str = Form(...)):
+    """Capture email lead and unlock the full analysis for this GA."""
+    # Validate email minimally
+    email = email.strip()
+    if not email or "@" not in email or "." not in email.split("@")[-1]:
+        raise HTTPException(status_code=400, detail="Email invalide")
+
+    # Save email lead
+    save_analysis_lead(email=email, ga_image_id=ga_id, source="analyze")
+
+    # Set unlock cookie (30 days) and redirect back
+    response = RedirectResponse(url=f"/ga-detail/{ga_id}", status_code=303)
+    response.set_cookie(
+        f"glance_unlock_{ga_id}",
+        "1",
+        max_age=86400 * 30,
+        httponly=True,
+    )
+    return response
+
+
+# ── Stripe Checkout routes ────────────────────────────────────────────
+
+
+@app.post("/checkout/{product}/{ga_id}")
+async def create_checkout(request: Request, product: str, ga_id: int):
+    """Create Stripe Checkout and redirect to payment page."""
+    from payments import create_checkout_session, PRODUCTS, is_stripe_configured
+
+    if not is_stripe_configured():
+        raise HTTPException(status_code=503, detail="Paiement indisponible")
+
+    if product not in PRODUCTS:
+        raise HTTPException(status_code=400, detail="Produit inconnu")
+
+    base_url = str(request.base_url).rstrip("/")
+    success_url = f"{base_url}/checkout/success?session_id={{CHECKOUT_SESSION_ID}}&ga_id={ga_id}"
+    cancel_url = f"{base_url}/ga-detail/{ga_id}"
+
+    checkout_url = create_checkout_session(product, ga_id, success_url, cancel_url)
+    return RedirectResponse(url=checkout_url, status_code=303)
+
+
+@app.get("/checkout/success")
+async def checkout_success(request: Request, session_id: str, ga_id: int):
+    """Handle successful payment — unlock the analysis."""
+    from payments import verify_session
+
+    result = verify_session(session_id)
+
+    if result["paid"]:
+        # Save to DB as paid lead
+        save_analysis_lead(
+            email=result["email"] or "",
+            ga_image_id=ga_id,
+            source="stripe",
+            paid=1,
+        )
+
+        # Set unlock cookie (1 year)
+        response = RedirectResponse(url=f"/ga-detail/{ga_id}", status_code=303)
+        response.set_cookie(
+            f"glance_unlock_{ga_id}",
+            "paid",
+            httponly=True,
+            max_age=86400 * 365,
+        )
+        return response
+
+    # Payment not completed — redirect back without unlocking
     return RedirectResponse(url=f"/ga-detail/{ga_id}", status_code=303)
 
 

@@ -32,6 +32,15 @@ CREATE TABLE IF NOT EXISTS ga_images (
     description TEXT
 );
 
+CREATE TABLE IF NOT EXISTS analysis_leads (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    email TEXT NOT NULL,
+    ga_image_id INTEGER,
+    source TEXT DEFAULT 'analyze',
+    paid INTEGER DEFAULT 0
+);
+
 CREATE TABLE IF NOT EXISTS tests (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     participant_id INTEGER NOT NULL,
@@ -132,6 +141,10 @@ def init_db():
     # Migrate: add referral column if missing (for existing DBs)
     _migrate_add_columns(conn, "participants", [
         ("referred_by", "TEXT"),
+    ])
+    # Migrate: add paid column to analysis_leads if missing
+    _migrate_add_columns(conn, "analysis_leads", [
+        ("paid", "INTEGER DEFAULT 0"),
     ])
     conn.close()
 
@@ -539,3 +552,16 @@ def get_top_referrers(limit: int = 20) -> list[dict]:
     ).fetchall()
     db.close()
     return [dict(r) for r in rows]
+
+
+def save_analysis_lead(email: str, ga_image_id: int | None = None, source: str = "analyze", paid: int = 0) -> int:
+    """Save an email lead from the analyze flow. Returns the lead id."""
+    db = get_db()
+    cursor = db.execute(
+        "INSERT INTO analysis_leads (email, ga_image_id, source, paid) VALUES (?, ?, ?, ?)",
+        (email, ga_image_id, source, paid),
+    )
+    lead_id = cursor.lastrowid
+    db.commit()
+    db.close()
+    return lead_id

@@ -9,3 +9,4 @@ matplotlib
 networkx
 Pillow
 google-generativeai
+stripe
