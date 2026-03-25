@@ -2547,6 +2547,15 @@ def blog(request: Request):
     return templates.TemplateResponse("blog.html", {
         "request": request,
         "lang": lang,
+    })
+
+
+@app.get("/blog/ga-tests-itself", response_class=HTMLResponse)
+def blog_ga_tests_itself(request: Request):
+    lang = _lang(request)
+    return templates.TemplateResponse("blog_ga_tests_itself.html", {
+        "request": request,
+        "lang": lang,
         "versions": BLOG_VERSIONS,
     })
 
