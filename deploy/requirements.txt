@@ -8,3 +8,4 @@ numpy
 matplotlib
 networkx
 Pillow
+google-generativeai

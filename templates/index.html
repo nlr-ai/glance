@@ -720,14 +720,14 @@
     </svg>
 
     <div class="lp-hero-content">
-        <div class="lp-hero-badge">Benchmark scientifique</div>
+        <div class="lp-hero-badge">{{ t('hero_badge', lang) }}</div>
         <h1><span>GLANCE</span></h1>
         <p class="lp-hero-sub">
-            Le premier benchmark de comprehension des Graphical Abstracts scientifiques.
-            Testez votre oeil en 2 minutes.
+            {{ t('hero_subtitle', lang) }}
         </p>
 
-        <a href="/onboard" class="lp-hero-cta">Commencer</a>
+        <a href="/onboard" class="lp-hero-cta">{{ t('cta_start', lang) }}</a>
+        <a href="/analyze" class="lp-hero-cta" style="background:transparent;border:2px solid rgba(255,255,255,0.3);margin-left:0.75rem;">Note mon GA</a>
 
         <div class="lp-stats-bar">
             <div class="lp-stat-pill">
@@ -749,11 +749,11 @@
 <div class="lp-top-gas-bg">
     <div class="lp-section">
         <div class="lp-section-header">
-            <h2>Top GAs du moment</h2>
+            <h2>{{ t('top_gas_title', lang) }}</h2>
             {% if landing.top_gas %}
-            <p>Les Graphical Abstracts les mieux compris par les participants</p>
+            <p>{{ t('top_gas_subtitle', lang) }}</p>
             {% else %}
-            <p>La bibliotheque GLANCE est prete -- les scores arrivent bientot</p>
+            <p>{{ t('top_gas_empty', lang) }}</p>
             {% endif %}
         </div>
 
@@ -794,7 +794,7 @@
                 <img src="/ga/{{ fname }}" alt="GA Preview" class="lp-ga-card-img grayscale" loading="lazy">
                 <div class="lp-ga-card-body">
                     <span class="lp-ga-domain-badge" style="opacity:0.5;">--</span>
-                    <div class="lp-ga-card-title" style="color: var(--lp-text-muted);">Classement bientot disponible</div>
+                    <div class="lp-ga-card-title" style="color: var(--lp-text-muted);">{{ t('ranking_soon', lang) }}</div>
                     <div class="lp-score-row">
                         <div class="lp-score-bar-bg">
                             <div class="lp-score-bar-fill" style="width: 0%;"></div>
@@ -813,8 +813,8 @@
 <div class="lp-how-bg">
     <div class="lp-section">
         <div class="lp-section-header">
-            <h2>Comment ca marche</h2>
-            <p>3 etapes, 2 minutes, zero inscription</p>
+            <h2>{{ t('how_title', lang) }}</h2>
+            <p>{{ t('how_subtitle', lang) }}</p>
         </div>
 
         <div class="lp-how-grid">
@@ -826,8 +826,8 @@
                         <path d="M9 6h6M9 10h6M9 14h3" stroke-width="1.5"/>
                     </svg>
                 </div>
-                <h3>Scrollez un feed scientifique</h3>
-                <p>Des posts defilent comme sur LinkedIn. Un contenu parmi eux est un Graphical Abstract.</p>
+                <h3>{{ t('how_step1_title', lang) }}</h3>
+                <p>{{ t('how_step1_desc', lang) }}</p>
             </div>
 
             <div class="lp-how-card">
@@ -838,8 +838,8 @@
                         <circle cx="12" cy="12" r="2" fill="#10b981"/>
                     </svg>
                 </div>
-                <h3>Identifiez l'image cle</h3>
-                <p>Apres le defilement, selectionnez l'image qui vous a marque et repondez aux questions.</p>
+                <h3>{{ t('how_step2_title', lang) }}</h3>
+                <p>{{ t('how_step2_desc', lang) }}</p>
             </div>
 
             <div class="lp-how-card">
@@ -848,8 +848,8 @@
                         <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
                     </svg>
                 </div>
-                <h3>Decouvrez votre score</h3>
-                <p>Score GLANCE composite : precision, rapidite, retention. Comparez-vous au leaderboard.</p>
+                <h3>{{ t('how_step3_title', lang) }}</h3>
+                <p>{{ t('how_step3_desc', lang) }}</p>
             </div>
         </div>
     </div>
@@ -921,39 +921,39 @@
 
     <div class="lp-section">
         <div class="lp-section-header">
-            <h2>{% if landing.total_tests > 0 %}En ce moment{% else %}La bibliotheque{% endif %}</h2>
-            <p>{% if landing.total_tests > 0 %}Statistiques en temps reel{% else %}GLANCE est pret. Soyez les premiers.{% endif %}</p>
+            <h2>{% if landing.total_tests > 0 %}{{ t('live_title_active', lang) }}{% else %}{{ t('live_title_empty', lang) }}{% endif %}</h2>
+            <p>{% if landing.total_tests > 0 %}{{ t('live_subtitle_active', lang) }}{% else %}{{ t('live_subtitle_empty', lang) }}{% endif %}</p>
         </div>
 
         <div class="lp-counters">
             <div class="lp-counter-card">
                 <div class="lp-counter-value counter-animate" data-target="{{ landing.total_tests if landing.total_tests > 0 else landing.total_gas }}">0</div>
-                <div class="lp-counter-label">{% if landing.total_tests > 0 %}Tests completes{% else %}GAs en bibliotheque{% endif %}</div>
+                <div class="lp-counter-label">{% if landing.total_tests > 0 %}{{ t('tests_completed_label', lang) }}{% else %}{{ t('gas_in_library', lang) }}{% endif %}</div>
             </div>
 
             <div class="lp-counter-card">
                 {% if landing.avg_glance is not none %}
                 <div class="lp-counter-value teal counter-animate-pct" data-target="{{ (landing.avg_glance * 100) | round(0) | int }}">0%</div>
-                <div class="lp-counter-label">Score moyen GLANCE</div>
+                <div class="lp-counter-label">{{ t('avg_glance_label', lang) }}</div>
                 {% else %}
                 <div class="lp-counter-value teal">{{ landing.total_domains }}</div>
-                <div class="lp-counter-label">Domaines couverts</div>
+                <div class="lp-counter-label">{{ t('domains_covered', lang) }}</div>
                 {% endif %}
             </div>
 
             <div class="lp-counter-card">
                 {% if landing.best_ga %}
                 <div class="lp-counter-value amber counter-animate-pct" data-target="{{ (landing.best_ga.avg_glance * 100) | round(0) | int }}">0%</div>
-                <div class="lp-counter-label">Meilleur GA</div>
+                <div class="lp-counter-label">{{ t('best_ga_label', lang) }}</div>
                 {% else %}
                 <div class="lp-counter-value amber">47</div>
-                <div class="lp-counter-label">Images calibrees</div>
+                <div class="lp-counter-label">{{ t('calibrated_images', lang) }}</div>
                 {% endif %}
             </div>
 
             <div class="lp-counter-card">
                 <div class="lp-counter-value counter-animate" data-target="{{ landing.total_domains }}">0</div>
-                <div class="lp-counter-label">Domaines</div>
+                <div class="lp-counter-label">{{ t('domains_label', lang) }}</div>
             </div>
         </div>
     </div>
@@ -1014,8 +1014,8 @@
 
     <div class="lp-section">
         <div class="lp-section-header">
-            <h2>Explorez par domaine</h2>
-            <p>{{ domain_list | length }} disciplines scientifiques representees</p>
+            <h2>{{ t('explore_domains', lang) }}</h2>
+            <p>{{ domain_list | length }} {{ t('disciplines_represented', lang) }}</p>
         </div>
 
         <div class="lp-domain-grid">
@@ -1033,13 +1033,19 @@
 <!-- ===== SECTION 6: FOOTER ===== -->
 <div class="lp-footer">
     <div class="lp-footer-links">
-        <a href="/leaderboard">Leaderboard</a>
-        <a href="/dashboard">Dashboard</a>
-        <a href="/spin">Spin</a>
-        <a href="/onboard">Commencer</a>
+        <a href="/analyze">Note mon GA</a>
+        <a href="/leaderboard">{{ t('footer_leaderboard', lang) }}</a>
+        <a href="/dashboard">{{ t('footer_dashboard', lang) }}</a>
+        <a href="/spin">{{ t('footer_spin', lang) }}</a>
+        <a href="/onboard">{{ t('footer_start', lang) }}</a>
     </div>
     <div class="lp-footer-brand">GLANCE &mdash; SciSense &middot; Making Science Make Sense</div>
     <div class="lp-footer-paper">Paper reference: PLOS ONE (in preparation)</div>
+    <div class="lp-footer-legal" style="margin-top: 0.75rem; font-size: 0.8125rem; color: #64748b;">
+        <a href="/privacy" style="color: #64748b; text-decoration: none;">Confidentialité</a>
+        <span style="margin: 0 0.5rem;">|</span>
+        <a href="/terms" style="color: #64748b; text-decoration: none;">Conditions d'utilisation</a>
+    </div>
 </div>
 
 </div>

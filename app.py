@@ -5,17 +5,20 @@ import json
 import re
 import uuid
 import random
+import time
+import logging
 
 import yaml
-from fastapi import FastAPI, Request, Form, HTTPException
-from fastapi.responses import HTMLResponse, RedirectResponse, Response
+from starlette.middleware.base import BaseHTTPMiddleware
+from fastapi import FastAPI, Request, Form, HTTPException, UploadFile, File
+from fastapi.responses import HTMLResponse, RedirectResponse, Response, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from db import get_db, init_db, create_participant, get_participant_by_token
 from db import get_next_image, save_test, get_test, get_stats
 from db import get_all_tests, get_image_count, get_all_images, add_ga_image
-from db import get_image_by_id, get_tests_for_image
+from db import get_image_by_id, get_tests_for_image, get_landing_stats, get_example_ga
 from scoring import score_test, classify_speed_accuracy
 from analytics import (
     compute_aggregate_stats,
@@ -37,6 +40,7 @@ from analytics import (
 )
 from config_loader import get_constant
 from cards import generate_test_card, generate_dashboard_card, generate_default_card, generate_ga_og_card
+from i18n import t as _t, get_lang
 
 BASE = os.path.dirname(__file__)
 
@@ -45,8 +49,27 @@ templates = Jinja2Templates(directory=os.path.join(BASE, "templates"))
 app.mount("/static", StaticFiles(directory=os.path.join(BASE, "static")), name="static")
 app.mount("/ga", StaticFiles(directory=os.path.join(BASE, "ga_library")), name="ga")
 
+# Make t() available in all Jinja2 templates as a global function
+templates.env.globals["t"] = _t
+
 with open(os.path.join(BASE, "config.yaml"), encoding="utf-8") as f:
     CONFIG = yaml.safe_load(f)
+
+
+# ── i18n middleware: detect language, set cookie when ?lang= is used ──
+
+class I18nMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        lang = get_lang(request)
+        request.state.lang = lang
+        response = await call_next(request)
+        # Persist language choice via cookie when explicitly set via URL param
+        if request.query_params.get("lang") in ("fr", "en"):
+            response.set_cookie("glance_lang", request.query_params["lang"],
+                                max_age=86400 * 365, httponly=True)
+        return response
+
+app.add_middleware(I18nMiddleware)
 
 
 @app.on_event("startup")
@@ -92,22 +115,53 @@ def _get_participant(request: Request):
     return get_participant_by_token(token)
 
 
+def _lang(request: Request) -> str:
+    """Get language for this request (set by I18nMiddleware)."""
+    return getattr(request.state, "lang", "fr")
+
+
 # ── Routes ────────────────────────────────────────────────────────────
 
 
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request):
+    lang = _lang(request)
     return templates.TemplateResponse("index.html", {
         "request": request,
+        "lang": lang,
         "og_title": "GLANCE — Testez votre oeil scientifique en 2 minutes",
         "og_description": "47 GAs, 15 domaines. Le premier benchmark de compréhension des Graphical Abstracts. Gratuit.",
     })
 
 
+@app.get("/privacy", response_class=HTMLResponse)
+def privacy(request: Request):
+    lang = _lang(request)
+    return templates.TemplateResponse("privacy.html", {
+        "request": request,
+        "lang": lang,
+        "og_title": "Politique de confidentialité — GLANCE",
+        "og_description": "Comment GLANCE protège vos données. Aucun nom, email ou IP collecté.",
+    })
+
+
+@app.get("/terms", response_class=HTMLResponse)
+def terms(request: Request):
+    lang = _lang(request)
+    return templates.TemplateResponse("terms.html", {
+        "request": request,
+        "lang": lang,
+        "og_title": "Conditions d'utilisation — GLANCE",
+        "og_description": "Conditions d'utilisation de la plateforme GLANCE par SciSense.",
+    })
+
+
 @app.get("/onboard", response_class=HTMLResponse)
 def onboard(request: Request):
+    lang = _lang(request)
     return templates.TemplateResponse("onboard.html", {
         "request": request,
+        "lang": lang,
         "config": CONFIG,
         "og_title": "GLANCE — Inscription rapide",
         "og_description": "Rejoignez GLANCE : le benchmark de compréhension des Graphical Abstracts scientifiques. 2 minutes, gratuit.",
@@ -128,7 +182,8 @@ def onboard_submit(
     create_participant(token, clinical_domain, experience_years,
                        data_literacy, grade_familiar, colorblind_status,
                        input_mode=input_mode)
-    response = RedirectResponse(url="/test", status_code=303)
+    lang = _lang(request)
+    response = RedirectResponse(url=f"/test?lang={lang}", status_code=303)
     response.set_cookie("glance_token", token, httponly=True,
                         max_age=get_constant("cookie_max_age_seconds", 2592000))
     return response
@@ -245,12 +300,25 @@ def test_page(request: Request):
     if not participant:
         return RedirectResponse(url="/onboard")
 
+    lang = _lang(request)
+
     image = get_next_image(participant["id"])
     if not image:
-        return templates.TemplateResponse("complete.html", {"request": request})
+        return templates.TemplateResponse("complete.html", {"request": request, "lang": lang})
 
     domain = image["domain"]
-    questions = CONFIG["domains"].get(domain, CONFIG["domains"]["generic"])
+    domain_cfg = CONFIG["domains"].get(domain, CONFIG["domains"]["generic"])
+    # Select language-appropriate questions: use q1_en/q2_en/q3_en if EN, else default
+    if lang == "en" and "q1_en" in domain_cfg:
+        questions = {
+            "q1": domain_cfg["q1_en"],
+            "q2": domain_cfg["q2_en"],
+            "q3": domain_cfg["q3_en"],
+            "q3_choices": domain_cfg.get("q3_choices_en", domain_cfg["q3_choices"]),
+            "label": domain_cfg.get("label_en", domain_cfg["label"]),
+        }
+    else:
+        questions = domain_cfg
     products = json.loads(image["products"]) if image["products"] else []
 
     # Check if this is the participant's first test (for briefing skip)
@@ -296,6 +364,7 @@ def test_page(request: Request):
 
         return templates.TemplateResponse("test_flux.html", {
             "request": request,
+            "lang": lang,
             "image": image,
             "questions": questions,
             "products": products,
@@ -314,6 +383,7 @@ def test_page(request: Request):
     # Focused mode (original)
     return templates.TemplateResponse("test.html", {
         "request": request,
+        "lang": lang,
         "image": image,
         "questions": questions,
         "products": products,
@@ -428,6 +498,7 @@ def reveal(request: Request, test_id: int):
     participant = _get_participant(request)
     if not participant:
         return RedirectResponse(url="/onboard")
+    lang = _lang(request)
 
     test = get_test(test_id)
     if not test:
@@ -477,6 +548,7 @@ def reveal(request: Request, test_id: int):
 
     return templates.TemplateResponse("reveal.html", {
         "request": request,
+        "lang": lang,
         "test": test,
         "stats": stats,
         "has_more": has_more,
@@ -540,17 +612,21 @@ def spin_page(request: Request):
     domain = control["domain"]
     questions = CONFIG["domains"].get(domain, CONFIG["domains"]["generic"])
 
+    lang = _lang(request)
+    q2_key = "q2_en" if lang == "en" and "q2_en" in questions else "q2"
     return templates.TemplateResponse("spin.html", {
         "request": request,
+        "lang": lang,
         "control": control,
         "vec": vec,
         "products": products,
-        "q2_text": questions["q2"],
+        "q2_text": questions[q2_key],
     })
 
 
 @app.get("/dashboard", response_class=HTMLResponse)
 def dashboard(request: Request):
+    lang = _lang(request)
     stats = get_stats()
     tests = get_all_tests()
     images = get_all_images()
@@ -591,6 +667,7 @@ def dashboard(request: Request):
 
     return templates.TemplateResponse("dashboard.html", {
         "request": request,
+        "lang": lang,
         "stats": stats,
         "tests": tests,
         "images": images,
@@ -614,6 +691,7 @@ def dashboard(request: Request):
 
 @app.get("/leaderboard", response_class=HTMLResponse)
 def leaderboard(request: Request):
+    lang = _lang(request)
     domain_config = CONFIG.get("domains", {})
     data = get_leaderboard_data(domain_config)
     domains = sorted(
@@ -623,6 +701,7 @@ def leaderboard(request: Request):
     )
     return templates.TemplateResponse("leaderboard.html", {
         "request": request,
+        "lang": lang,
         "domains": domains,
         "og_title": "GLANCE Leaderboard — Classement des Graphical Abstracts",
         "og_description": "Découvrez quels GAs scientifiques communiquent le mieux, classés par domaine.",
@@ -631,6 +710,7 @@ def leaderboard(request: Request):
 
 @app.get("/leaderboard/{domain}", response_class=HTMLResponse)
 def leaderboard_domain(request: Request, domain: str):
+    lang = _lang(request)
     domain_config = CONFIG.get("domains", {})
     data = get_domain_leaderboard(domain, domain_config)
     if not data:
@@ -646,6 +726,7 @@ def leaderboard_domain(request: Request, domain: str):
 
     return templates.TemplateResponse("leaderboard_domain.html", {
         "request": request,
+        "lang": lang,
         "domain": domain,
         "data": data,
         "og_title": og_title,
@@ -784,9 +865,12 @@ def _generate_executive_summary(sidecar: dict, image: dict, detail: dict,
 
     description = sidecar.get("description", "") or image.get("description", "")
     title = sidecar.get("title", "") or image.get("title", "")
+    gemini_summary = sidecar.get("executive_summary_fr", "")
 
-    # 1. What the GA shows
-    if description:
+    # 1. What the GA shows (prefer Gemini summary for AI-analyzed uploads)
+    if gemini_summary:
+        sentences.append(gemini_summary)
+    elif description:
         sentences.append(description)
     elif title:
         sentences.append(f"Ce GA presente : {title}.")
@@ -857,6 +941,7 @@ def _generate_executive_summary(sidecar: dict, image: dict, detail: dict,
 @app.get("/ga-detail/{ga_id}", response_class=HTMLResponse)
 def ga_detail(request: Request, ga_id: int):
     """GA detail page with executive summary, study reference, and analysis."""
+    lang = _lang(request)
     image = get_image_by_id(ga_id)
     if not image:
         raise HTTPException(status_code=404, detail="GA not found")
@@ -944,6 +1029,7 @@ def ga_detail(request: Request, ga_id: int):
 
     return templates.TemplateResponse("ga_detail.html", {
         "request": request,
+        "lang": lang,
         "image": image,
         "detail": detail,
         "domain_rank": domain_rank,
@@ -961,6 +1047,173 @@ def ga_detail(request: Request, ga_id: int):
         "og_description": og_desc,
         "og_image": og_image,
     })
+
+
+# ── Note mon GA (Analyze) routes ──────────────────────────────────────
+
+logger = logging.getLogger(__name__)
+
+
+@app.get("/analyze", response_class=HTMLResponse)
+def analyze_page(request: Request):
+    """Show the GA upload/analysis page."""
+    lang = _lang(request)
+    return templates.TemplateResponse("analyze.html", {
+        "request": request,
+        "lang": lang,
+        "og_title": "Note mon GA — GLANCE",
+        "og_description": "Uploadez votre Graphical Abstract et recevez une analyse IA : score, forces, faiblesses, recommandations.",
+    })
+
+
+@app.post("/analyze/submit")
+async def analyze_submit(request: Request, file: UploadFile = File(...)):
+    """Process uploaded GA image through the vision pipeline.
+
+    1. Save uploaded image to ga_library/user_uploads/
+    2. Send to Gemini Vision -> get L3 graph
+    3. Save graph YAML
+    4. Run recommender on the graph
+    5. Create a ga_images entry in DB
+    6. Redirect to /ga-detail/{new_id}
+    """
+    # Validate file type
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="No file uploaded")
+
+    ext = file.filename.rsplit(".", 1)[-1].lower() if "." in file.filename else ""
+    allowed_exts = {"png", "jpg", "jpeg", "webp", "pdf"}
+    if ext not in allowed_exts:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Format non supporte : .{ext}. Utilisez PNG, JPG, WebP, ou PDF.",
+        )
+
+    # Read file bytes
+    image_bytes = await file.read()
+    if len(image_bytes) > 10 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="Fichier trop volumineux (max 10 Mo)")
+
+    # Handle PDF: extract largest image
+    if ext == "pdf":
+        from analyze import extract_ga_from_pdf
+        extracted = extract_ga_from_pdf(image_bytes)
+        if not extracted:
+            raise HTTPException(
+                status_code=400,
+                detail="Impossible d'extraire une image du PDF. Uploadez directement le GA en PNG/JPG.",
+            )
+        image_bytes = extracted
+        ext = "png"  # extracted image is raw, treat as PNG
+
+    # Save uploaded image to ga_library/user_uploads/
+    timestamp = int(time.time())
+    safe_name = re.sub(r'[^\w\-.]', '_', file.filename)
+    upload_filename = f"user_uploads/{timestamp}_{safe_name}"
+    upload_dir = os.path.join(BASE, "ga_library", "user_uploads")
+    os.makedirs(upload_dir, exist_ok=True)
+    upload_path = os.path.join(BASE, "ga_library", upload_filename)
+    with open(upload_path, "wb") as f:
+        f.write(image_bytes)
+
+    # Send to Gemini Vision
+    try:
+        from vision_scorer import analyze_ga_image
+        result = analyze_ga_image(image_bytes, filename=file.filename)
+    except Exception as e:
+        logger.error(f"Vision analysis failed: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Erreur d'analyse IA : {str(e)}. Reessayez ou contactez le support.",
+        )
+
+    graph = result["graph"]
+    metadata = result.get("metadata", {})
+    graph_path = result["saved_path"]
+
+    # Run recommender on the saved graph
+    recommendations = None
+    try:
+        from recommender import analyze_ga
+        recommendations = analyze_ga(graph_path)
+    except Exception as e:
+        logger.warning(f"Recommender failed: {e}")
+
+    # Derive title from analysis metadata
+    main_finding = metadata.get("main_finding", "")
+    executive_summary = metadata.get("executive_summary_fr", "")
+    title = main_finding[:80] if main_finding else file.filename
+
+    # Create ga_images entry in DB
+    description = executive_summary or main_finding or ""
+    ga_id = None
+    try:
+        db = get_db()
+        db.execute(
+            """INSERT INTO ga_images
+               (filename, domain, version, is_control, correct_product, products, title, description)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+            (
+                upload_filename,
+                "user_upload",
+                f"user_{timestamp}",
+                0,
+                None,
+                None,
+                title,
+                description,
+            ),
+        )
+        db.commit()
+        ga_id = db.execute("SELECT last_insert_rowid()").fetchone()[0]
+        db.close()
+    except Exception as e:
+        logger.error(f"DB insert failed: {e}")
+        raise HTTPException(status_code=500, detail="Erreur base de donnees")
+
+    # Save sidecar JSON with analysis metadata (for ga_detail page)
+    sidecar_path = os.path.join(
+        BASE, "ga_library",
+        upload_filename.rsplit(".", 1)[0] + ".json" if "." in upload_filename else upload_filename + ".json",
+    )
+    sidecar_data = {
+        "domain": "user_upload",
+        "title": title,
+        "description": description,
+        "executive_summary_fr": executive_summary,
+        "main_finding": main_finding,
+        "chart_type": metadata.get("chart_type", "mixed"),
+        "word_count": metadata.get("word_count", 0),
+        "visual_channels_used": metadata.get("visual_channels_used", []),
+        "dominant_encoding": metadata.get("dominant_encoding", ""),
+        "hierarchy_clear": metadata.get("hierarchy_clear", False),
+        "accessibility_issues": metadata.get("accessibility_issues", []),
+        "color_count": metadata.get("color_count", 0),
+        "has_legend": metadata.get("has_legend", False),
+        "figure_text_ratio": metadata.get("figure_text_ratio", 0.5),
+        "source": "gemini_vision",
+        "analyzed_at": time.strftime("%Y-%m-%d %H:%M:%S"),
+    }
+    try:
+        os.makedirs(os.path.dirname(sidecar_path), exist_ok=True)
+        with open(sidecar_path, "w", encoding="utf-8") as f:
+            json.dump(sidecar_data, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        logger.warning(f"Sidecar save failed: {e}")
+
+    # Also copy the graph YAML to ga_library/ so ga_detail can find it
+    ga_yaml_dest = os.path.join(
+        BASE, "ga_library",
+        upload_filename.rsplit(".", 1)[0] + ".yaml" if "." in upload_filename else upload_filename + ".yaml",
+    )
+    try:
+        import shutil
+        shutil.copy2(graph_path, ga_yaml_dest)
+    except Exception as e:
+        logger.warning(f"Graph YAML copy failed: {e}")
+
+    # Redirect to the ga-detail page
+    return RedirectResponse(url=f"/ga-detail/{ga_id}", status_code=303)
 
 
 @app.get("/admin", response_class=HTMLResponse)

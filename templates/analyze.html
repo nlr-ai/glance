@@ -1,0 +1,659 @@
+{% extends "base.html" %}
+{% block title %}Note mon GA — GLANCE{% endblock %}
+
+{% block head %}
+<style>
+:root {
+    --an-navy: #1a2332;
+    --an-navy-deep: #0f1722;
+    --an-teal: #0d9488;
+    --an-teal-light: #14b8a6;
+    --an-amber: #f59e0b;
+    --an-bg: #f8fafc;
+    --an-card: #ffffff;
+    --an-border: #e2e8f0;
+    --an-text: #1a2332;
+    --an-text-dim: #64748b;
+    --an-text-muted: #94a3b8;
+    --an-shadow-sm: 0 1px 3px rgba(26,35,50,0.06);
+    --an-shadow-md: 0 4px 12px rgba(26,35,50,0.08);
+    --an-radius: 12px;
+    --an-radius-sm: 8px;
+}
+
+/* Break out of container */
+.container:has(.analyze-page) { max-width: 100%; padding: 0; margin: 0; }
+.container.analyze-container { max-width: 100%; padding: 0; margin: 0; }
+
+.analyze-page {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+    min-height: 100vh;
+    background: var(--an-bg);
+}
+
+/* Hero */
+.an-hero {
+    background: linear-gradient(165deg, var(--an-navy-deep) 0%, var(--an-navy) 40%, #1e3a5f 100%);
+    padding: 3rem 2rem 2.5rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+.an-hero::before {
+    content: '';
+    position: absolute;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: radial-gradient(ellipse at 30% 50%, rgba(13,148,136,0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 30%, rgba(59,130,246,0.06) 0%, transparent 50%);
+    pointer-events: none;
+}
+.an-hero-content {
+    position: relative;
+    z-index: 1;
+    max-width: 700px;
+    margin: 0 auto;
+}
+.an-hero-badge {
+    display: inline-block;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--an-teal-light);
+    background: rgba(13,148,136,0.15);
+    padding: 0.25rem 0.75rem;
+    border-radius: 100px;
+    margin-bottom: 1rem;
+}
+.an-hero h1 {
+    font-size: 2.25rem;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.03em;
+    margin: 0 0 0.75rem;
+    line-height: 1.15;
+}
+.an-hero p {
+    font-size: 1.0625rem;
+    color: rgba(255,255,255,0.7);
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* Upload area */
+.an-main {
+    max-width: 700px;
+    margin: -2rem auto 4rem;
+    padding: 0 1.5rem;
+    position: relative;
+    z-index: 2;
+}
+
+.an-upload-card {
+    background: var(--an-card);
+    border: 1px solid var(--an-border);
+    border-radius: var(--an-radius);
+    box-shadow: var(--an-shadow-md);
+    overflow: hidden;
+}
+
+.an-dropzone {
+    padding: 3rem 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+    border: 2px dashed var(--an-border);
+    border-radius: var(--an-radius);
+    margin: 1.5rem;
+    position: relative;
+}
+.an-dropzone:hover,
+.an-dropzone.dragover {
+    background: rgba(13,148,136,0.04);
+    border-color: var(--an-teal);
+}
+.an-dropzone-icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 1rem;
+    opacity: 0.4;
+}
+.an-dropzone-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--an-text);
+    margin-bottom: 0.375rem;
+}
+.an-dropzone-sub {
+    font-size: 0.875rem;
+    color: var(--an-text-dim);
+}
+.an-dropzone-formats {
+    font-size: 0.75rem;
+    color: var(--an-text-muted);
+    margin-top: 0.5rem;
+}
+.an-dropzone input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+
+/* Preview */
+.an-preview {
+    display: none;
+    padding: 1.5rem;
+    text-align: center;
+}
+.an-preview img {
+    max-width: 100%;
+    max-height: 300px;
+    border-radius: var(--an-radius-sm);
+    box-shadow: var(--an-shadow-sm);
+    margin-bottom: 1rem;
+}
+.an-preview-name {
+    font-size: 0.8125rem;
+    color: var(--an-text-dim);
+    margin-bottom: 1rem;
+}
+.an-preview-change {
+    font-size: 0.8125rem;
+    color: var(--an-teal);
+    cursor: pointer;
+    text-decoration: underline;
+    background: none;
+    border: none;
+    padding: 0;
+}
+
+/* Submit button */
+.an-submit-wrap {
+    padding: 0 1.5rem 1.5rem;
+    text-align: center;
+}
+.an-submit {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.625rem;
+    background: linear-gradient(135deg, var(--an-teal), #0f766e);
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 700;
+    padding: 0.875rem 2.5rem;
+    border: none;
+    border-radius: 100px;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 4px 16px rgba(13,148,136,0.3);
+    letter-spacing: 0.01em;
+}
+.an-submit:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 24px rgba(13,148,136,0.4);
+}
+.an-submit:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+.an-submit svg {
+    flex-shrink: 0;
+}
+
+/* Loading state */
+.an-loading {
+    display: none;
+    padding: 3rem 2rem;
+    text-align: center;
+}
+.an-loading-active {
+    display: block;
+}
+.an-spinner {
+    width: 48px;
+    height: 48px;
+    border: 3px solid var(--an-border);
+    border-top-color: var(--an-teal);
+    border-radius: 50%;
+    animation: anSpin 0.8s linear infinite;
+    margin: 0 auto 1.5rem;
+}
+@keyframes anSpin { to { transform: rotate(360deg); } }
+.an-loading-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--an-text);
+    margin-bottom: 1rem;
+}
+.an-steps {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    max-width: 300px;
+    margin: 0 auto;
+}
+.an-step {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    font-size: 0.875rem;
+    color: var(--an-text-muted);
+    transition: color 0.3s;
+}
+.an-step.active {
+    color: var(--an-teal);
+    font-weight: 600;
+}
+.an-step.done {
+    color: var(--an-text-dim);
+}
+.an-step-icon {
+    width: 20px;
+    text-align: center;
+    font-size: 0.875rem;
+}
+
+/* Error */
+.an-error {
+    display: none;
+    padding: 1rem 1.5rem;
+    margin: 0 1.5rem 1.5rem;
+    background: rgba(239,68,68,0.08);
+    border: 1px solid rgba(239,68,68,0.2);
+    border-radius: var(--an-radius-sm);
+    color: #dc2626;
+    font-size: 0.875rem;
+    line-height: 1.5;
+}
+
+/* Info cards below */
+.an-info {
+    max-width: 700px;
+    margin: 0 auto 4rem;
+    padding: 0 1.5rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1rem;
+}
+.an-info-card {
+    background: var(--an-card);
+    border: 1px solid var(--an-border);
+    border-radius: var(--an-radius-sm);
+    padding: 1.25rem;
+    box-shadow: var(--an-shadow-sm);
+    text-align: center;
+}
+.an-info-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    opacity: 0.7;
+}
+.an-info-title {
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: var(--an-text);
+    margin-bottom: 0.25rem;
+}
+.an-info-desc {
+    font-size: 0.75rem;
+    color: var(--an-text-dim);
+    line-height: 1.4;
+}
+
+/* Nav */
+.an-nav {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+.an-nav a {
+    color: var(--an-text-muted);
+    text-decoration: none;
+    font-size: 0.875rem;
+    padding: 0.375rem 0.75rem;
+    border-radius: 6px;
+    transition: color 0.2s, background 0.2s;
+}
+.an-nav a:hover { color: var(--an-teal); background: rgba(13,148,136,0.06); }
+.an-nav .sep { color: var(--an-border); font-size: 0.75rem; }
+
+/* Footer */
+.an-footer {
+    background: var(--an-navy-deep);
+    padding: 1.5rem 2rem;
+    text-align: center;
+}
+.an-footer-links {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+.an-footer-links a {
+    color: rgba(255,255,255,0.5);
+    text-decoration: none;
+    font-size: 0.8125rem;
+    transition: color 0.2s;
+}
+.an-footer-links a:hover { color: rgba(255,255,255,0.8); }
+.an-footer-brand {
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.25);
+}
+
+@media (max-width: 640px) {
+    .an-hero h1 { font-size: 1.625rem; }
+    .an-hero { padding: 2rem 1rem 2rem; }
+    .an-main { padding: 0 1rem; margin-top: -1.5rem; }
+    .an-dropzone { padding: 2rem 1rem; margin: 1rem; }
+    .an-info { grid-template-columns: 1fr; padding: 0 1rem; }
+    .an-submit { width: 100%; justify-content: center; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="analyze-page">
+    <!-- Hero -->
+    <div class="an-hero">
+        <div class="an-hero-content">
+            <span class="an-hero-badge">Beta</span>
+            <h1>Note mon GA</h1>
+            <p>Uploadez votre Graphical Abstract et recevez une analyse IA en 30 secondes : score, forces, faiblesses, et recommandations actionnables.</p>
+        </div>
+    </div>
+
+    <!-- Main card -->
+    <div class="an-main">
+        <div class="an-nav">
+            <a href="/">Accueil</a><span class="sep">&#8250;</span>
+            <span style="color:var(--an-teal);font-weight:600;padding:0.375rem 0.75rem;font-size:0.875rem;">Note mon GA</span>
+        </div>
+
+        <form id="analyzeForm" action="/analyze/submit" method="post" enctype="multipart/form-data">
+            <div class="an-upload-card">
+                <!-- Dropzone -->
+                <div class="an-dropzone" id="dropzone">
+                    <svg class="an-dropzone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                        <polyline points="17 8 12 3 7 8"/>
+                        <line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                    <div class="an-dropzone-title">Glissez votre GA ici</div>
+                    <div class="an-dropzone-sub">ou cliquez pour parcourir</div>
+                    <div class="an-dropzone-formats">PNG, JPG, WebP, PDF &mdash; max 10 Mo</div>
+                    <input type="file" name="file" id="fileInput" accept=".png,.jpg,.jpeg,.webp,.pdf">
+                </div>
+
+                <!-- Preview -->
+                <div class="an-preview" id="preview">
+                    <img id="previewImg" src="" alt="Preview">
+                    <div class="an-preview-name" id="previewName"></div>
+                    <button type="button" class="an-preview-change" id="changeBtn">Changer d'image</button>
+                </div>
+
+                <!-- Error -->
+                <div class="an-error" id="errorMsg"></div>
+
+                <!-- Loading -->
+                <div class="an-loading" id="loadingState">
+                    <div class="an-spinner"></div>
+                    <div class="an-loading-title">Analyse en cours...</div>
+                    <div class="an-steps">
+                        <div class="an-step done" id="step1">
+                            <span class="an-step-icon">&#10003;</span>
+                            <span>Image recue</span>
+                        </div>
+                        <div class="an-step active" id="step2">
+                            <span class="an-step-icon">&#9679;</span>
+                            <span>Extraction visuelle</span>
+                        </div>
+                        <div class="an-step" id="step3">
+                            <span class="an-step-icon">&#9675;</span>
+                            <span>Analyse IA (Gemini Vision)</span>
+                        </div>
+                        <div class="an-step" id="step4">
+                            <span class="an-step-icon">&#9675;</span>
+                            <span>Recommandations</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit -->
+                <div class="an-submit-wrap" id="submitWrap">
+                    <button type="submit" class="an-submit" id="submitBtn" disabled>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                        </svg>
+                        Analyser mon GA
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Info cards -->
+    <div class="an-info">
+        <div class="an-info-card">
+            <div class="an-info-icon">&#x1F50D;</div>
+            <div class="an-info-title">Vision IA</div>
+            <div class="an-info-desc">Gemini analyse chaque element visuel de votre GA : graphiques, texte, couleurs, hierarchie.</div>
+        </div>
+        <div class="an-info-card">
+            <div class="an-info-icon">&#x1F4CA;</div>
+            <div class="an-info-title">Score GLANCE</div>
+            <div class="an-info-desc">Les memes metriques que le benchmark : S9a, S9b, S9c, fluence, accessibilite.</div>
+        </div>
+        <div class="an-info-card">
+            <div class="an-info-icon">&#x1F6E0;</div>
+            <div class="an-info-title">Recommandations</div>
+            <div class="an-info-desc">Des actions concretes pour ameliorer la lisibilite de votre GA en 5 secondes.</div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="an-footer">
+        <div class="an-footer-links">
+            <a href="/">Accueil</a>
+            <a href="/leaderboard">Leaderboard</a>
+            <a href="/dashboard">Dashboard</a>
+            <a href="/onboard">Tester</a>
+        </div>
+        <div class="an-footer-brand">GLANCE &mdash; SciSense &middot; Making Science Make Sense</div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+    var form = document.getElementById('analyzeForm');
+    var dropzone = document.getElementById('dropzone');
+    var fileInput = document.getElementById('fileInput');
+    var preview = document.getElementById('preview');
+    var previewImg = document.getElementById('previewImg');
+    var previewName = document.getElementById('previewName');
+    var changeBtn = document.getElementById('changeBtn');
+    var submitBtn = document.getElementById('submitBtn');
+    var submitWrap = document.getElementById('submitWrap');
+    var loadingState = document.getElementById('loadingState');
+    var errorMsg = document.getElementById('errorMsg');
+    var selectedFile = null;
+    var MAX_SIZE = 10 * 1024 * 1024; // 10 MB
+
+    // Break out of .container
+    var c = document.querySelector('.container');
+    if (c) c.classList.add('analyze-container');
+
+    // Drag & drop
+    ['dragenter', 'dragover'].forEach(function(ev) {
+        dropzone.addEventListener(ev, function(e) {
+            e.preventDefault();
+            dropzone.classList.add('dragover');
+        });
+    });
+    ['dragleave', 'drop'].forEach(function(ev) {
+        dropzone.addEventListener(ev, function(e) {
+            e.preventDefault();
+            dropzone.classList.remove('dragover');
+        });
+    });
+    dropzone.addEventListener('drop', function(e) {
+        var files = e.dataTransfer.files;
+        if (files.length > 0) {
+            handleFile(files[0]);
+        }
+    });
+
+    fileInput.addEventListener('change', function() {
+        if (fileInput.files.length > 0) {
+            handleFile(fileInput.files[0]);
+        }
+    });
+
+    changeBtn.addEventListener('click', function() {
+        selectedFile = null;
+        fileInput.value = '';
+        preview.style.display = 'none';
+        dropzone.style.display = 'block';
+        submitBtn.disabled = true;
+        errorMsg.style.display = 'none';
+    });
+
+    function handleFile(file) {
+        errorMsg.style.display = 'none';
+
+        // Validate type
+        var validTypes = ['image/png', 'image/jpeg', 'image/webp', 'application/pdf'];
+        if (validTypes.indexOf(file.type) === -1) {
+            showError('Format non supporte. Utilisez PNG, JPG, WebP, ou PDF.');
+            return;
+        }
+
+        // Validate size
+        if (file.size > MAX_SIZE) {
+            showError('Fichier trop volumineux. Maximum 10 Mo.');
+            return;
+        }
+
+        selectedFile = file;
+
+        // Show preview
+        if (file.type.startsWith('image/')) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                previewImg.src = e.target.result;
+                previewImg.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        } else {
+            // PDF: show generic icon
+            previewImg.style.display = 'none';
+        }
+
+        previewName.textContent = file.name + ' (' + formatBytes(file.size) + ')';
+        dropzone.style.display = 'none';
+        preview.style.display = 'block';
+        submitBtn.disabled = false;
+
+        // Update file input for form submission
+        var dt = new DataTransfer();
+        dt.items.add(file);
+        fileInput.files = dt.files;
+    }
+
+    function formatBytes(bytes) {
+        if (bytes < 1024) return bytes + ' o';
+        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(0) + ' Ko';
+        return (bytes / (1024 * 1024)).toFixed(1) + ' Mo';
+    }
+
+    function showError(msg) {
+        errorMsg.textContent = msg;
+        errorMsg.style.display = 'block';
+    }
+
+    // Form submission
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        if (!selectedFile && (!fileInput.files || fileInput.files.length === 0)) {
+            showError('Selectionnez une image.');
+            return;
+        }
+
+        // Show loading state
+        submitWrap.style.display = 'none';
+        preview.style.display = 'none';
+        dropzone.style.display = 'none';
+        errorMsg.style.display = 'none';
+        loadingState.classList.add('an-loading-active');
+        loadingState.style.display = 'block';
+
+        // Animate progress steps
+        var steps = [
+            { el: document.getElementById('step2'), delay: 2000 },
+            { el: document.getElementById('step3'), delay: 5000 },
+            { el: document.getElementById('step4'), delay: 12000 },
+        ];
+
+        steps.forEach(function(s) {
+            setTimeout(function() {
+                s.el.classList.remove('active');
+                s.el.classList.add('done');
+                s.el.querySelector('.an-step-icon').innerHTML = '&#10003;';
+                // Activate next
+                var next = s.el.nextElementSibling;
+                if (next && next.classList.contains('an-step')) {
+                    next.classList.add('active');
+                    next.querySelector('.an-step-icon').innerHTML = '&#9679;';
+                }
+            }, s.delay);
+        });
+
+        // Submit via fetch
+        var formData = new FormData(form);
+
+        fetch('/analyze/submit', {
+            method: 'POST',
+            body: formData,
+        })
+        .then(function(resp) {
+            if (resp.redirected) {
+                window.location.href = resp.url;
+                return;
+            }
+            if (!resp.ok) {
+                return resp.text().then(function(t) {
+                    throw new Error(t || 'Erreur serveur (' + resp.status + ')');
+                });
+            }
+            // If response contains a redirect URL in JSON
+            return resp.json();
+        })
+        .then(function(data) {
+            if (data && data.redirect) {
+                window.location.href = data.redirect;
+            }
+        })
+        .catch(function(err) {
+            loadingState.style.display = 'none';
+            loadingState.classList.remove('an-loading-active');
+            submitWrap.style.display = 'block';
+            preview.style.display = 'block';
+            submitBtn.disabled = false;
+            showError('Erreur : ' + (err.message || 'Analyse impossible. Reessayez.'));
+        });
+    });
+})();
+</script>
+{% endblock %}
