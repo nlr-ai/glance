@@ -116,9 +116,16 @@ class Alerter:
             print(f"[ALERT] {alert_type}: {json.dumps(alert)}")
 
     def _send_telegram(self, alert: dict):
-        """Send alert via Telegram Bot API. Placeholder for future implementation."""
+        """Send alert via Telegram Bot API."""
+        import os
+
         if not self.telegram_chat_id:
             logger.warning("Telegram enabled but no chat_id configured")
+            return
+
+        bot_token = os.environ.get("TG_BOT_TOKEN", "")
+        if not bot_token:
+            logger.warning("TG_BOT_TOKEN not set, skipping Telegram alert")
             return
 
         # Format message
@@ -130,30 +137,40 @@ class Alerter:
         if alert_type == "reaction_opportunity":
             template = alert.get("template", "?")
             msg = (
-                f"GLANCE Reaction Opportunity\n\n"
+                f"*GLANCE Reaction Opportunity*\n\n"
                 f"r/{sub} | Score: {alert.get('score', 0)}\n"
                 f"{title}\n\n"
                 f"Template: {template}\n"
                 f"{url}"
             )
         elif alert_type == "ga_ingested":
+            shadow = alert.get("shadow_mode", True)
             msg = (
-                f"GLANCE GA Ingested\n\n"
+                f"*GLANCE GA Ingested* {'(shadow)' if shadow else '(live)'}\n\n"
                 f"r/{sub}\n"
                 f"{title}\n\n"
                 f"{url}"
             )
         else:
-            msg = f"GLANCE Alert: {json.dumps(alert, indent=2)}"
+            msg = f"*GLANCE Alert*\n{json.dumps(alert, indent=2)}"
 
-        logger.info(f"[TELEGRAM] Would send to {self.telegram_chat_id}: {msg[:100]}...")
-        # TODO: Implement actual Telegram Bot API call
-        # import requests
-        # bot_token = os.environ.get("TELEGRAM_BOT_TOKEN")
-        # requests.post(
-        #     f"https://api.telegram.org/bot{bot_token}/sendMessage",
-        #     json={"chat_id": self.telegram_chat_id, "text": msg}
-        # )
+        try:
+            import requests
+            resp = requests.post(
+                f"https://api.telegram.org/bot{bot_token}/sendMessage",
+                json={
+                    "chat_id": self.telegram_chat_id,
+                    "text": msg,
+                    "parse_mode": "Markdown",
+                },
+                timeout=10,
+            )
+            if resp.status_code == 200:
+                logger.info(f"[TELEGRAM] Alert sent to {self.telegram_chat_id}")
+            else:
+                logger.warning(f"[TELEGRAM] Send failed ({resp.status_code}): {resp.text[:200]}")
+        except Exception as e:
+            logger.error(f"[TELEGRAM] Send error: {e}")
 
     def generate_weekly_report(self) -> dict:
         """Generate a weekly summary from the alerts JSONL file.

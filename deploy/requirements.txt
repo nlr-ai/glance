@@ -10,3 +10,4 @@ networkx
 Pillow
 google-generativeai
 stripe
+praw

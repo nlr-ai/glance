@@ -2349,6 +2349,42 @@ async def admin_batch_analyze(pwd: str = "", batch_size: int = 5):
     })
 
 
+@app.post("/admin/ingest-reddit")
+async def admin_ingest_reddit(pwd: str = "", subreddit: str = "dataisugly", limit: int = 10):
+    """Trigger Reddit ingestion for a subreddit. Runs in background.
+
+    Polls the subreddit for image posts, deduplicates via SHA-256,
+    saves new GAs to ga_library/reddit/, creates DB entries,
+    runs vision scoring, and sends Telegram alerts.
+    """
+    admin_pwd = os.environ.get("GLANCE_ADMIN_PWD", "glance")
+    if pwd != admin_pwd:
+        raise HTTPException(status_code=403, detail="Admin password required")
+
+    limit = min(limit, 50)  # cap at 50 per call
+
+    import threading
+    from ingestion.run_ingest import ingest_subreddit
+
+    def _ingest_worker(sub, n):
+        _log = logging.getLogger("ingest.admin")
+        try:
+            stats = ingest_subreddit(sub, limit=n)
+            _log.info(f"Reddit ingest done: {stats}")
+        except Exception as e:
+            _log.error(f"Reddit ingest failed for r/{sub}: {e}")
+
+    t = threading.Thread(target=_ingest_worker, args=(subreddit, limit), daemon=True)
+    t.start()
+
+    return JSONResponse({
+        "status": "started",
+        "subreddit": subreddit,
+        "limit": limit,
+        "message": f"Reddit ingestion for r/{subreddit} (limit={limit}) launched in background.",
+    })
+
+
 @app.post("/analyze/unlock/{ga_id}")
 async def unlock_analysis(ga_id: int, email: str = Form(...)):
     """Capture email lead and unlock the full analysis for this GA."""
