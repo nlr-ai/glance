@@ -894,6 +894,321 @@ def _build_stamp_v5(score_pct: int, score_source: str, tier: str,
     return canvas
 
 
+# ── GA OG Card — CIRCULAR SEAL VERDICT STAMP design (V6) ─────────────
+
+# Seal radius per tier
+SEAL_RADIUS = {
+    'illisible':  160,
+    'opaque':     140,
+    'brumeux':    130,
+    'accessible': 120,
+    'fluide':     130,
+    'limpide':    150,
+}
+
+# Number of teeth on the seal edge
+SEAL_TEETH = {
+    'limpide':    24,
+    'fluide':     20,
+    'accessible': 18,
+    'brumeux':    16,
+    'opaque':     14,
+    'illisible':  12,
+}
+
+# Seal fill colors per tier
+SEAL_COLORS = {
+    'limpide':    (184, 134, 11),   # #B8860B gold
+    'fluide':     (13, 148, 136),   # #0D9488 teal
+    'accessible': (217, 119, 6),    # #D97706 amber
+    'brumeux':    (234, 88, 12),    # #EA580C orange
+    'opaque':     (220, 38, 38),    # #DC2626 red
+    'illisible':  (153, 27, 27),    # #991B1B dark red
+}
+
+# Border width per tier
+SEAL_BORDER_W = {
+    'limpide':    3,
+    'fluide':     2,
+    'accessible': 2,
+    'brumeux':    2,
+    'opaque':     3,
+    'illisible':  4,
+}
+
+# Rotation (same progression as V5)
+SEAL_ROTATION = {
+    'limpide':     0,
+    'fluide':     -2,
+    'accessible': -3,
+    'brumeux':    -4,
+    'opaque':     -5,
+    'illisible':  -7,
+}
+
+# Reaction emoji per tier (comprehension reaction)
+SEAL_REACTION = {
+    'illisible':  '\U0001fae0',   # melting face
+    'opaque':     '\u2753',       # question mark
+    'brumeux':    '\U0001f914',   # thinking face
+    'accessible': '\U0001f4a1',   # lightbulb
+    'fluide':     '\u2705',       # check
+    'limpide':    '\U0001f92f',   # mind blown
+}
+
+# Score font size inside seal
+SEAL_SCORE_FONT = {
+    'illisible':  56,
+    'opaque':     52,
+    'brumeux':    48,
+    'accessible': 44,
+    'fluide':     48,
+    'limpide':    56,
+}
+
+# Verdict font size
+SEAL_VERDICT_FONT = {
+    'illisible':  22,
+    'opaque':     22,
+    'brumeux':    20,
+    'accessible': 18,
+    'fluide':     20,
+    'limpide':    22,
+}
+
+# Certified text for limpide
+SEAL_CERTIFIED_TEXT = "CERTIFIE CLAIR"
+
+
+def _draw_seal_shape(draw: ImageDraw.ImageDraw, cx: int, cy: int,
+                     outer_r: int, inner_r: int, n_teeth: int,
+                     fill_color: tuple, border_color: tuple,
+                     border_width: int = 2,
+                     irregular: bool = False, rng=None):
+    """Draw a serrated circle (seal/cog shape).
+
+    If irregular=True, randomizes tooth depth for rough worn look.
+    """
+    points = []
+    for i in range(n_teeth * 2):
+        angle = math.pi * 2 * i / (n_teeth * 2) - math.pi / 2
+        r = outer_r if i % 2 == 0 else inner_r
+        if irregular and rng:
+            r += rng.uniform(-6, 6)
+        points.append((cx + r * math.cos(angle), cy + r * math.sin(angle)))
+    draw.polygon(points, fill=fill_color, outline=border_color)
+    # Draw border by drawing outline polygon on top if border_width > 1
+    if border_width > 1:
+        for bw in range(border_width):
+            draw.polygon(points, fill=None, outline=border_color)
+
+
+def _build_stamp_v6(score_pct: int, score_source: str, tier: str,
+                    verdict_label: str, archetype_icon: Image.Image | None = None) -> Image.Image:
+    """Build the CIRCULAR SEAL verdict stamp as an RGBA image — V6.
+
+    The seal morphs from a gold "seal of approval" (high scores)
+    to a violent "rejection stamp" (low scores).
+
+    Returns an RGBA Image on a padded transparent canvas.
+    """
+    radius = SEAL_RADIUS[tier]
+    n_teeth = SEAL_TEETH[tier]
+    seal_color = SEAL_COLORS[tier]
+    border_w = SEAL_BORDER_W[tier]
+    score_font_size = SEAL_SCORE_FONT[tier]
+    verdict_font_size = SEAL_VERDICT_FONT[tier]
+
+    # Tooth depth: outer_r vs inner_r
+    tooth_depth = int(radius * 0.08)
+    outer_r = radius
+    inner_r = radius - tooth_depth
+
+    # Canvas with generous padding for rotation + shadow + splatter
+    PAD = 100
+    canvas_size = (radius + PAD) * 2
+    canvas = Image.new("RGBA", (canvas_size, canvas_size), (0, 0, 0, 0))
+    cx, cy = canvas_size // 2, canvas_size // 2
+
+    rng = _random.Random(42)
+
+    # ── Ink splatter (ILLISIBLE only — behind everything) ──
+    if tier == 'illisible':
+        splatter_layer = Image.new("RGBA", (canvas_size, canvas_size), (0, 0, 0, 0))
+        sp_draw = ImageDraw.Draw(splatter_layer)
+        for _ in range(20):
+            sx = cx + rng.randint(-radius - 40, radius + 40)
+            sy = cy + rng.randint(-radius - 40, radius + 40)
+            sr = rng.randint(2, 7)
+            sp_draw.ellipse([sx - sr, sy - sr, sx + sr, sy + sr],
+                            fill=(*seal_color, 80))
+        canvas = Image.alpha_composite(canvas, splatter_layer)
+
+    # ── Ink bleed (low scores: draw seal twice with offset at low opacity) ──
+    if tier in ('illisible', 'opaque'):
+        bleed_layer = Image.new("RGBA", (canvas_size, canvas_size), (0, 0, 0, 0))
+        bleed_draw = ImageDraw.Draw(bleed_layer)
+        irregular = tier == 'illisible'
+        bleed_rng = _random.Random(99)
+        _draw_seal_shape(bleed_draw, cx + 2, cy + 2,
+                         outer_r, inner_r, n_teeth,
+                         fill_color=(*seal_color, 50),
+                         border_color=(*seal_color, 30),
+                         border_width=1,
+                         irregular=irregular, rng=bleed_rng)
+        canvas = Image.alpha_composite(canvas, bleed_layer)
+
+    # ── Double-stamp bounce (ILLISIBLE only) ──
+    if tier == 'illisible':
+        bounce_layer = Image.new("RGBA", (canvas_size, canvas_size), (0, 0, 0, 0))
+        bounce_draw = ImageDraw.Draw(bounce_layer)
+        bounce_rng = _random.Random(77)
+        _draw_seal_shape(bounce_draw, cx + 4, cy - 3,
+                         outer_r - 2, inner_r - 2, n_teeth,
+                         fill_color=(*seal_color, 35),
+                         border_color=(*seal_color, 25),
+                         border_width=1,
+                         irregular=True, rng=bounce_rng)
+        canvas = Image.alpha_composite(canvas, bounce_layer)
+
+    # ── Main seal shape ──
+    seal_layer = Image.new("RGBA", (canvas_size, canvas_size), (0, 0, 0, 0))
+    seal_draw = ImageDraw.Draw(seal_layer)
+
+    irregular = tier in ('illisible', 'opaque')
+    main_rng = _random.Random(42)
+    border_color = (255, 255, 255, 220)
+    _draw_seal_shape(seal_draw, cx, cy,
+                     outer_r, inner_r, n_teeth,
+                     fill_color=(*seal_color, 255),
+                     border_color=border_color,
+                     border_width=border_w,
+                     irregular=irregular, rng=main_rng)
+
+    # ── Inner ornamental circle (limpide and fluide only) ──
+    if tier in ('limpide', 'fluide'):
+        inner_ring_r = int(radius * 0.82)
+        seal_draw.ellipse(
+            [cx - inner_ring_r, cy - inner_ring_r,
+             cx + inner_ring_r, cy + inner_ring_r],
+            fill=None, outline=(255, 255, 255, 100), width=1)
+
+    # ── Inner decorative dots for limpide (notary-style) ──
+    if tier == 'limpide':
+        dot_ring_r = int(radius * 0.78)
+        n_dots = 36
+        for i in range(n_dots):
+            angle = math.pi * 2 * i / n_dots - math.pi / 2
+            dx = cx + dot_ring_r * math.cos(angle)
+            dy = cy + dot_ring_r * math.sin(angle)
+            seal_draw.ellipse([dx - 1, dy - 1, dx + 1, dy + 1],
+                              fill=(255, 255, 255, 70))
+
+    canvas = Image.alpha_composite(canvas, seal_layer)
+
+    # ── Text content on top of the seal ──
+    text_layer = Image.new("RGBA", (canvas_size, canvas_size), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(text_layer)
+
+    # Layout: icon → "Clarté visuelle : X%" → VERDICT (BIG) → SCORE GLANCE
+    # The VERDICT is the hero — biggest text. Score contextualizes it above.
+
+    # -- Pre-measure all text blocks --
+    # Top icon
+    if tier == 'limpide':
+        top_icon = "\u2713"
+        font_top_icon = _get_impact_font(28)
+    else:
+        top_icon = TIER_ICONS.get(tier, '')
+        font_top_icon = _get_font(20, bold=True)
+    ti_bbox = draw.textbbox((0, 0), top_icon, font=font_top_icon)
+    ti_h = ti_bbox[3] - ti_bbox[1]
+    ti_w = ti_bbox[2] - ti_bbox[0]
+
+    # Context line: "Clarté visuelle : X%" — small, factual, BEFORE verdict
+    context_line = f"Clart\u00e9 visuelle : {score_pct}%"
+    font_context = _get_font(13, bold=True)
+    ctx_bbox = draw.textbbox((0, 0), context_line, font=font_context)
+    ctx_w = ctx_bbox[2] - ctx_bbox[0]
+    ctx_h = ctx_bbox[3] - ctx_bbox[1]
+
+    # VERDICT — THE BIGGEST TEXT, the judgment that DROPS
+    if tier == 'limpide':
+        display_verdict = SEAL_CERTIFIED_TEXT
+    else:
+        display_verdict = verdict_label
+    # Verdict font is BIGGER than score (was inverted)
+    font_verdict = _get_impact_font(score_font_size)  # use the big font for verdict
+    v_bbox = draw.textbbox((0, 0), display_verdict, font=font_verdict)
+    v_w = v_bbox[2] - v_bbox[0]
+    v_h = v_bbox[3] - v_bbox[1]
+
+    # Score number — secondary, smaller
+    font_score = _get_font(verdict_font_size, bold=True)  # use the smaller font for score
+    score_text = f"{score_pct}%"
+    s_bbox = draw.textbbox((0, 0), score_text, font=font_score)
+    s_w = s_bbox[2] - s_bbox[0]
+    s_h = s_bbox[3] - s_bbox[1]
+
+    # Explanation
+    explanation = "en 5 secondes"
+    explanation2 = ""
+    font_explain = _get_font(11, bold=False)
+    e_bbox = draw.textbbox((0, 0), explanation, font=font_explain)
+    e_h = e_bbox[3] - e_bbox[1]
+
+    # "SCORE GLANCE" footer
+    font_bottom = _get_font(9, bold=True)
+    bottom_text = "S C O R E   G L A N C E"
+    bt_bbox = draw.textbbox((0, 0), bottom_text, font=font_bottom)
+    bt_w = bt_bbox[2] - bt_bbox[0]
+    bt_h = bt_bbox[3] - bt_bbox[1]
+
+    # Total content height with gaps
+    # Order: icon → context ("Clarté visuelle: X%") → VERDICT (BIG) → explanation → footer
+    gap1 = 4   # icon → context
+    gap2 = 2   # context → verdict
+    gap3 = 4   # verdict → explanation
+    gap4 = 6   # explanation → footer
+    total_h = (ti_h + gap1 +
+               ctx_h + gap2 +
+               v_h + gap3 +
+               e_h + gap4 + bt_h)
+
+    start_y = cy - total_h // 2
+
+    # -- Draw: icon → context → VERDICT → explanation → footer --
+
+    # Top icon
+    draw.text((cx - ti_w // 2, start_y),
+              top_icon, fill=(255, 255, 255, 230), font=font_top_icon)
+    cur_y = start_y + ti_h + gap1
+
+    # Context: "Clarté visuelle : 17%" — small, factual
+    draw.text((cx - ctx_w // 2, cur_y),
+              context_line, fill=(255, 255, 255, 200), font=font_context)
+    cur_y += ctx_h + gap2
+
+    # VERDICT — THE HERO, biggest text
+    draw.text((cx - v_w // 2, cur_y),
+              display_verdict, fill=(255, 255, 255, 255), font=font_verdict)
+    cur_y += v_h + gap3
+
+    # Explanation: "en 5 secondes"
+    e_w = draw.textbbox((0, 0), explanation, font=font_explain)[2]
+    draw.text((cx - e_w // 2, cur_y),
+              explanation, fill=(255, 255, 255, 160), font=font_explain)
+    cur_y += e_h + gap4
+
+    # "SCORE GLANCE" footer
+    draw.text((cx - bt_w // 2, cur_y),
+              bottom_text, fill=(255, 255, 255, 150), font=font_bottom)
+
+    canvas = Image.alpha_composite(canvas, text_layer)
+
+    return canvas
+
+
 def generate_ga_og_card(image: dict, avg_glance: float | None,
                         n_tests: int, domain_label: str = "",
                         override_score_pct: int | None = None) -> bytes:
@@ -998,14 +1313,12 @@ def generate_ga_og_card(image: dict, avg_glance: float | None,
             except Exception:
                 pass
 
-        stamp_canvas = _build_stamp_v5(
-            score_pct, score_source, tier, verdict_label,
-            grad_start, grad_end, archetype_icon,
+        stamp_canvas = _build_stamp_v6(
+            score_pct, score_source, tier, verdict_label, archetype_icon,
         )
 
         # Channel 2: ROTATION — varies by tier
-        # PIL rotate() uses positive = CCW, so negate for visual CW tilt
-        rotation_deg = -TIER_ROTATION[tier]  # negate: -7 in dict -> rotate(7)
+        rotation_deg = -SEAL_ROTATION[tier]
         stamp_rotated = stamp_canvas.rotate(
             rotation_deg, expand=True, resample=Image.BICUBIC
         )
@@ -1021,7 +1334,7 @@ def generate_ga_og_card(image: dict, avg_glance: float | None,
         shadow_color.putalpha(shadow_alpha_blurred)
 
         # Position: center-left, slightly above middle
-        stamp_w, stamp_h = TIER_STAMP_SIZE[tier]
+        seal_r = SEAL_RADIUS[tier]
         stamp_cx = CARD_W // 2 - 140
         stamp_cy = CARD_H // 2 - 40
         paste_x = stamp_cx - stamp_rotated.width // 2
@@ -1039,7 +1352,7 @@ def generate_ga_og_card(image: dict, avg_glance: float | None,
 
         # Channel 7: SPEED LINES — tier-varying count and color
         speed_draw = ImageDraw.Draw(img)
-        _draw_speed_lines(speed_draw, stamp_cx, stamp_cy, stamp_w, stamp_h, tier)
+        _draw_speed_lines(speed_draw, stamp_cx, stamp_cy, seal_r * 2, seal_r * 2, tier)
 
     else:
         # No score: show a muted "?" stamp (unchanged from V4)

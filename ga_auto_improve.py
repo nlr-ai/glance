@@ -68,47 +68,96 @@ def _load_abstract(abstract_text=None, abstract_file=None, sidecar_path=None):
 
 
 def _build_intent_from_diagnosis(turn_data):
-    """Build a targeted improvement intent from the current diagnosis."""
-    issues = []
+    """Build targeted Gemini prompts from diagnosis.
 
-    # Anti-patterns
+    Format: specific diagnosis (node, value, channel) + open question.
+    The diagnosis is precise. The question opens exploration.
+    """
+    prompts = []
+
+    # Anti-patterns → specific diagnosis + open question
     for ap in turn_data.get("anti_patterns", []):
-        if ap.get("severity") == "HIGH":
-            issues.append(ap.get("issue", ""))
+        if ap.get("severity") != "HIGH":
+            continue
+        ap_type = ap.get("type", "")
+        name = ap.get("name", ap.get("node_id", ""))
+        w = ap.get("weight", 0)
+
+        if ap_type == "fragile":
+            n_ch = ap.get("n_channels", 0)
+            if n_ch == 0:
+                prompts.append(
+                    f"'{name}' (w={w:.2f}) n'a aucun encodage visuel au-delà du texte. "
+                    f"Quels canaux indépendants l'encoderaient sans ajouter de mots ?")
+            else:
+                prompts.append(
+                    f"'{name}' (w={w:.2f}) n'est encodé que par un seul canal. "
+                    f"Quel second canal créerait de la redondance sans surcharger ?")
+        elif ap_type == "incongruent":
+            prompts.append(
+                f"'{name}' envoie des signaux visuels contradictoires. "
+                f"{ap.get('issue', '')} "
+                f"Lequel des signaux reflète le vrai rôle de ce node ?")
+        elif ap_type == "inverse":
+            avg_eff = ap.get("avg_effectiveness", 0)
+            prompts.append(
+                f"'{name}' est important (w={w:.2f}) mais visuellement démoté "
+                f"(effectiveness {avg_eff:.2f}). "
+                f"Quels canaux permettraient de le stabiliser sans écraser les autres ?")
+        elif ap_type == "missing_category":
+            cat = ap.get("category", "")
+            prompts.append(
+                f"Aucune variation de {cat} dans ce GA. "
+                f"Quel mapping {cat}→catégorie différencierait les types d'éléments "
+                f"sans dépendre des autres canaux ?")
 
     # Low-effectiveness channels
     for ch in turn_data.get("low_channels", []):
-        issues.append(f"Channel '{ch['channel']}' has low effectiveness ({ch['effectiveness']:.1f})")
+        eff = ch.get("effectiveness", 0)
+        channel = ch.get("channel", "")
+        prompts.append(
+            f"Le canal '{channel}' a une effectiveness de {eff:.1f}. "
+            f"Quelle modification concrète le ferait passer au-dessus de 0.7 ?")
 
     # Archetype-specific
     archetype = turn_data.get("archetype", "")
     if archetype == "fantome":
-        issues.append("The GA communicates NOTHING in 5 seconds — need a clear focal point")
+        prompts.append(
+            "Le GA ne communique rien en 5 secondes (Fantôme). "
+            "Quel élément unique devrait dominer visuellement pour ancrer le message ?")
     elif archetype == "encyclopedie":
-        issues.append("Too much information, no hierarchy — simplify to 1 main message")
+        word_count = turn_data.get("word_count", 0)
+        prompts.append(
+            f"Le GA contient {word_count} mots et trop d'information sans hiérarchie. "
+            f"Quels mots portent de l'information qui n'est pas déjà encodée visuellement ?")
     elif archetype == "desequilibre":
-        issues.append("Visual weight is uneven — one element dominates, crushing the rest")
+        prompts.append(
+            "Un élément écrase tous les autres visuellement. "
+            "Comment redistribuer l'espace pour que le poids visuel "
+            "reflète l'importance scientifique ?")
     elif archetype == "embelli":
-        issues.append("The hierarchy is communicated but may be biased — verify encoding proportionality")
+        s9b = turn_data.get("s9b", 0)
+        if s9b < 0.7:
+            prompts.append(
+                f"S9b={s9b:.2f} — la hiérarchie est partiellement perçue. "
+                f"Quel est LE message principal et comment le rendre "
+                f"impossible à rater en 3 secondes ?")
 
-    # Score-based
-    s9b = turn_data.get("s9b", 0)
-    if s9b < 0.5:
-        issues.append(f"S9b={s9b:.2f} — hierarchy not perceived, need stronger visual dominance of main finding")
-    elif s9b < 0.7:
-        issues.append(f"S9b={s9b:.2f} — hierarchy partially perceived, strengthen primary bar/element")
-
+    # Word count
     word_count = turn_data.get("word_count", 0)
-    if word_count > 40:
-        issues.append(f"Word count={word_count} — cut to ≤35 words, replace text with visual encoding")
+    if word_count > 40 and not any("mots" in p for p in prompts):
+        prompts.append(
+            f"{word_count} mots (budget ~35). "
+            f"Quels mots peuvent être remplacés par un encodage visuel ?")
 
-    if not issues:
-        issues.append("Minor refinements — increase visual polish and channel congruence")
+    if not prompts:
+        prompts.append(
+            "Les métriques principales sont stables. "
+            "Y a-t-il un canal visuel sous-exploité qui renforcerait la congruence ?")
 
-    # Top 3 issues as intent
-    top_issues = issues[:3]
-    intent = "Fix these issues:\n" + "\n".join(f"- {i}" for i in top_issues)
-    return intent
+    # Top 3 prompts
+    top = prompts[:3]
+    return "\n\n".join(top)
 
 
 def auto_improve(image_path, abstract=None, max_turns=5,
