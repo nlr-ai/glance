@@ -1,0 +1,621 @@
+{% extends "base.html" %}
+{% block title %}Classement des participants — GLANCE{% endblock %}
+
+{% block head %}
+<style>
+/* ===== GLANCE Participant Ranking =====
+   Uses app-wide dark blue theme from style.css variables.
+   All styles self-contained.
+   ======================================= */
+
+/* --- Layout --- */
+.pl-page {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: var(--sp-8) 0 var(--sp-16);
+}
+
+/* --- Header --- */
+.pl-header {
+    text-align: center;
+    margin-bottom: var(--sp-10);
+}
+.pl-header h1 {
+    font-size: var(--text-2xl);
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.02em;
+    margin-bottom: var(--sp-2);
+}
+.pl-header .subtitle {
+    color: var(--text-dim);
+    font-size: var(--text-sm);
+    font-weight: 400;
+    margin-bottom: 0;
+}
+
+/* --- Breadcrumb --- */
+.pl-nav {
+    display: flex;
+    gap: var(--sp-2);
+    justify-content: center;
+    margin-bottom: var(--sp-8);
+    align-items: center;
+    font-size: var(--text-sm);
+}
+.pl-nav a {
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+.pl-nav a:hover {
+    color: var(--primary);
+}
+.pl-nav .sep {
+    color: var(--text-dim);
+    font-size: var(--text-xs);
+}
+.pl-nav .active {
+    color: var(--text);
+    font-weight: 600;
+}
+
+/* --- Stats bar --- */
+.pl-stats {
+    display: flex;
+    gap: var(--sp-3);
+    margin-bottom: var(--sp-8);
+}
+.pl-stat {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: var(--sp-5) var(--sp-3);
+    text-align: center;
+}
+.pl-stat-value {
+    font-size: var(--text-xl);
+    font-weight: 700;
+    font-family: var(--font-mono);
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    margin-bottom: var(--sp-1);
+    color: var(--text);
+}
+.pl-stat-label {
+    font-size: var(--text-xs);
+    color: var(--text-dim);
+    line-height: 1.3;
+}
+
+/* --- Tabs --- */
+.pl-tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: var(--sp-8);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    border: 1px solid var(--border-subtle);
+    background: var(--surface);
+}
+.pl-tab {
+    flex: 1;
+    padding: var(--sp-4) var(--sp-4);
+    text-align: center;
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    transition: background 0.2s, color 0.2s;
+    letter-spacing: -0.01em;
+}
+.pl-tab:hover {
+    background: rgba(255,255,255,0.04);
+    color: var(--text);
+}
+.pl-tab.active {
+    background: rgba(13,148,136,0.12);
+    color: var(--primary);
+}
+
+/* --- Section --- */
+.pl-section {
+    margin-bottom: var(--sp-12);
+}
+.pl-section-header {
+    display: flex;
+    align-items: baseline;
+    gap: var(--sp-3);
+    margin-bottom: var(--sp-5);
+}
+.pl-section-header h2 {
+    font-size: var(--text-lg);
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 0;
+    letter-spacing: -0.01em;
+}
+.pl-section-header .pl-section-badge {
+    font-size: var(--text-xs);
+    color: var(--text-dim);
+    font-weight: 400;
+}
+
+/* --- Participant cards --- */
+.pl-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3);
+}
+
+.pl-card {
+    background: var(--surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: var(--sp-5) var(--sp-6);
+    display: grid;
+    grid-template-columns: 48px 1fr auto;
+    gap: var(--sp-4);
+    align-items: center;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.pl-card:hover {
+    border-color: var(--border);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+}
+
+/* Medal / rank column */
+.pl-rank {
+    text-align: center;
+}
+.pl-rank-medal {
+    font-size: 1.75rem;
+    line-height: 1;
+}
+.pl-rank-number {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: var(--text-lg);
+    color: var(--text-dim);
+    line-height: 1;
+}
+
+/* Center info column */
+.pl-info {
+    min-width: 0;
+}
+.pl-info-top {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    margin-bottom: var(--sp-2);
+    flex-wrap: wrap;
+}
+.pl-profile {
+    font-size: var(--text-sm);
+    color: var(--text);
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 400px;
+}
+.pl-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: var(--text-xs);
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: var(--radius-pill);
+    white-space: nowrap;
+}
+.pl-badge-top {
+    background: rgba(59, 130, 246, 0.12);
+    color: var(--primary);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+}
+.pl-badge-streak {
+    background: rgba(34, 197, 94, 0.1);
+    color: #22c55e;
+    border: 1px solid rgba(34, 197, 94, 0.15);
+}
+
+/* Meta row under profile */
+.pl-meta {
+    display: flex;
+    gap: var(--sp-4);
+    font-size: var(--text-xs);
+    color: var(--text-dim);
+    flex-wrap: wrap;
+}
+.pl-meta-item {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-1);
+}
+.pl-meta-val {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+/* Right-side score column */
+.pl-score {
+    text-align: right;
+    min-width: 80px;
+}
+.pl-score-value {
+    font-family: var(--font-mono);
+    font-weight: 800;
+    font-size: var(--text-xl);
+    line-height: 1.2;
+    letter-spacing: -0.03em;
+}
+.pl-score-label {
+    font-size: var(--text-xs);
+    color: var(--text-dim);
+    font-weight: 400;
+}
+.pl-score-big {
+    font-family: var(--font-mono);
+    font-weight: 800;
+    font-size: 1.75rem;
+    line-height: 1.2;
+    letter-spacing: -0.03em;
+    color: var(--primary);
+}
+
+/* Score bar */
+.pl-bar {
+    height: 6px;
+    background: var(--bg-subtle);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: var(--sp-2);
+}
+.pl-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    min-width: 4px;
+}
+
+/* Score colors */
+.sc-green  { color: #22c55e; }
+.sc-yellow { color: #eab308; }
+.sc-orange { color: #f97316; }
+.sc-red    { color: #ef4444; }
+.bar-green  { background: #22c55e; }
+.bar-yellow { background: #eab308; }
+.bar-orange { background: #f97316; }
+.bar-red    { background: #ef4444; }
+
+/* --- Top 3 highlight --- */
+.pl-card-gold {
+    border-color: rgba(234, 179, 8, 0.3);
+    background: linear-gradient(135deg, var(--surface), rgba(234, 179, 8, 0.04));
+}
+.pl-card-silver {
+    border-color: rgba(148, 163, 184, 0.3);
+    background: linear-gradient(135deg, var(--surface), rgba(148, 163, 184, 0.04));
+}
+.pl-card-bronze {
+    border-color: rgba(180, 130, 80, 0.3);
+    background: linear-gradient(135deg, var(--surface), rgba(180, 130, 80, 0.04));
+}
+
+/* --- Empty state --- */
+.pl-empty {
+    text-align: center;
+    padding: var(--sp-12) var(--sp-8);
+    background: var(--surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+}
+.pl-empty p {
+    color: var(--text-dim);
+    font-size: var(--text-sm);
+    margin-bottom: 0;
+}
+
+/* --- Tab content visibility --- */
+.pl-tab-content {
+    display: none;
+}
+.pl-tab-content.active {
+    display: block;
+}
+
+/* --- Responsive --- */
+@media (max-width: 560px) {
+    .pl-page {
+        padding: var(--sp-6) 0 var(--sp-12);
+    }
+    .pl-header h1 {
+        font-size: var(--text-xl);
+    }
+    .pl-stats {
+        flex-wrap: wrap;
+    }
+    .pl-stat {
+        flex: 1 1 calc(50% - var(--sp-2));
+        min-width: calc(50% - var(--sp-2));
+    }
+    .pl-card {
+        grid-template-columns: 40px 1fr;
+        grid-template-rows: auto auto;
+        gap: var(--sp-2) var(--sp-3);
+        padding: var(--sp-4);
+    }
+    .pl-score {
+        grid-column: 1 / -1;
+        text-align: left;
+        display: flex;
+        align-items: center;
+        gap: var(--sp-3);
+        min-width: unset;
+    }
+    .pl-score-value {
+        font-size: var(--text-lg);
+    }
+    .pl-score-big {
+        font-size: var(--text-xl);
+    }
+    .pl-bar {
+        flex: 1;
+        margin-top: 0;
+    }
+    .pl-profile {
+        max-width: 200px;
+    }
+    .pl-tabs {
+        font-size: var(--text-xs);
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="pl-page">
+    <div class="pl-header">
+        <h1>Classement des participants</h1>
+        <p class="subtitle">Performances individuelles des testeurs GLANCE</p>
+    </div>
+
+    <nav class="pl-nav">
+        <a href="/">Accueil</a>
+        <span class="sep">&#8250;</span>
+        <a href="/dashboard">Dashboard</a>
+        <span class="sep">&#8250;</span>
+        <a href="/leaderboard">Leaderboard</a>
+        <span class="sep">&#8250;</span>
+        <span class="active">Classement participants</span>
+    </nav>
+
+    {# ── Global stats ── #}
+    <div class="pl-stats">
+        <div class="pl-stat">
+            <div class="pl-stat-value">{{ n_participants }}</div>
+            <div class="pl-stat-label">participants</div>
+        </div>
+        <div class="pl-stat">
+            <div class="pl-stat-value">{{ n_qualified }}</div>
+            <div class="pl-stat-label">qualifi&eacute;s (3+ tests)</div>
+        </div>
+        <div class="pl-stat">
+            <div class="pl-stat-value">
+                {% if comprehension %}{{ (comprehension[0].avg_glance * 100) | round(0) | int }}%{% else %}&mdash;{% endif %}
+            </div>
+            <div class="pl-stat-label">meilleur score moy.</div>
+        </div>
+        <div class="pl-stat">
+            <div class="pl-stat-value">
+                {% if contribution %}{{ contribution[0].n_tests }}{% else %}&mdash;{% endif %}
+            </div>
+            <div class="pl-stat-label">max tests</div>
+        </div>
+    </div>
+
+    {# ── Tabs ── #}
+    <div class="pl-tabs">
+        <button class="pl-tab active" data-tab="comprehension">Meilleure compr&eacute;hension</button>
+        <button class="pl-tab" data-tab="contribution">Plus grande contribution</button>
+    </div>
+
+    {# ════════════════════════════════════════════════════════════════
+       TAB 1: Meilleure comprehension
+       ════════════════════════════════════════════════════════════════ #}
+    <div class="pl-tab-content active" id="tab-comprehension">
+        <div class="pl-section">
+            <div class="pl-section-header">
+                <h2>Meilleure compr&eacute;hension</h2>
+                <span class="pl-section-badge">Minimum 3 tests &middot; Class&eacute;s par score moyen</span>
+            </div>
+
+            {% if comprehension %}
+            <div class="pl-list">
+                {% for p in comprehension %}
+                {% set rank = loop.index %}
+                {% set pct = (p.avg_glance * 100) | round(0) | int %}
+                {% set best_pct = (p.best_score * 100) | round(0) | int %}
+
+                {# Score color #}
+                {% if pct >= 80 %}{% set sc = "green" %}
+                {% elif pct >= 60 %}{% set sc = "yellow" %}
+                {% elif pct >= 40 %}{% set sc = "orange" %}
+                {% else %}{% set sc = "red" %}{% endif %}
+
+                {# Card highlight class #}
+                {% if rank == 1 %}{% set card_class = "pl-card-gold" %}
+                {% elif rank == 2 %}{% set card_class = "pl-card-silver" %}
+                {% elif rank == 3 %}{% set card_class = "pl-card-bronze" %}
+                {% else %}{% set card_class = "" %}{% endif %}
+
+                <div class="pl-card {{ card_class }}">
+                    <div class="pl-rank">
+                        {% if rank == 1 %}
+                            <span class="pl-rank-medal" title="#1">&#x1F947;</span>
+                        {% elif rank == 2 %}
+                            <span class="pl-rank-medal" title="#2">&#x1F948;</span>
+                        {% elif rank == 3 %}
+                            <span class="pl-rank-medal" title="#3">&#x1F949;</span>
+                        {% else %}
+                            <span class="pl-rank-number">#{{ rank }}</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="pl-info">
+                        <div class="pl-info-top">
+                            <span class="pl-profile" title="{{ p.profile }}">{{ p.profile }}</span>
+                            {% if p.top_pct <= 10 %}
+                                <span class="pl-badge pl-badge-top">Top {{ p.top_pct }}%</span>
+                            {% endif %}
+                            {% if p.streak >= 3 %}
+                                <span class="pl-badge pl-badge-streak">{{ p.streak }} cons&eacute;cutifs</span>
+                            {% endif %}
+                        </div>
+                        <div class="pl-meta">
+                            <div class="pl-meta-item">
+                                <span class="pl-meta-val">{{ p.n_tests }}</span> tests
+                            </div>
+                            <div class="pl-meta-item">
+                                meilleur <span class="pl-meta-val">{{ best_pct }}%</span>
+                            </div>
+                            {% if p.streak > 0 %}
+                            <div class="pl-meta-item">
+                                s&eacute;rie <span class="pl-meta-val">{{ p.streak }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="pl-score">
+                        <div class="pl-score-value sc-{{ sc }}">{{ pct }}%</div>
+                        <div class="pl-score-label">score moy.</div>
+                        <div class="pl-bar">
+                            <div class="pl-bar-fill bar-{{ sc }}" style="width: {{ pct }}%;"></div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="pl-empty">
+                <p>Pas encore assez de participants qualifi&eacute;s (3 tests minimum).</p>
+                <p><a href="/onboard" style="color: var(--primary);">Passez le test</a> pour appara&icirc;tre ici.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {# ════════════════════════════════════════════════════════════════
+       TAB 2: Plus grande contribution
+       ════════════════════════════════════════════════════════════════ #}
+    <div class="pl-tab-content" id="tab-contribution">
+        <div class="pl-section">
+            <div class="pl-section-header">
+                <h2>Plus grande contribution</h2>
+                <span class="pl-section-badge">Class&eacute;s par nombre de tests</span>
+            </div>
+
+            {% if contribution %}
+            <div class="pl-list">
+                {% for p in contribution %}
+                {% set rank = loop.index %}
+                {% set pct = (p.avg_glance * 100) | round(0) | int %}
+
+                {# Score color #}
+                {% if pct >= 80 %}{% set sc = "green" %}
+                {% elif pct >= 60 %}{% set sc = "yellow" %}
+                {% elif pct >= 40 %}{% set sc = "orange" %}
+                {% else %}{% set sc = "red" %}{% endif %}
+
+                {# Card highlight class #}
+                {% if rank == 1 %}{% set card_class = "pl-card-gold" %}
+                {% elif rank == 2 %}{% set card_class = "pl-card-silver" %}
+                {% elif rank == 3 %}{% set card_class = "pl-card-bronze" %}
+                {% else %}{% set card_class = "" %}{% endif %}
+
+                {# Time formatting #}
+                {% if p.total_time_s >= 60 %}
+                    {% set time_display = (p.total_time_s / 60) | round(1) %}
+                    {% set time_unit = "min" %}
+                {% else %}
+                    {% set time_display = p.total_time_s | round(0) | int %}
+                    {% set time_unit = "s" %}
+                {% endif %}
+
+                <div class="pl-card {{ card_class }}">
+                    <div class="pl-rank">
+                        {% if rank == 1 %}
+                            <span class="pl-rank-medal" title="#1">&#x1F947;</span>
+                        {% elif rank == 2 %}
+                            <span class="pl-rank-medal" title="#2">&#x1F948;</span>
+                        {% elif rank == 3 %}
+                            <span class="pl-rank-medal" title="#3">&#x1F949;</span>
+                        {% else %}
+                            <span class="pl-rank-number">#{{ rank }}</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="pl-info">
+                        <div class="pl-info-top">
+                            <span class="pl-profile" title="{{ p.profile }}">{{ p.profile }}</span>
+                            {% if p.top_pct <= 10 %}
+                                <span class="pl-badge pl-badge-top">Top {{ p.top_pct }}%</span>
+                            {% endif %}
+                        </div>
+                        <div class="pl-meta">
+                            <div class="pl-meta-item">
+                                score <span class="pl-meta-val sc-{{ sc }}">{{ pct }}%</span>
+                            </div>
+                            <div class="pl-meta-item">
+                                <span class="pl-meta-val">{{ p.domains_covered }}</span> domaines
+                            </div>
+                            <div class="pl-meta-item">
+                                <span class="pl-meta-val">{{ time_display }}</span>{{ time_unit }} pass&eacute;es
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pl-score">
+                        <div class="pl-score-big">{{ p.n_tests }}</div>
+                        <div class="pl-score-label">tests</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="pl-empty">
+                <p>Aucun participant pour l'instant.</p>
+                <p><a href="/onboard" style="color: var(--primary);">Passez le test</a> pour appara&icirc;tre ici.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+    var tabs = document.querySelectorAll('.pl-tab');
+    var contents = document.querySelectorAll('.pl-tab-content');
+
+    tabs.forEach(function(tab) {
+        tab.addEventListener('click', function() {
+            var target = this.getAttribute('data-tab');
+
+            tabs.forEach(function(t) { t.classList.remove('active'); });
+            contents.forEach(function(c) { c.classList.remove('active'); });
+
+            this.classList.add('active');
+            document.getElementById('tab-' + target).classList.add('active');
+        });
+    });
+})();
+</script>
+{% endblock %}
