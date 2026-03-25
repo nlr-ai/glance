@@ -88,29 +88,41 @@ def _build_intent_from_diagnosis(turn_data):
             if n_ch == 0:
                 prompts.append(
                     f"'{name}' (w={w:.2f}) n'a aucun encodage visuel au-delà du texte. "
-                    f"En thumbnail ou scan rapide, ce concept disparaît complètement. "
+                    f"En thumbnail 300px, '{name}' disparaît — le lecteur ne saura jamais que ce concept existe. "
                     f"Quels canaux indépendants l'encoderaient sans ajouter de mots ?")
             else:
+                ch_name = ap.get("channels", [{}])[0].get("channel", "un seul canal") if "channels" in ap else "un seul canal"
                 prompts.append(
-                    f"'{name}' (w={w:.2f}) n'est encodé que par un seul canal. "
-                    f"Si ce canal échoue (daltonisme, compression, scroll rapide), le message est perdu. "
+                    f"'{name}' (w={w:.2f}) n'est encodé que par '{ch_name}'. "
+                    f"Un daltonien, un écran basse résolution, ou un scroll de 2 secondes suffit à perdre '{name}'. "
                     f"Quel second canal créerait de la redondance sans surcharger ?")
         elif ap_type == "incongruent":
+            # Extract the specific conflicting signals
+            issue = ap.get("issue", "")
+            # Try to extract the two signals from the issue text
+            neg_channels = [c for c in ap.get("neg_ch", issue.split("signal negative")[0].split(",")) if c.strip()] if "neg_ch" in ap else []
+            pos_channels = [c for c in ap.get("pos_ch", []) if c.strip()] if "pos_ch" in ap else []
+            if neg_channels and pos_channels:
+                conflict = f"'{', '.join(neg_channels)}' dit négatif/danger tandis que '{', '.join(pos_channels)}' dit positif/solution"
+            else:
+                conflict = issue
             prompts.append(
-                f"'{name}' envoie des signaux visuels contradictoires : {ap.get('issue', '')}. "
-                f"Le cerveau reçoit deux messages opposés et hésite — ça ralentit la compréhension. "
-                f"Lequel des signaux reflète le vrai rôle de ce node dans le message ?")
+                f"'{name}' envoie des signaux contradictoires : {conflict}. "
+                f"Le lecteur reçoit à la fois 'attention danger' et 'voici la solution' — il hésite. "
+                f"Lequel des deux reflète le vrai rôle de '{name}' dans le message ?")
         elif ap_type == "inverse":
             avg_eff = ap.get("avg_effectiveness", 0)
             prompts.append(
-                f"'{name}' est important (w={w:.2f}) mais visuellement démoté (effectiveness {avg_eff:.2f}). "
-                f"Le lecteur ne le verra pas en 5 secondes — il passera inaperçu. "
+                f"'{name}' est important (w={w:.2f}) mais ses canaux visuels ne transmettent que {avg_eff:.0%} du signal. "
+                f"Le lecteur voit '{name}' en dernier, ou pas du tout — alors que c'est un résultat clé. "
                 f"Quels canaux permettraient de le stabiliser sans écraser les autres ?")
         elif ap_type == "missing_category":
             cat = ap.get("category", "")
+            available = ap.get("available", [])
+            examples = ", ".join(available[:3]) if available else cat
             prompts.append(
-                f"Aucune variation de {cat} dans ce GA. "
-                f"Toutes les catégories se ressemblent sur ce canal — impossible de les distinguer pré-attentivement. "
+                f"Aucune variation de {cat} dans ce GA ({examples} tous identiques). "
+                f"Un lecteur qui scanne rapidement ne peut pas distinguer les catégories sur l'axe {cat}. "
                 f"Quel mapping {cat}→catégorie différencierait les types d'éléments sans dépendre des autres canaux ?")
 
     # Low-effectiveness channels
@@ -122,36 +134,45 @@ def _build_intent_from_diagnosis(turn_data):
             f"L'information encodée par ce canal n'atteint pas le lecteur efficacement. "
             f"Quelle modification concrète le ferait passer au-dessus de 0.7 ?")
 
-    # Archetype-specific
+    # Archetype-specific — dynamic problem description
     archetype = turn_data.get("archetype", "")
+    nodes = turn_data.get("node_names", [])
+    top_node = nodes[0] if nodes else "le message principal"
+
     if archetype == "fantome":
+        n_nodes = turn_data.get("node_count", 0)
         prompts.append(
-            "Le GA ne communique rien en 5 secondes (Fantôme). "
-            "Quel élément unique devrait dominer visuellement pour ancrer le message ?")
+            f"Le GA a {n_nodes} éléments mais aucun ne domine visuellement (Fantôme). "
+            f"Le lecteur voit une image pendant 5 secondes et repart sans rien retenir. "
+            f"Quel élément unique devrait dominer pour ancrer le message ?")
     elif archetype == "encyclopedie":
         word_count = turn_data.get("word_count", 0)
+        n_nodes = turn_data.get("node_count", 0)
         prompts.append(
-            f"Le GA contient {word_count} mots et trop d'information sans hiérarchie. "
+            f"Le GA contient {word_count} mots et {n_nodes} éléments sans hiérarchie (Encyclopédie). "
+            f"Le lecteur reçoit trop d'information en parallèle et ne sait pas par où commencer. "
             f"Quels mots portent de l'information qui n'est pas déjà encodée visuellement ?")
     elif archetype == "desequilibre":
         prompts.append(
-            "Un élément écrase tous les autres visuellement. "
-            "Comment redistribuer l'espace pour que le poids visuel "
-            "reflète l'importance scientifique ?")
+            f"Un élément écrase tous les autres visuellement (Déséquilibré). "
+            f"Le lecteur ne voit que cet élément et rate le reste du message. "
+            f"Comment redistribuer l'espace pour que le poids visuel reflète l'importance scientifique ?")
     elif archetype == "embelli":
         s9b = turn_data.get("s9b", 0)
         if s9b < 0.7:
             prompts.append(
-                f"S9b={s9b:.2f} — la hiérarchie est partiellement perçue. "
-                f"Quel est LE message principal et comment le rendre "
-                f"impossible à rater en 3 secondes ?")
+                f"S9b={s9b:.2f} — le lecteur perçoit une hiérarchie mais elle n'est pas assez forte (Embelli). "
+                f"'{top_node}' devrait être vu en premier mais il est en compétition avec d'autres éléments. "
+                f"Quel est LE message principal et comment le rendre impossible à rater en 3 secondes ?")
 
     # Word count
     word_count = turn_data.get("word_count", 0)
     if word_count > 40 and not any("mots" in p for p in prompts):
+        excess = word_count - 35
         prompts.append(
-            f"{word_count} mots (budget ~35). "
-            f"Quels mots peuvent être remplacés par un encodage visuel ?")
+            f"{word_count} mots sur le GA (budget ~35, excès de {excess}). "
+            f"Chaque mot supplémentaire active le Système 2 et ajoute ~200ms au temps de décodage. "
+            f"Quels mots portent de l'information qui n'est pas déjà encodée visuellement ?")
 
     if not prompts:
         prompts.append(
@@ -214,6 +235,11 @@ def auto_improve(image_path, abstract=None, max_turns=5,
             graph_path = result["saved_path"]
             turn_data["graph_path"] = graph_path
             turn_data["node_count"] = len(result["graph"]["nodes"])
+            turn_data["node_names"] = sorted(
+                [n["name"] for n in result["graph"]["nodes"]],
+                key=lambda n: next((nd["weight"] for nd in result["graph"]["nodes"] if nd["name"] == n), 0),
+                reverse=True,
+            )
             turn_data["link_count"] = len(result["graph"]["links"])
             turn_data["word_count"] = meta.get("word_count", 0)
             turn_data["hierarchy_clear"] = meta.get("hierarchy_clear", False)
