@@ -8,6 +8,8 @@ services:
     envVars:
       - key: GLANCE_DB_PATH
         value: /var/data/glance.db
+      - key: GLANCE_DATA_DIR
+        value: /var/data
       - key: GEMINI_API_KEY
         sync: false
       - key: GEMINI_MODEL

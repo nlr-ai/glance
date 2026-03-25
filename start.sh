@@ -5,6 +5,12 @@ mkdir -p /var/data 2>/dev/null || true
 echo "GLANCE_DB_PATH=${GLANCE_DB_PATH:-NOT SET (fallback to /app/data/glance.db)}"
 echo "Disk /var/data contents:"
 ls -la /var/data/ 2>/dev/null || echo "  /var/data/ does not exist"
+# Restore user uploads from persistent disk
+if [ -d "/var/data/user_uploads" ]; then
+    mkdir -p /app/ga_library/user_uploads
+    cp -n /var/data/user_uploads/* /app/ga_library/user_uploads/ 2>/dev/null
+    echo "Restored $(ls /var/data/user_uploads/ 2>/dev/null | wc -l) user uploads from persistent disk"
+fi
 # Initialize DB if needed
 python -c "from db import init_db, DB_PATH; print(f'DB_PATH={DB_PATH}'); init_db()"
 # Regenerate paper PDF from markdown (if markdown source changed)

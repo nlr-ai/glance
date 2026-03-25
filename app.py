@@ -1668,8 +1668,16 @@ async def analyze_submit(request: Request, file: UploadFile = File(...)):
     timestamp = int(time.time())
     safe_name = re.sub(r'[^\w\-.]', '_', file.filename)
     upload_filename = f"user_uploads/{timestamp}_{safe_name}"
-    upload_dir = os.path.join(BASE, "ga_library", "user_uploads")
-    os.makedirs(upload_dir, exist_ok=True)
+    # Store on persistent disk (/var/data/) AND local ga_library/ for serving
+    persist_dir = os.path.join(os.environ.get("GLANCE_DATA_DIR", os.path.join(BASE, "ga_library")), "user_uploads")
+    local_dir = os.path.join(BASE, "ga_library", "user_uploads")
+    os.makedirs(persist_dir, exist_ok=True)
+    os.makedirs(local_dir, exist_ok=True)
+    # Save to persistent disk
+    persist_path = os.path.join(persist_dir, f"{timestamp}_{safe_name}")
+    with open(persist_path, "wb") as f:
+        f.write(image_bytes)
+    # Also save to local ga_library for immediate serving
     upload_path = os.path.join(BASE, "ga_library", upload_filename)
     with open(upload_path, "wb") as f:
         f.write(image_bytes)
