@@ -22,7 +22,207 @@
     <meta name="twitter:image" content="{{ og_image | default('https://glance.scisense.fr/static/og-default.png') }}">
     <link rel="stylesheet" href="/static/style.css">
     <style>
-    /* ── Language switcher ── */
+    /* ── Navbar ── */
+    .glance-nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 56px;
+        padding: 0 1.25rem;
+        background: rgba(15, 23, 42, 0.85);
+        border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        transition: background 0.3s ease;
+    }
+    .glance-nav.scrolled {
+        background: rgba(15, 23, 42, 0.97);
+    }
+    .glance-nav-brand {
+        font-size: 1.15rem;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        color: #14b8a6;
+        text-decoration: none;
+        flex-shrink: 0;
+    }
+    .glance-nav-brand:hover {
+        color: #2dd4bf;
+    }
+    .glance-nav-links {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+    .glance-nav-links a {
+        display: inline-block;
+        padding: 0.4rem 0.75rem;
+        color: #94a3b8;
+        text-decoration: none;
+        font-size: 0.8125rem;
+        font-weight: 500;
+        border-radius: 6px;
+        transition: color 0.15s, background 0.15s;
+        white-space: nowrap;
+    }
+    .glance-nav-links a:hover {
+        color: #e2e8f0;
+        background: rgba(255, 255, 255, 0.06);
+    }
+    .glance-nav-links a.nav-active {
+        color: #14b8a6;
+        border-bottom: 2px solid #14b8a6;
+        border-radius: 6px 6px 0 0;
+    }
+    /* Language switcher inside nav */
+    .nav-lang {
+        display: flex;
+        gap: 0;
+        border-radius: 5px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        margin-left: 0.75rem;
+        font-size: 0.7rem;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        flex-shrink: 0;
+    }
+    .nav-lang a {
+        padding: 4px 8px !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+        border-bottom: none !important;
+        font-size: 0.7rem !important;
+    }
+    .nav-lang a.active {
+        background: rgba(13, 148, 136, 0.25) !important;
+        color: #14b8a6 !important;
+    }
+    /* Nav divider */
+    .nav-divider {
+        width: 1px;
+        height: 20px;
+        background: rgba(148, 163, 184, 0.25);
+        margin: 0 0.35rem;
+        flex-shrink: 0;
+    }
+    /* External nav links */
+    .glance-nav-links a.nav-external {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        color: #64748b;
+        font-size: 0.75rem;
+    }
+    .glance-nav-links a.nav-external:hover {
+        color: #e2e8f0;
+        background: rgba(255, 255, 255, 0.06);
+    }
+    .glance-nav-links a.nav-external svg {
+        width: 14px;
+        height: 14px;
+        flex-shrink: 0;
+    }
+    /* Mobile external links */
+    .glance-nav-mobile .nav-mobile-divider {
+        height: 1px;
+        background: rgba(148, 163, 184, 0.15);
+        margin: 0.4rem 1.25rem;
+    }
+    .glance-nav-mobile a.nav-external-mobile {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #64748b;
+        font-size: 0.8rem;
+    }
+    .glance-nav-mobile a.nav-external-mobile:hover {
+        color: #e2e8f0;
+    }
+    .glance-nav-mobile a.nav-external-mobile svg {
+        width: 16px;
+        height: 16px;
+        flex-shrink: 0;
+    }
+    /* Hamburger */
+    .glance-nav-hamburger {
+        display: none;
+        background: none;
+        border: none;
+        color: #e2e8f0;
+        font-size: 1.5rem;
+        cursor: pointer;
+        padding: 0.25rem;
+        line-height: 1;
+    }
+    /* Nav wrapper (sticky container for nav + mobile dropdown) */
+    .glance-nav-wrap {
+        position: sticky;
+        top: 0;
+        z-index: 999;
+    }
+    /* Mobile menu */
+    .glance-nav-mobile {
+        display: none;
+        background: rgba(15, 23, 42, 0.97);
+        border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        padding: 0.5rem 0;
+    }
+    .glance-nav-mobile.open {
+        display: block;
+    }
+    .glance-nav-mobile a {
+        display: block;
+        padding: 0.75rem 1.25rem;
+        color: #94a3b8;
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: color 0.15s, background 0.15s;
+    }
+    .glance-nav-mobile a:hover {
+        color: #e2e8f0;
+        background: rgba(255, 255, 255, 0.06);
+    }
+    .glance-nav-mobile a.nav-active {
+        color: #14b8a6;
+        border-left: 3px solid #14b8a6;
+        padding-left: calc(1.25rem - 3px);
+    }
+    .glance-nav-mobile .nav-lang-mobile {
+        display: flex;
+        gap: 0;
+        margin: 0.5rem 1.25rem;
+        border-radius: 5px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        width: fit-content;
+    }
+    .glance-nav-mobile .nav-lang-mobile a {
+        padding: 5px 12px;
+        display: inline-block;
+        font-size: 0.75rem;
+        font-weight: 600;
+        border-left: none;
+    }
+    .glance-nav-mobile .nav-lang-mobile a.active {
+        background: rgba(13, 148, 136, 0.25);
+        color: #14b8a6;
+    }
+    @media (max-width: 768px) {
+        .glance-nav-links {
+            display: none;
+        }
+        .glance-nav-hamburger {
+            display: block;
+        }
+    }
+    /* Legacy standalone lang-switcher (kept for pages that hide nav) */
     .lang-switcher {
         position: fixed;
         top: 12px;
@@ -58,13 +258,54 @@
     {% block head %}{% endblock %}
 </head>
 <body>
-    {# Language switcher — visible on all pages except admin #}
+    {% block nav %}
+    {% if not hide_nav %}
+    {# ── Navigation bar ── #}
+    {% set path = request.url.path %}
+    <div class="glance-nav-wrap">
+    <nav class="glance-nav" id="glanceNav">
+        <a href="/" class="glance-nav-brand">GLANCE</a>
+        <div class="glance-nav-links">
+            <a href="/onboard" class="{{ 'nav-active' if path == '/onboard' else '' }}">Commencer</a>
+            <a href="/leaderboard" class="{{ 'nav-active' if path.startswith('/leaderboard') else '' }}">Leaderboard</a>
+            <a href="/analyze" class="{{ 'nav-active' if path == '/analyze' else '' }}">Analysez votre GA</a>
+            <a href="/participants" class="{{ 'nav-active' if path == '/participants' else '' }}">Participants</a>
+            <a href="/dashboard" class="{{ 'nav-active' if path == '/dashboard' else '' }}">Dashboard</a>
+            <div class="nav-lang">
+                <a href="?lang=fr" class="{{ 'active' if lang != 'en' else '' }}">FR</a>
+                <a href="?lang=en" class="{{ 'active' if lang == 'en' else '' }}">EN</a>
+            </div>
+            <span class="nav-divider"></span>
+            <a href="/static/GLANCE_Paper_Draft.pdf" target="_blank" rel="noopener" class="nav-external" title="Paper"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>Paper</a>
+            <a href="https://github.com/nlr-ai/glance" target="_blank" rel="noopener" class="nav-external" title="GitHub"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>GitHub</a>
+        </div>
+        <button class="glance-nav-hamburger" id="navHamburger" aria-label="Menu">&#9776;</button>
+    </nav>
+    <div class="glance-nav-mobile" id="navMobile">
+        <a href="/onboard" class="{{ 'nav-active' if path == '/onboard' else '' }}">Commencer</a>
+        <a href="/leaderboard" class="{{ 'nav-active' if path.startswith('/leaderboard') else '' }}">Leaderboard</a>
+        <a href="/analyze" class="{{ 'nav-active' if path == '/analyze' else '' }}">Analysez votre GA</a>
+        <a href="/participants" class="{{ 'nav-active' if path == '/participants' else '' }}">Participants</a>
+        <a href="/dashboard" class="{{ 'nav-active' if path == '/dashboard' else '' }}">Dashboard</a>
+        <div class="nav-mobile-divider"></div>
+        <a href="/static/GLANCE_Paper_Draft.pdf" target="_blank" rel="noopener" class="nav-external-mobile"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>Paper</a>
+        <a href="https://github.com/nlr-ai/glance" target="_blank" rel="noopener" class="nav-external-mobile"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" width="16" height="16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>GitHub</a>
+        <div class="nav-lang-mobile">
+            <a href="?lang=fr" class="{{ 'active' if lang != 'en' else '' }}">FR</a>
+            <a href="?lang=en" class="{{ 'active' if lang == 'en' else '' }}">EN</a>
+        </div>
+    </div>
+    </div>
+    {% else %}
+    {# Fallback language switcher when nav is hidden #}
     {% if not hide_lang_switcher %}
     <div class="lang-switcher">
         <a href="?lang=fr" class="{{ 'active' if lang != 'en' else '' }}">FR</a>
         <a href="?lang=en" class="{{ 'active' if lang == 'en' else '' }}">EN</a>
     </div>
     {% endif %}
+    {% endif %}
+    {% endblock %}
     <div class="container">
         {% block content %}{% endblock %}
     </div>
@@ -76,5 +317,36 @@
     </div>
     {% endblock %}
     {% block scripts %}{% endblock %}
+    {% if not hide_nav %}
+    <script>
+    (function() {
+        var nav = document.getElementById('glanceNav');
+        var hamburger = document.getElementById('navHamburger');
+        var mobile = document.getElementById('navMobile');
+        if (!nav) return;
+        /* Scroll: add .scrolled class */
+        window.addEventListener('scroll', function() {
+            nav.classList.toggle('scrolled', window.scrollY > 10);
+        }, {passive: true});
+        /* Hamburger toggle */
+        hamburger.addEventListener('click', function(e) {
+            e.stopPropagation();
+            mobile.classList.toggle('open');
+        });
+        /* Close on outside click */
+        document.addEventListener('click', function(e) {
+            if (!mobile.contains(e.target) && e.target !== hamburger) {
+                mobile.classList.remove('open');
+            }
+        });
+        /* Close on link click */
+        mobile.querySelectorAll('a').forEach(function(link) {
+            link.addEventListener('click', function() {
+                mobile.classList.remove('open');
+            });
+        });
+    })();
+    </script>
+    {% endif %}
 </body>
 </html>
