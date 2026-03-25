@@ -1,97 +1,856 @@
 {% extends "base.html" %}
-{% block title %}GLANCE — SciSense{% endblock %}
+{% block title %}GLANCE — Testez votre oeil scientifique{% endblock %}
 
 {% block head %}
 <style>
-.landing { text-align: center; padding-top: 2rem; }
-.landing-big {
-    font-size: 1.3rem;
-    line-height: 1.6;
-    color: var(--text, #e2e8f0);
+/* ===== GLANCE Landing Page — Self-contained styles =====
+   Professional scientific palette (Nature/PLOS ONE inspired)
+   ======================================================== */
+
+/* --- Break out of the .container wrapper from base.html --- */
+.container:has(.landing-page) {
+    max-width: 100%;
+    padding: 0;
+    margin: 0;
 }
-.landing-hook {
-    margin: 2rem auto;
-    max-width: 400px;
+/* Fallback for browsers without :has() — applied via JS */
+.container.landing-container {
+    max-width: 100%;
+    padding: 0;
+    margin: 0;
 }
-.landing-steps {
+
+/* --- Color Palette --- */
+.landing-page {
+    --lp-navy: #1a2332;
+    --lp-navy-deep: #0f1722;
+    --lp-teal: #0d9488;
+    --lp-teal-light: #14b8a6;
+    --lp-amber: #f59e0b;
+    --lp-bg: #f8fafc;
+    --lp-card: #ffffff;
+    --lp-border: #e2e8f0;
+    --lp-text: #1a2332;
+    --lp-text-dim: #64748b;
+    --lp-text-muted: #94a3b8;
+    --lp-shadow-sm: 0 1px 3px rgba(26,35,50,0.06), 0 1px 2px rgba(26,35,50,0.04);
+    --lp-shadow-md: 0 4px 12px rgba(26,35,50,0.08), 0 2px 4px rgba(26,35,50,0.04);
+    --lp-shadow-hover: 0 8px 24px rgba(26,35,50,0.12), 0 4px 8px rgba(26,35,50,0.06);
+    --lp-radius: 12px;
+    --lp-font-mono: 'SF Mono', 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+}
+
+/* ===== SECTION 1: HERO ===== */
+.lp-hero {
+    background: linear-gradient(165deg, var(--lp-navy-deep) 0%, var(--lp-navy) 40%, #1e3a5f 100%);
+    padding: 4rem 2rem 3rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+.lp-hero::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(ellipse at 30% 50%, rgba(13,148,136,0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 30%, rgba(59,130,246,0.06) 0%, transparent 50%);
+    pointer-events: none;
+}
+.lp-hero-content {
+    position: relative;
+    z-index: 1;
+    max-width: 800px;
+    margin: 0 auto;
+}
+.lp-hero-badge {
+    display: inline-block;
+    padding: 0.375rem 1rem;
+    border: 1px solid rgba(13,148,136,0.3);
+    border-radius: 100px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--lp-teal-light);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+    background: rgba(13,148,136,0.08);
+}
+.lp-hero h1 {
+    font-size: 3.5rem;
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    margin-bottom: 0.5rem;
+}
+.lp-hero h1 span {
+    background: linear-gradient(135deg, var(--lp-teal-light), #38bdf8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+.lp-hero-sub {
+    font-size: 1.25rem;
+    color: #94a3b8;
+    font-weight: 300;
+    line-height: 1.5;
+    margin-bottom: 2rem;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.lp-hero-cta {
+    display: inline-block;
+    padding: 1rem 3rem;
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #ffffff;
+    background: linear-gradient(135deg, var(--lp-teal), #0ea5e9);
+    border-radius: 100px;
+    text-decoration: none;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 16px rgba(13,148,136,0.3);
+    letter-spacing: 0.01em;
+}
+.lp-hero-cta:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(13,148,136,0.4);
+}
+
+/* Stats bar */
+.lp-stats-bar {
     display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    max-width: 350px;
-    margin: 2rem auto;
-    text-align: left;
+    justify-content: center;
+    gap: 2rem;
+    margin-top: 2.5rem;
+    flex-wrap: wrap;
 }
-.landing-step {
+.lp-stat-pill {
     display: flex;
     align-items: center;
-    gap: 1rem;
-    font-size: 1rem;
-    color: var(--text-muted, #94a3b8);
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 100px;
+    font-size: 0.875rem;
+    color: #cbd5e1;
 }
-.step-num {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: var(--primary, #3b82f6);
-    color: white;
+.lp-stat-pill strong {
+    color: #ffffff;
+    font-family: var(--lp-font-mono);
+    font-weight: 700;
+}
+
+/* ===== SECTION 2: TOP GAs ===== */
+.lp-section {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 3.5rem 2rem;
+}
+.lp-section-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+}
+.lp-section-header h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--lp-navy);
+    letter-spacing: -0.02em;
+    margin-bottom: 0.5rem;
+}
+.lp-section-header h2::after {
+    content: '';
+    display: block;
+    width: 48px;
+    height: 3px;
+    background: linear-gradient(90deg, var(--lp-teal), var(--lp-amber));
+    border-radius: 2px;
+    margin: 0.75rem auto 0;
+}
+.lp-section-header p {
+    color: var(--lp-text-dim);
+    font-size: 0.9375rem;
+    margin-top: 0.5rem;
+}
+
+.lp-top-gas-bg {
+    background: var(--lp-bg);
+}
+.lp-top-gas-scroll {
+    display: flex;
+    gap: 1.25rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+}
+.lp-top-gas-scroll::-webkit-scrollbar {
+    height: 6px;
+}
+.lp-top-gas-scroll::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 3px;
+}
+.lp-top-gas-scroll::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+}
+
+.lp-ga-card {
+    flex: 0 0 240px;
+    scroll-snap-align: start;
+    background: var(--lp-card);
+    border: 1px solid var(--lp-border);
+    border-radius: var(--lp-radius);
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    box-shadow: var(--lp-shadow-sm);
+    transition: transform 0.2s, box-shadow 0.25s;
+}
+.lp-ga-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--lp-shadow-hover);
+}
+.lp-ga-card-img {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+    background: #f1f5f9;
+    display: block;
+}
+.lp-ga-card-img.grayscale {
+    filter: grayscale(100%) opacity(0.5);
+}
+.lp-ga-card-body {
+    padding: 1rem;
+}
+.lp-ga-domain-badge {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border-radius: 4px;
+    background: rgba(13,148,136,0.1);
+    color: var(--lp-teal);
+    margin-bottom: 0.5rem;
+}
+.lp-ga-card-title {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--lp-text);
+    line-height: 1.3;
+    margin-bottom: 0.75rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Score bar */
+.lp-score-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.lp-score-bar-bg {
+    flex: 1;
+    height: 8px;
+    background: #f1f5f9;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+}
+.lp-score-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 1s ease-out;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.2);
+}
+.lp-score-bar-fill.green { background: linear-gradient(90deg, #34d399, #10b981, #059669); }
+.lp-score-bar-fill.yellow { background: linear-gradient(90deg, #fbbf24, #eab308, #ca8a04); }
+.lp-score-bar-fill.orange { background: linear-gradient(90deg, #fb923c, #f97316, #ea580c); }
+.lp-score-bar-fill.red { background: linear-gradient(90deg, #f87171, #ef4444, #dc2626); }
+
+.lp-score-value {
+    font-family: var(--lp-font-mono);
+    font-weight: 700;
+    font-size: 0.875rem;
+    color: var(--lp-navy);
+    min-width: 36px;
+    text-align: right;
+}
+.lp-ga-tests {
+    font-size: 0.6875rem;
+    color: var(--lp-text-muted);
+    margin-top: 0.375rem;
+}
+
+/* Empty state for top GAs */
+.lp-coming-soon {
+    text-align: center;
+    padding: 2rem;
+    color: var(--lp-text-dim);
+    font-size: 0.9375rem;
+}
+.lp-coming-soon-subtitle {
+    font-size: 0.8125rem;
+    color: var(--lp-text-muted);
+    margin-top: 0.25rem;
+}
+
+/* ===== SECTION 3: HOW IT WORKS ===== */
+.lp-how-bg {
+    background: #ffffff;
+}
+.lp-how-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+}
+.lp-how-card {
+    text-align: center;
+    padding: 2rem 1.5rem;
+    border-radius: var(--lp-radius);
+    border: 1px solid var(--lp-border);
+    background: var(--lp-bg);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.lp-how-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--lp-shadow-md);
+}
+.lp-how-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
+    margin: 0 auto 1.25rem;
+    font-size: 1.75rem;
+}
+.lp-how-icon-1 { background: linear-gradient(135deg, #dbeafe, #bfdbfe); }
+.lp-how-icon-2 { background: linear-gradient(135deg, #d1fae5, #a7f3d0); }
+.lp-how-icon-3 { background: linear-gradient(135deg, #fef3c7, #fde68a); }
+
+.lp-how-icon svg {
+    width: 32px;
+    height: 32px;
+}
+
+.lp-how-card h3 {
+    font-size: 1rem;
     font-weight: 700;
-    font-size: 0.9rem;
-    flex-shrink: 0;
+    color: var(--lp-navy);
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.01em;
 }
-.btn-large {
-    padding: 1rem 3rem;
-    font-size: 1.2rem;
-    font-weight: 700;
-    display: inline-block;
-    margin: 1rem 0;
+.lp-how-card p {
+    font-size: 0.8125rem;
+    color: var(--lp-text-dim);
+    line-height: 1.5;
+    margin: 0;
 }
-.landing-footer {
-    margin-top: 2rem;
-    font-size: 0.8rem;
-    color: var(--text-dim, #64748b);
+
+/* ===== SECTION 4: LIVE STATS ===== */
+.lp-live-bg {
+    background: linear-gradient(165deg, var(--lp-navy-deep), var(--lp-navy));
+    color: #ffffff;
 }
-.landing-link {
-    color: var(--text-muted, #94a3b8);
-    text-decoration: underline;
+.lp-live-bg .lp-section-header h2 {
+    color: #ffffff;
+}
+.lp-live-bg .lp-section-header p {
+    color: #94a3b8;
+}
+.lp-counters {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+}
+.lp-counter-card {
+    text-align: center;
+    padding: 1.5rem 1rem;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: var(--lp-radius);
+    transition: background 0.2s;
+}
+.lp-counter-card:hover {
+    background: rgba(255,255,255,0.08);
+}
+.lp-counter-value {
+    font-family: var(--lp-font-mono);
+    font-size: 2rem;
+    font-weight: 800;
+    color: #ffffff;
+    line-height: 1.2;
+    margin-bottom: 0.25rem;
+}
+.lp-counter-value.teal { color: var(--lp-teal-light); }
+.lp-counter-value.amber { color: var(--lp-amber); }
+.lp-counter-label {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 500;
+}
+
+/* ===== SECTION 5: DOMAIN GRID ===== */
+.lp-domains-bg {
+    background: var(--lp-bg);
+}
+.lp-domain-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1rem;
+}
+.lp-domain-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1.25rem 1rem;
+    background: var(--lp-card);
+    border: 1px solid var(--lp-border);
+    border-radius: var(--lp-radius);
+    text-decoration: none;
+    color: inherit;
+    box-shadow: var(--lp-shadow-sm);
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+    text-align: center;
+    opacity: 0;
+    animation: lpDomainFadeIn 0.4s ease forwards;
+}
+.lp-domain-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--lp-shadow-hover);
+    border-color: var(--lp-teal);
+}
+/* Stagger animation for domain cards */
+.lp-domain-card:nth-child(1) { animation-delay: 0.05s; }
+.lp-domain-card:nth-child(2) { animation-delay: 0.08s; }
+.lp-domain-card:nth-child(3) { animation-delay: 0.11s; }
+.lp-domain-card:nth-child(4) { animation-delay: 0.14s; }
+.lp-domain-card:nth-child(5) { animation-delay: 0.17s; }
+.lp-domain-card:nth-child(6) { animation-delay: 0.20s; }
+.lp-domain-card:nth-child(7) { animation-delay: 0.23s; }
+.lp-domain-card:nth-child(8) { animation-delay: 0.26s; }
+.lp-domain-card:nth-child(9) { animation-delay: 0.29s; }
+.lp-domain-card:nth-child(10) { animation-delay: 0.32s; }
+.lp-domain-card:nth-child(11) { animation-delay: 0.35s; }
+.lp-domain-card:nth-child(12) { animation-delay: 0.38s; }
+.lp-domain-card:nth-child(13) { animation-delay: 0.41s; }
+.lp-domain-card:nth-child(14) { animation-delay: 0.44s; }
+.lp-domain-card:nth-child(15) { animation-delay: 0.47s; }
+
+@keyframes lpDomainFadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.lp-domain-card-name {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--lp-navy);
+    margin-bottom: 0.375rem;
+    line-height: 1.3;
+}
+.lp-domain-card-count {
+    font-family: var(--lp-font-mono);
+    font-size: 0.75rem;
+    color: var(--lp-text-muted);
+    font-weight: 500;
+}
+
+/* Domain accent dots */
+.lp-domain-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    margin-bottom: 0.5rem;
+}
+.lp-domain-card:nth-child(6n+1) .lp-domain-dot { background: #0d9488; }
+.lp-domain-card:nth-child(6n+2) .lp-domain-dot { background: #6366f1; }
+.lp-domain-card:nth-child(6n+3) .lp-domain-dot { background: #f59e0b; }
+.lp-domain-card:nth-child(6n+4) .lp-domain-dot { background: #ec4899; }
+.lp-domain-card:nth-child(6n+5) .lp-domain-dot { background: #8b5cf6; }
+.lp-domain-card:nth-child(6n+6) .lp-domain-dot { background: #06b6d4; }
+
+/* ===== SECTION 6: FOOTER ===== */
+.lp-footer {
+    background: var(--lp-navy-deep);
+    padding: 2.5rem 2rem;
+    text-align: center;
+    border-top: 1px solid rgba(255,255,255,0.06);
+}
+.lp-footer-links {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+}
+.lp-footer-links a {
+    color: #94a3b8;
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 400;
+    transition: color 0.2s;
+}
+.lp-footer-links a:hover {
+    color: var(--lp-teal-light);
+}
+.lp-footer-brand {
+    font-size: 0.8125rem;
+    color: #64748b;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+.lp-footer-paper {
+    font-size: 0.6875rem;
+    color: #475569;
+    font-style: italic;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+    .lp-hero { padding: 3rem 1.25rem 2.5rem; }
+    .lp-hero h1 { font-size: 2.5rem; }
+    .lp-hero-sub { font-size: 1.0625rem; }
+    .lp-stats-bar { gap: 0.75rem; }
+    .lp-stat-pill { font-size: 0.75rem; padding: 0.375rem 0.75rem; }
+
+    .lp-section { padding: 2.5rem 1.25rem; }
+
+    .lp-how-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    .lp-how-card { padding: 1.5rem 1.25rem; }
+
+    .lp-counters {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+
+    .lp-domain-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+    }
+
+    .lp-ga-card { flex: 0 0 200px; }
+    .lp-ga-card-img { height: 130px; }
+}
+
+@media (max-width: 480px) {
+    .lp-hero h1 { font-size: 2rem; }
+    .lp-hero-sub { font-size: 0.9375rem; }
+    .lp-hero-cta { padding: 0.875rem 2.25rem; font-size: 1rem; }
+
+    .lp-domain-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .lp-counter-value { font-size: 1.5rem; }
+    .lp-counters { grid-template-columns: repeat(2, 1fr); }
 }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="landing">
-    <h1>GLANCE</h1>
-    <p class="subtitle">Testez votre oeil scientifique en 2 minutes</p>
+<div class="landing-page">
 
-    <div class="card landing-hook">
-        <p class="landing-big">Un feed scientifique defile.<br>
-        Une image cache un piege.<br>
-        <strong>Saurez-vous la reperer ?</strong></p>
+<!-- ===== SECTION 1: HERO ===== -->
+<div class="lp-hero">
+    <div class="lp-hero-content">
+        <div class="lp-hero-badge">Benchmark scientifique</div>
+        <h1><span>GLANCE</span></h1>
+        <p class="lp-hero-sub">
+            Le premier benchmark de comprehension des Graphical Abstracts scientifiques.
+            Testez votre oeil en 2 minutes.
+        </p>
+
+        <a href="/onboard" class="lp-hero-cta">Commencer</a>
+
+        <div class="lp-stats-bar">
+            <div class="lp-stat-pill">
+                <strong>{{ landing.total_gas }}</strong> GAs
+            </div>
+            <div class="lp-stat-pill">
+                <strong>{{ landing.total_domains }}</strong> domaines
+            </div>
+            {% if landing.total_participants > 0 %}
+            <div class="lp-stat-pill">
+                <strong class="counter-animate" data-target="{{ landing.total_participants }}">0</strong> participants
+            </div>
+            {% endif %}
+        </div>
     </div>
-
-    <div class="landing-steps">
-        <div class="landing-step">
-            <span class="step-num">1</span>
-            <span>Scrollez un feed comme sur LinkedIn</span>
-        </div>
-        <div class="landing-step">
-            <span class="step-num">2</span>
-            <span>Identifiez l'image qui vous a marque</span>
-        </div>
-        <div class="landing-step">
-            <span class="step-num">3</span>
-            <span>Decouvrez si votre cerveau a ete piege</span>
-        </div>
-    </div>
-
-    <a href="/onboard" class="btn btn-primary btn-large">Commencer</a>
-
-    <p class="landing-footer">
-        Gratuit · 2 minutes · Aucune inscription<br>
-        <a href="/leaderboard" class="landing-link">Leaderboard</a> ·
-        <a href="/dashboard" class="landing-link">Dashboard</a>
-    </p>
 </div>
+
+<!-- ===== SECTION 2: TOP GAs DU MOMENT ===== -->
+<div class="lp-top-gas-bg">
+    <div class="lp-section">
+        <div class="lp-section-header">
+            <h2>Top GAs du moment</h2>
+            {% if landing.top_gas %}
+            <p>Les Graphical Abstracts les mieux compris par les participants</p>
+            {% else %}
+            <p>La bibliotheque GLANCE est prete -- les scores arrivent bientot</p>
+            {% endif %}
+        </div>
+
+        {% if landing.top_gas %}
+        <div class="lp-top-gas-scroll">
+            {% for ga in landing.top_gas %}
+            <a href="/ga-detail/{{ ga.id }}" class="lp-ga-card">
+                <img src="/ga/{{ ga.filename }}" alt="{{ ga.title }}" class="lp-ga-card-img" loading="lazy">
+                <div class="lp-ga-card-body">
+                    <span class="lp-ga-domain-badge">{{ ga.domain }}</span>
+                    <div class="lp-ga-card-title">{{ ga.title or ga.filename }}</div>
+                    {% set pct = (ga.avg_glance * 100) | round(0) | int %}
+                    <div class="lp-score-row">
+                        <div class="lp-score-bar-bg">
+                            {% if pct >= 80 %}
+                                {% set bar_class = "green" %}
+                            {% elif pct >= 60 %}
+                                {% set bar_class = "yellow" %}
+                            {% elif pct >= 40 %}
+                                {% set bar_class = "orange" %}
+                            {% else %}
+                                {% set bar_class = "red" %}
+                            {% endif %}
+                            <div class="lp-score-bar-fill {{ bar_class }} score-bar-animate" style="width: 0%;" data-width="{{ pct }}%"></div>
+                        </div>
+                        <span class="lp-score-value">{{ pct }}%</span>
+                    </div>
+                    <div class="lp-ga-tests">{{ ga.n_tests }} test{{ 's' if ga.n_tests != 1 else '' }}</div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <!-- No test data yet: show GA thumbnails in grayscale -->
+        <div class="lp-top-gas-scroll">
+            {% for fname in ['attention_transformer_2017.png', 'covid_vaccine_polack_2020.png', 'exercise_neuroplasticity_erickson_2011.png', 'mediterranean_diet_estruch_2013.png', 'sleep_memory_walker_2017.png'] %}
+            <div class="lp-ga-card" style="cursor: default;">
+                <img src="/ga/{{ fname }}" alt="GA Preview" class="lp-ga-card-img grayscale" loading="lazy">
+                <div class="lp-ga-card-body">
+                    <span class="lp-ga-domain-badge" style="opacity:0.5;">--</span>
+                    <div class="lp-ga-card-title" style="color: var(--lp-text-muted);">Classement bientot disponible</div>
+                    <div class="lp-score-row">
+                        <div class="lp-score-bar-bg">
+                            <div class="lp-score-bar-fill" style="width: 0%;"></div>
+                        </div>
+                        <span class="lp-score-value" style="color: var(--lp-text-muted);">--</span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- ===== SECTION 3: COMMENT CA MARCHE ===== -->
+<div class="lp-how-bg">
+    <div class="lp-section">
+        <div class="lp-section-header">
+            <h2>Comment ca marche</h2>
+            <p>3 etapes, 2 minutes, zero inscription</p>
+        </div>
+
+        <div class="lp-how-grid">
+            <div class="lp-how-card">
+                <div class="lp-how-icon lp-how-icon-1">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
+                        <line x1="12" y1="18" x2="12" y2="18"/>
+                        <path d="M9 6h6M9 10h6M9 14h3" stroke-width="1.5"/>
+                    </svg>
+                </div>
+                <h3>Scrollez un feed scientifique</h3>
+                <p>Des posts defilent comme sur LinkedIn. Un contenu parmi eux est un Graphical Abstract.</p>
+            </div>
+
+            <div class="lp-how-card">
+                <div class="lp-how-icon lp-how-icon-2">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"/>
+                        <circle cx="12" cy="12" r="6" stroke-dasharray="3 3"/>
+                        <circle cx="12" cy="12" r="2" fill="#10b981"/>
+                    </svg>
+                </div>
+                <h3>Identifiez l'image cle</h3>
+                <p>Apres le defilement, selectionnez l'image qui vous a marque et repondez aux questions.</p>
+            </div>
+
+            <div class="lp-how-card">
+                <div class="lp-how-icon lp-how-icon-3">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                    </svg>
+                </div>
+                <h3>Decouvrez votre score</h3>
+                <p>Score GLANCE composite : precision, rapidite, retention. Comparez-vous au leaderboard.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== SECTION 4: LIVE STATS ===== -->
+<div class="lp-live-bg">
+    <div class="lp-section">
+        <div class="lp-section-header">
+            <h2>{% if landing.total_tests > 0 %}En ce moment{% else %}La bibliotheque{% endif %}</h2>
+            <p>{% if landing.total_tests > 0 %}Statistiques en temps reel{% else %}GLANCE est pret. Soyez les premiers.{% endif %}</p>
+        </div>
+
+        <div class="lp-counters">
+            <div class="lp-counter-card">
+                <div class="lp-counter-value counter-animate" data-target="{{ landing.total_tests if landing.total_tests > 0 else landing.total_gas }}">0</div>
+                <div class="lp-counter-label">{% if landing.total_tests > 0 %}Tests completes{% else %}GAs en bibliotheque{% endif %}</div>
+            </div>
+
+            <div class="lp-counter-card">
+                {% if landing.avg_glance is not none %}
+                <div class="lp-counter-value teal counter-animate-pct" data-target="{{ (landing.avg_glance * 100) | round(0) | int }}">0%</div>
+                <div class="lp-counter-label">Score moyen GLANCE</div>
+                {% else %}
+                <div class="lp-counter-value teal">{{ landing.total_domains }}</div>
+                <div class="lp-counter-label">Domaines couverts</div>
+                {% endif %}
+            </div>
+
+            <div class="lp-counter-card">
+                {% if landing.best_ga %}
+                <div class="lp-counter-value amber counter-animate-pct" data-target="{{ (landing.best_ga.avg_glance * 100) | round(0) | int }}">0%</div>
+                <div class="lp-counter-label">Meilleur GA</div>
+                {% else %}
+                <div class="lp-counter-value amber">47</div>
+                <div class="lp-counter-label">Images calibrees</div>
+                {% endif %}
+            </div>
+
+            <div class="lp-counter-card">
+                <div class="lp-counter-value counter-animate" data-target="{{ landing.total_domains }}">0</div>
+                <div class="lp-counter-label">Domaines</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== SECTION 5: DOMAIN GRID ===== -->
+<div class="lp-domains-bg">
+    <div class="lp-section">
+        <div class="lp-section-header">
+            <h2>Explorez par domaine</h2>
+            <p>{{ domain_list | length }} disciplines scientifiques representees</p>
+        </div>
+
+        <div class="lp-domain-grid">
+            {% for d in domain_list %}
+            <a href="/leaderboard/{{ d.key }}" class="lp-domain-card">
+                <div class="lp-domain-dot"></div>
+                <div class="lp-domain-card-name">{{ d.label }}</div>
+                <div class="lp-domain-card-count">{{ d.n_gas }} GA{{ 's' if d.n_gas != 1 else '' }}</div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- ===== SECTION 6: FOOTER ===== -->
+<div class="lp-footer">
+    <div class="lp-footer-links">
+        <a href="/leaderboard">Leaderboard</a>
+        <a href="/dashboard">Dashboard</a>
+        <a href="/spin">Spin</a>
+        <a href="/onboard">Commencer</a>
+    </div>
+    <div class="lp-footer-brand">GLANCE &mdash; SciSense &middot; Making Science Make Sense</div>
+    <div class="lp-footer-paper">Paper reference: PLOS ONE (in preparation)</div>
+</div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+    // Fallback: break out of .container for browsers without :has() support
+    var lp = document.querySelector('.landing-page');
+    if (lp && lp.parentElement && lp.parentElement.classList.contains('container')) {
+        lp.parentElement.classList.add('landing-container');
+    }
+
+    // Counter animation for integers
+    var counters = document.querySelectorAll('.counter-animate');
+    var pctCounters = document.querySelectorAll('.counter-animate-pct');
+
+    function animateCounter(el, suffix) {
+        var target = parseInt(el.getAttribute('data-target'), 10);
+        if (isNaN(target) || target === 0) {
+            el.textContent = '0' + suffix;
+            return;
+        }
+        var duration = 800;
+        var steps = 40;
+        var increment = target / steps;
+        var interval = duration / steps;
+        var current = 0;
+        var timer = setInterval(function() {
+            current += increment;
+            if (current >= target) {
+                current = target;
+                clearInterval(timer);
+            }
+            el.textContent = Math.round(current) + suffix;
+        }, interval);
+    }
+
+    var observer = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+            if (entry.isIntersecting) {
+                var el = entry.target;
+                var suffix = el.classList.contains('counter-animate-pct') ? '%' : '';
+                animateCounter(el, suffix);
+                observer.unobserve(el);
+            }
+        });
+    }, { threshold: 0.3 });
+
+    counters.forEach(function(el) { observer.observe(el); });
+    pctCounters.forEach(function(el) { observer.observe(el); });
+
+    // Score bar animation
+    var bars = document.querySelectorAll('.score-bar-animate');
+    var barObserver = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+            if (entry.isIntersecting) {
+                var bar = entry.target;
+                var w = bar.getAttribute('data-width');
+                requestAnimationFrame(function() {
+                    requestAnimationFrame(function() {
+                        bar.style.width = w;
+                    });
+                });
+                barObserver.unobserve(bar);
+            }
+        });
+    }, { threshold: 0.2 });
+
+    bars.forEach(function(bar) { barObserver.observe(bar); });
+})();
+</script>
 {% endblock %}

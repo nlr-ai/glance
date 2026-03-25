@@ -15,13 +15,15 @@ from db import get_db, init_db, create_participant, get_participant_by_token
 from db import get_next_image, save_test, get_test, get_stats
 from db import get_all_tests, get_image_count, get_all_images, add_ga_image
 from db import update_test_system2, get_image_by_id, get_control_pair, get_tests_for_image
+from db import get_landing_stats
 from scoring import (score_test, classify_speed_accuracy,
                      chunk_transcript, score_node_coverage, compute_system2_coverage)
 from analytics import (  # noqa: E501
     compute_aggregate_stats, compute_profile_quadrant,
     compute_stats_by_quadrant, compute_speed_accuracy_distribution,
     compute_ab_delta, compute_ab_fluency_delta, compute_s10_rate,
-    compute_fluency_score, get_leaderboard_data, get_domain_leaderboard)
+    compute_fluency_score, get_leaderboard_data, get_domain_leaderboard,
+    get_ga_detail_stats)
 from config_loader import get_constant
 
 BASE = os.path.dirname(__file__)
@@ -83,7 +85,17 @@ def _get_participant(request: Request):
 
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+    landing = get_landing_stats()
+    # Build domain list with labels from config
+    domain_list = []
+    for domain_key, n_gas in landing["domain_counts"].items():
+        label = CONFIG["domains"].get(domain_key, {}).get("label", domain_key)
+        domain_list.append({"key": domain_key, "label": label, "n_gas": n_gas})
+    return templates.TemplateResponse("index.html", {
+        "request": request,
+        "landing": landing,
+        "domain_list": domain_list,
+    })
 
 
 @app.get("/onboard", response_class=HTMLResponse)
@@ -661,6 +673,27 @@ def ga_detail(request: Request, ga_id: int):
 
     # Compute all stats for this GA
     detail = get_ga_detail_stats(ga_id)
+
+    # Enrich detail with derived values for the template
+    tests_list = detail.get("tests", [])
+    detail["n_participants"] = len(set(
+        t.get("participant_id") for t in tests_list if t.get("participant_id")
+    ))
+    detail["s9b_vs_chance"] = round(detail.get("avg_s9b", 0.0) - 0.25, 4)
+    detail["s9b_above_chance"] = detail.get("avg_s9b", 0.0) > 0.25
+    detail["s2_has_data"] = bool(detail.get("s2_node_means"))
+
+    # Compute median RT2
+    rt2_vals = [t["q2_time_ms"] for t in tests_list if t.get("q2_time_ms")]
+    if rt2_vals:
+        rt2_vals_sorted = sorted(rt2_vals)
+        mid = len(rt2_vals_sorted) // 2
+        detail["median_rt2"] = rt2_vals_sorted[mid] if len(rt2_vals_sorted) % 2 else (
+            rt2_vals_sorted[mid - 1] + rt2_vals_sorted[mid]) / 2
+    else:
+        detail["median_rt2"] = 0.0
+    from scoring import classify_rt2
+    detail["rt2_class"] = classify_rt2(detail["median_rt2"])
 
     # Load sidecar JSON for metadata (semantic_references, description, etc.)
     ga_metadata = dict(image)

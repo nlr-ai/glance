@@ -1,0 +1,413 @@
+{% extends "base.html" %}
+{% block title %}{{ image.title or image.filename }} — GLANCE{% endblock %}
+
+{% block head %}
+<meta property="og:title" content="{{ image.title or image.filename }} — GLANCE Score">
+<meta property="og:description" content="GLANCE Score: {{ (detail.avg_glance * 100) | round(0) }}% | {{ detail.n_tests }} tests">
+<meta property="og:image" content="/ga/{{ image.filename }}">
+{% endblock %}
+
+{% block content %}
+<div class="ga-detail">
+    <a href="/leaderboard" class="back-link">&larr; Leaderboard</a>
+
+    {# ══════════════════════════════════════════════════════════════════
+       SECTION 1: GA Identity
+       ══════════════════════════════════════════════════════════════════ #}
+    <div class="ga-identity card">
+        <div class="ga-identity-layout">
+            <div class="ga-identity-image">
+                <img src="/ga/{{ image.filename }}" alt="{{ image.title or image.filename }}" class="ga-hero-img">
+                {% if image.is_control %}
+                <span class="badge badge-control">Control</span>
+                {% else %}
+                <span class="badge badge-vec">VEC</span>
+                {% endif %}
+            </div>
+            <div class="ga-identity-info">
+                <h1>{{ image.title or image.filename }}</h1>
+                {% if image.description %}
+                <p class="ga-description">{{ image.description }}</p>
+                {% endif %}
+                <div class="ga-meta-tags">
+                    <span class="meta-tag">{{ image.domain }}</span>
+                    {% if image.version %}
+                    <span class="meta-tag">{{ image.version }}</span>
+                    {% endif %}
+                    {% if image.correct_product %}
+                    <span class="meta-tag">Correct: {{ image.correct_product }}</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# ══════════════════════════════════════════════════════════════════
+       SECTION 2: Score Breakdown
+       ══════════════════════════════════════════════════════════════════ #}
+    <h2>Score Breakdown</h2>
+
+    {% if detail.n_tests == 0 %}
+    <div class="card card-empty">
+        <p>Aucun test enregistre pour ce GA. Partagez le lien du test pour collecter des donnees.</p>
+    </div>
+    {% else %}
+
+    {# GLANCE Composite — hero display #}
+    <div class="card score-hero-card">
+        <div class="score-hero-row">
+            <div class="score-hero-label">Score GLANCE</div>
+            <div class="score-hero-value {{ 'pass' if detail.avg_glance >= glance_threshold else 'fail' }}">
+                {{ (detail.avg_glance * 100) | round(0) }}%
+            </div>
+        </div>
+        <div class="score-hero-bar">
+            <div class="score-hero-fill {{ 'pass' if detail.avg_glance >= glance_threshold else 'fail' }}"
+                 style="width: {{ (detail.avg_glance * 100) | round(0) }}%"></div>
+            <div class="score-hero-threshold" style="left: {{ (glance_threshold * 100) | round(0) }}%"
+                 title="Seuil de reussite: {{ (glance_threshold * 100) | round(0) }}%"></div>
+        </div>
+        <div class="score-hero-meta">
+            {{ detail.n_tests }} test{{ 's' if detail.n_tests != 1 else '' }} |
+            {{ detail.n_participants }} participant{{ 's' if detail.n_participants != 1 else '' }}
+        </div>
+    </div>
+
+    {# Sub-scores grid #}
+    <div class="scores-grid">
+        {# S9a — Subject Identification #}
+        <div class="card score-card">
+            <div class="score-card-header">
+                <span class="score-card-title">S9a — Sujet identifie</span>
+                <span class="score-card-badge {{ 'badge-pass' if detail.avg_s9a >= 0.5 else 'badge-fail' }}">
+                    {{ 'PASS' if detail.avg_s9a >= 0.5 else 'FAIL' }}
+                </span>
+            </div>
+            <div class="score-card-value">{{ (detail.avg_s9a * 100) | round(0) }}%</div>
+            <div class="score-bar-wrap">
+                <div class="score-bar">
+                    <div class="score-fill {{ 'pass' if detail.avg_s9a >= 0.5 else 'fail' }}"
+                         style="width: {{ (detail.avg_s9a * 100) | round(0) }}%"></div>
+                </div>
+            </div>
+        </div>
+
+        {# S9b — Evidence Hierarchy #}
+        <div class="card score-card">
+            <div class="score-card-header">
+                <span class="score-card-title">S9b — Hierarchie des preuves</span>
+                <span class="score-card-badge {{ 'badge-pass' if detail.avg_s9b > 0.25 else 'badge-fail' }}">
+                    {{ 'PASS' if detail.avg_s9b > 0.25 else 'FAIL' }}
+                </span>
+            </div>
+            <div class="score-card-value">{{ (detail.avg_s9b * 100) | round(0) }}%</div>
+            <div class="score-bar-wrap">
+                <div class="score-bar">
+                    <div class="score-fill {{ 'pass' if detail.avg_s9b > 0.25 else 'fail' }}"
+                         style="width: {{ (detail.avg_s9b * 100) | round(0) }}%"></div>
+                </div>
+                <div class="chance-marker" style="left: 25%;" title="Niveau chance (25%)"></div>
+            </div>
+            <div class="score-card-detail">
+                vs hasard (25%):
+                <span class="{{ 'pass' if detail.s9b_above_chance else 'fail' }}">
+                    {{ '%+.0f' | format(detail.s9b_vs_chance * 100) }}pp
+                </span>
+            </div>
+        </div>
+
+        {# S9c — Actionability #}
+        <div class="card score-card">
+            <div class="score-card-header">
+                <span class="score-card-title">S9c — Actionnabilite</span>
+            </div>
+            <div class="score-card-value">{{ (detail.avg_s9c * 100) | round(0) }}%</div>
+            <div class="score-bar-wrap">
+                <div class="score-bar">
+                    <div class="score-fill {{ 'pass' if detail.avg_s9c >= 0.5 else 'fail' }}"
+                         style="width: {{ (detail.avg_s9c * 100) | round(0) }}%"></div>
+                </div>
+            </div>
+        </div>
+
+        {# Fluency #}
+        <div class="card score-card">
+            <div class="score-card-header">
+                <span class="score-card-title">Fluency</span>
+                <span class="score-card-sub">S9b / log(RT2)</span>
+            </div>
+            <div class="score-card-value">{{ (detail.avg_fluency * 1000) | round(1) }}</div>
+            <div class="score-card-detail">
+                Mediane RT2: {{ (detail.median_rt2 / 1000) | round(1) }}s
+                ({{ detail.rt2_class }})
+            </div>
+        </div>
+    </div>
+
+    {# Speed-Accuracy Distribution #}
+    <div class="card">
+        <h3>Speed-Accuracy Distribution</h3>
+        <div class="speed-acc-grid">
+            <div class="speed-acc-cell speed-acc-pass">
+                <div class="speed-acc-value">{{ detail.speed_dist.fast_right }}</div>
+                <div class="speed-acc-label">Fast & Right</div>
+            </div>
+            <div class="speed-acc-cell">
+                <div class="speed-acc-value">{{ detail.speed_dist.slow_right }}</div>
+                <div class="speed-acc-label">Slow & Right</div>
+            </div>
+            <div class="speed-acc-cell speed-acc-fail">
+                <div class="speed-acc-value">{{ detail.speed_dist.fast_wrong }}</div>
+                <div class="speed-acc-label">Fast & Wrong</div>
+            </div>
+            <div class="speed-acc-cell">
+                <div class="speed-acc-value">{{ detail.speed_dist.slow_wrong }}</div>
+                <div class="speed-acc-label">Slow & Wrong</div>
+            </div>
+        </div>
+    </div>
+
+    {# System 2 Coverage #}
+    {% if detail.s2_has_data %}
+    <div class="card">
+        <h3>System 2 — Analyse approfondie</h3>
+        <div class="s2-header-row">
+            <span class="s2-coverage-label">Couverture</span>
+            <span class="s2-coverage-value {{ 'pass' if detail.avg_s2_coverage >= 0.50 else 'fail' }}">
+                {{ (detail.avg_s2_coverage * 100) | round(0) }}%
+            </span>
+        </div>
+        <div class="score-bar-wrap" style="margin-bottom: var(--sp-4);">
+            <div class="score-bar">
+                <div class="score-fill {{ 'pass' if detail.avg_s2_coverage >= 0.50 else 'fail' }}"
+                     style="width: {{ (detail.avg_s2_coverage * 100) | round(0) }}%"></div>
+            </div>
+        </div>
+
+        {% if detail.avg_s9b > 0 %}
+        <div class="score-card-detail" style="margin-bottom: var(--sp-4);">
+            Delta_system = S2_coverage - S1_S9b =
+            <span class="{{ 'pass' if (detail.avg_s2_coverage - detail.avg_s9b) > 0 else 'fail' }}">
+                {{ '%+.0f' | format((detail.avg_s2_coverage - detail.avg_s9b) * 100) }}pp
+            </span>
+        </div>
+        {% endif %}
+
+        {# Node-by-node coverage #}
+        {% if detail.s2_node_means %}
+        <table class="data-table s2-node-table">
+            <thead>
+                <tr>
+                    <th>Noeud</th>
+                    <th>Score moyen</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for node_id, score in detail.s2_node_means.items() %}
+                <tr>
+                    <td title="{{ s2_node_labels.get(node_id, node_id) }}">
+                        {{ s2_node_labels.get(node_id, node_id)|truncate(50) }}
+                    </td>
+                    <td class="{{ 'pass' if score >= 0.40 else 'fail' }}">
+                        {{ (score * 100) | round(0) }}%
+                    </td>
+                    <td>
+                        {% if score >= 0.40 %}
+                        <span style="color: var(--pass);">&#10003; Recu</span>
+                        {% else %}
+                        <span style="color: var(--fail);">&#10007; Manque</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% endif %}{# end n_tests > 0 #}
+
+
+    {# ══════════════════════════════════════════════════════════════════
+       SECTION 3: Recommendations
+       ══════════════════════════════════════════════════════════════════ #}
+    {% if recommendations %}
+    <h2>Recommandations</h2>
+
+    {% if recommendations.recommendations %}
+    <div class="reco-list">
+        {% for rec in recommendations.recommendations %}
+        <div class="card reco-card reco-{{ rec.priority | lower }}">
+            <div class="reco-header">
+                <span class="reco-priority-badge reco-badge-{{ rec.priority | lower }}">{{ rec.priority }}</span>
+                <span class="reco-node">{{ rec.node }}</span>
+            </div>
+            <div class="reco-issue">{{ rec.issue }}</div>
+            <div class="reco-fix">{{ rec.fix }}</div>
+            <div class="reco-impact">{{ rec.impact }}</div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if recommendations.strengths %}
+    <h3 style="margin-top: var(--sp-6);">Points forts</h3>
+    <div class="strengths-list">
+        {% for s in recommendations.strengths %}
+        <div class="card strength-card">
+            <span class="strength-node">{{ s.node }}</span>
+            <span class="strength-reason">{{ s.reason }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if recommendations.accessibility_warnings %}
+    <h3 style="margin-top: var(--sp-6);">Accessibilite</h3>
+    <div class="a11y-list">
+        {% for w in recommendations.accessibility_warnings %}
+        <div class="card a11y-card">
+            <div class="a11y-test">{{ w.test }}</div>
+            <div class="a11y-fix">{{ w.fix }}</div>
+            <div class="a11y-ref">{{ w.reference }}</div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {# Channel Upgrade Paths #}
+    {% if recommendations.upgrade_paths %}
+    <h3 style="margin-top: var(--sp-6);">Chemins d'amelioration des canaux visuels</h3>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Canal actuel</th>
+                <th>Upgrade vers</th>
+                <th>Raison</th>
+                <th>Delta S9b attendu</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ch, up in recommendations.upgrade_paths.items() %}
+            <tr>
+                <td><strong>{{ ch }}</strong></td>
+                <td class="pass">{{ up.upgrade_to }}</td>
+                <td>{{ up.reason[:80] }}{% if up.reason|length > 80 %}...{% endif %}</td>
+                <td class="pass">{{ up.expected_improvement }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+    {% endif %}
+
+
+    {# ══════════════════════════════════════════════════════════════════
+       SECTION 4: Comparison (Control vs VEC pair)
+       ══════════════════════════════════════════════════════════════════ #}
+    {% if pair_image and pair_stats %}
+    <h2>Comparaison {{ 'VEC' if image.is_control else 'Control' }}</h2>
+    <div class="comparison-grid">
+        {# Current GA #}
+        <div class="card comparison-card">
+            <div class="comparison-thumb-wrap">
+                <img src="/ga/{{ image.filename }}" alt="{{ image.title }}" class="comparison-thumb">
+            </div>
+            <div class="comparison-label">
+                {{ 'Control' if image.is_control else 'VEC' }}
+            </div>
+            <div class="comparison-title">{{ image.title or image.filename }}</div>
+            {% if detail.n_tests > 0 %}
+            <div class="comparison-score {{ 'pass' if detail.avg_glance >= glance_threshold else 'fail' }}">
+                {{ (detail.avg_glance * 100) | round(0) }}%
+            </div>
+            <div class="comparison-detail">
+                S9b: {{ (detail.avg_s9b * 100) | round(0) }}% |
+                N={{ detail.n_tests }}
+            </div>
+            {% else %}
+            <div class="comparison-score" style="color: var(--text-dim);">--</div>
+            <div class="comparison-detail">Pas de tests</div>
+            {% endif %}
+        </div>
+
+        {# Pair GA #}
+        <div class="card comparison-card">
+            <div class="comparison-thumb-wrap">
+                <img src="/ga/{{ pair_image.filename }}" alt="{{ pair_image.title }}" class="comparison-thumb">
+            </div>
+            <div class="comparison-label">
+                {{ 'VEC' if image.is_control else 'Control' }}
+            </div>
+            <div class="comparison-title">{{ pair_image.title or pair_image.filename }}</div>
+            {% if pair_stats.n_tests > 0 %}
+            <div class="comparison-score {{ 'pass' if pair_stats.avg_glance >= glance_threshold else 'fail' }}">
+                {{ (pair_stats.avg_glance * 100) | round(0) }}%
+            </div>
+            <div class="comparison-detail">
+                S9b: {{ (pair_stats.avg_s9b * 100) | round(0) }}% |
+                N={{ pair_stats.n_tests }}
+            </div>
+            {% else %}
+            <div class="comparison-score" style="color: var(--text-dim);">--</div>
+            <div class="comparison-detail">Pas de tests</div>
+            {% endif %}
+        </div>
+    </div>
+
+    {# Delta values #}
+    {% if detail.n_tests > 0 and pair_stats.n_tests > 0 %}
+    <div class="card delta-card">
+        <table class="result-table">
+            <tr>
+                <td class="label">Delta GLANCE</td>
+                <td>
+                    {% set d_glance = detail.avg_glance - pair_stats.avg_glance %}
+                    <span class="{{ 'pass' if d_glance > 0 else ('fail' if d_glance < 0 else '') }}">
+                        {{ '%+.0f' | format(d_glance * 100) }}pp
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="label">Delta S9b</td>
+                <td>
+                    {% set d_s9b = detail.avg_s9b - pair_stats.avg_s9b %}
+                    <span class="{{ 'pass' if d_s9b > 0 else ('fail' if d_s9b < 0 else '') }}">
+                        {{ '%+.0f' | format(d_s9b * 100) }}pp
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="label">Delta S9c</td>
+                <td>
+                    {% set d_s9c = detail.avg_s9c - pair_stats.avg_s9c %}
+                    <span class="{{ 'pass' if d_s9c > 0 else ('fail' if d_s9c < 0 else '') }}">
+                        {{ '%+.0f' | format(d_s9c * 100) }}pp
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="label">Delta Fluency</td>
+                <td>
+                    {% set d_flu = detail.avg_fluency - pair_stats.avg_fluency %}
+                    <span class="{{ 'pass' if d_flu > 0 else ('fail' if d_flu < 0 else '') }}">
+                        {{ '%+.1f' | format(d_flu * 1000) }} (x1000)
+                    </span>
+                </td>
+            </tr>
+        </table>
+    </div>
+    {% endif %}
+
+    {# Link to pair detail page #}
+    <div style="text-align: center; margin-top: var(--sp-4);">
+        <a href="/ga-detail/{{ pair_image.id }}" class="btn btn-secondary">
+            Voir le detail {{ 'VEC' if image.is_control else 'Control' }}
+        </a>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

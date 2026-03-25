@@ -479,7 +479,7 @@
             </div>
 
             <div class="lb-rank-info">
-                <div class="lb-rank-title">{{ ga.title }}</div>
+                <div class="lb-rank-title"><a href="/ga-detail/{{ ga.ga_image_id }}" style="color: inherit; text-decoration: none;">{{ ga.title }}</a></div>
                 <div class="lb-rank-meta">
                     <span>{{ ga.n_tests }} test{{ 's' if ga.n_tests != 1 else '' }}</span>
                     {% if ga.avg_s9b is not none %}
@@ -488,6 +488,7 @@
                     {% if ga.avg_s2_coverage is not none %}
                     <span>S2 couverture: {{ (ga.avg_s2_coverage * 100) | round(0) }}%</span>
                     {% endif %}
+                    <a href="/ga-detail/{{ ga.ga_image_id }}" style="color: var(--lb-teal); text-decoration: none; font-weight: 500;">Detail &rarr;</a>
                 </div>
             </div>
 

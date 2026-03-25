@@ -465,3 +465,66 @@ def get_tests_by_quadrant(quadrant_fn):
         q = quadrant_fn(t.get("clinical_domain", ""), t.get("data_literacy", ""))
         buckets.setdefault(q, []).append(t)
     return buckets
+
+
+def get_landing_stats() -> dict:
+    """Return stats needed for the landing page.
+
+    Returns:
+        {
+            "total_participants": int,
+            "total_tests": int,
+            "total_gas": int,
+            "total_domains": int,
+            "avg_glance": float or None,
+            "top_gas": list of dicts (top 5 by avg glance_score),
+            "domain_counts": dict mapping domain -> {"label_placeholder": domain, "n_gas": int},
+        }
+    """
+    db = get_db()
+
+    # Counts
+    total_participants = db.execute("SELECT COUNT(*) as c FROM participants").fetchone()["c"]
+    total_tests = db.execute("SELECT COUNT(*) as c FROM tests").fetchone()["c"]
+    total_gas = db.execute("SELECT COUNT(*) as c FROM ga_images").fetchone()["c"]
+    total_domains = db.execute("SELECT COUNT(DISTINCT domain) as c FROM ga_images").fetchone()["c"]
+
+    # Average GLANCE score across all tests
+    avg_row = db.execute("SELECT AVG(glance_score) as avg_g FROM tests WHERE glance_score IS NOT NULL").fetchone()
+    avg_glance = round(avg_row["avg_g"], 4) if avg_row["avg_g"] is not None else None
+
+    # Top 5 GAs by average glance_score (with at least 1 test)
+    top_rows = db.execute(
+        """SELECT g.id, g.filename, g.domain, g.title,
+                  AVG(t.glance_score) as avg_glance,
+                  COUNT(t.id) as n_tests
+           FROM ga_images g
+           JOIN tests t ON t.ga_image_id = g.id
+           WHERE t.glance_score IS NOT NULL
+           GROUP BY g.id
+           ORDER BY avg_glance DESC
+           LIMIT 5"""
+    ).fetchall()
+    top_gas = [dict(r) for r in top_rows]
+
+    # Domain -> GA count
+    domain_rows = db.execute(
+        "SELECT domain, COUNT(*) as n_gas FROM ga_images GROUP BY domain ORDER BY n_gas DESC"
+    ).fetchall()
+    domain_counts = {r["domain"]: r["n_gas"] for r in domain_rows}
+
+    # Best single GA (highest avg glance_score)
+    best_ga = top_gas[0] if top_gas else None
+
+    db.close()
+
+    return {
+        "total_participants": total_participants,
+        "total_tests": total_tests,
+        "total_gas": total_gas,
+        "total_domains": total_domains,
+        "avg_glance": avg_glance,
+        "top_gas": top_gas,
+        "domain_counts": domain_counts,
+        "best_ga": best_ga,
+    }
