@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}Redesigning Ozempic — GLANCE Blog{% endblock %}
+
+{% block head %}
+<style>
+.blog-hero {
+    text-align: center;
+    padding: 3rem 1rem 2rem;
+    max-width: 800px;
+    margin: 0 auto;
+}
+.blog-hero h1 {
+    font-size: 2.2rem;
+    font-weight: 900;
+    color: #ffffff;
+    margin: 0 0 0.75rem;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+}
+.blog-hero h1 span {
+    background: linear-gradient(135deg, #2A9D8F, #5ec4b6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+.blog-hero .subtitle {
+    font-size: 1.1rem;
+    color: #94a3b8;
+    line-height: 1.6;
+    max-width: 640px;
+    margin: 0 auto;
+}
+.blog-hero .meta {
+    margin-top: 1rem;
+    font-size: 0.8rem;
+    color: #64748b;
+}
+.blog-wip {
+    max-width: 600px;
+    margin: 3rem auto;
+    padding: 2.5rem;
+    background: rgba(30, 41, 59, 0.7);
+    border: 1px solid rgba(42, 157, 143, 0.15);
+    border-radius: 12px;
+    text-align: center;
+}
+.blog-wip .wip-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    line-height: 1;
+}
+.blog-wip h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0 0 0.75rem;
+}
+.blog-wip p {
+    font-size: 0.95rem;
+    color: #94a3b8;
+    line-height: 1.6;
+    margin: 0 0 1.25rem;
+}
+.blog-wip .cta-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.25rem;
+    background: linear-gradient(135deg, #2A9D8F, #21867a);
+    color: #ffffff;
+    font-size: 0.85rem;
+    font-weight: 700;
+    border-radius: 100px;
+    text-decoration: none;
+    box-shadow: 0 2px 12px rgba(42, 157, 143, 0.35);
+    transition: all 0.2s ease;
+}
+.blog-wip .cta-btn:hover {
+    background: linear-gradient(135deg, #34b8a8, #2A9D8F);
+    box-shadow: 0 4px 18px rgba(42, 157, 143, 0.5);
+    transform: translateY(-1px);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="blog-hero">
+    <h1>Redesigning <span>Ozempic</span></h1>
+    <p class="subtitle">Le GA du STEP trial (semaglutide, NEJM 2021) analyse par GLANCE. Ce qu'il transmet, ce qu'il rate, et notre proposition de redesign &mdash; avec les metriques avant/apres.</p>
+    <div class="meta">Case Study &middot; Bientot</div>
+</div>
+
+<div class="blog-wip">
+    <div class="wip-icon">&#x1F52C;</div>
+    <h2>Article en preparation</h2>
+    <p>On analyse le Graphical Abstract original du STEP 1 trial, on le passe dans GLANCE, et on propose un redesign guide par les metriques. Chaque modification sera justifiee par le graphe &mdash; pas par l'intuition.</p>
+    <p style="color: #64748b; font-size: 0.85rem;">En attendant, testez votre propre GA :</p>
+    <a href="/analyze" class="cta-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/></svg>
+        Tester mon GA
+    </a>
+</div>
+{% endblock %}

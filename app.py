@@ -2895,6 +2895,33 @@ def blog_ga_tests_itself(request: Request):
     })
 
 
+@app.get("/blog/reader-simulation", response_class=HTMLResponse)
+def blog_reader_sim(request: Request):
+    lang = _lang(request)
+    return templates.TemplateResponse("blog_reader_simulation.html", {
+        "request": request,
+        "lang": lang,
+    })
+
+
+@app.get("/blog/7-archetypes", response_class=HTMLResponse)
+def blog_archetypes(request: Request):
+    lang = _lang(request)
+    return templates.TemplateResponse("blog_7_archetypes.html", {
+        "request": request,
+        "lang": lang,
+    })
+
+
+@app.get("/blog/redesign-ozempic", response_class=HTMLResponse)
+def blog_ozempic(request: Request):
+    lang = _lang(request)
+    return templates.TemplateResponse("blog_redesign_ozempic.html", {
+        "request": request,
+        "lang": lang,
+    })
+
+
 @app.get("/og/ga/{ga_id}.png")
 def og_ga_image(ga_id: int):
     """Generate a 1200x630 OG card for a GA detail page.
@@ -2978,3 +3005,73 @@ def ga_video(ga_slug: str):
     _gif_cache[ga_slug] = gif_bytes
     return Response(content=gif_bytes, media_type="image/gif",
                     headers={"Cache-Control": "public, max-age=3600"})
+
+
+# ── SEO: sitemap.xml + robots.txt ──────────────────────────────────────
+
+@app.get("/sitemap.xml")
+def sitemap():
+    """Dynamic sitemap for Google indexing."""
+    db = get_db()
+
+    # All public GA pages
+    gas = db.execute(
+        "SELECT slug, created_at FROM ga_images WHERE public = 1 AND slug IS NOT NULL ORDER BY id DESC"
+    ).fetchall()
+
+    # All domain leaderboard pages
+    domains = db.execute(
+        "SELECT DISTINCT domain FROM ga_images WHERE public = 1"
+    ).fetchall()
+    db.close()
+
+    base = "https://glance.scisense.fr"
+
+    urls = []
+    # Static pages
+    for path, priority, freq in [
+        ("/", "1.0", "daily"),
+        ("/analyze", "0.9", "daily"),
+        ("/leaderboard", "0.8", "daily"),
+        ("/blog", "0.7", "weekly"),
+        ("/pricing", "0.6", "monthly"),
+        ("/blog/ga-tests-itself", "0.6", "monthly"),
+        ("/auth/login", "0.5", "monthly"),
+    ]:
+        urls.append(
+            f"<url><loc>{base}{path}</loc><priority>{priority}</priority>"
+            f"<changefreq>{freq}</changefreq></url>"
+        )
+
+    # Domain pages
+    for d in domains:
+        domain = d["domain"]
+        if domain != "user_upload":
+            urls.append(
+                f"<url><loc>{base}/leaderboard/{domain}</loc>"
+                f"<priority>0.7</priority><changefreq>weekly</changefreq></url>"
+            )
+
+    # GA detail pages
+    for ga in gas:
+        slug = ga["slug"]
+        urls.append(
+            f"<url><loc>{base}/ga-detail/{slug}</loc>"
+            f"<priority>0.6</priority><changefreq>weekly</changefreq></url>"
+        )
+
+    xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
+    xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+    xml += "\n".join(urls)
+    xml += "\n</urlset>"
+
+    return Response(content=xml, media_type="application/xml")
+
+
+@app.get("/robots.txt")
+def robots():
+    """Robots.txt with sitemap reference."""
+    return Response(
+        content="User-agent: *\nAllow: /\nSitemap: https://glance.scisense.fr/sitemap.xml\n",
+        media_type="text/plain",
+    )

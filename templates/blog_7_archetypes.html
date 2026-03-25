@@ -1,0 +1,459 @@
+{% extends "base.html" %}
+
+{% block title %}Les 7 types de Graphical Abstracts — GLANCE Blog{% endblock %}
+
+{% block head %}
+<style>
+/* ── Blog article layout ── */
+.blog-hero {
+    text-align: center;
+    padding: 3rem 1rem 2rem;
+    max-width: 800px;
+    margin: 0 auto;
+}
+.blog-hero h1 {
+    font-size: 2.2rem;
+    font-weight: 900;
+    color: #ffffff;
+    margin: 0 0 0.75rem;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+}
+.blog-hero h1 span {
+    background: linear-gradient(135deg, #2A9D8F, #5ec4b6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+.blog-hero .subtitle {
+    font-size: 1.1rem;
+    color: #94a3b8;
+    line-height: 1.6;
+    max-width: 640px;
+    margin: 0 auto;
+}
+.blog-hero .meta {
+    margin-top: 1rem;
+    font-size: 0.8rem;
+    color: #64748b;
+}
+
+/* ── Article body ── */
+.blog-body {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 1.5rem 4rem;
+    color: #cbd5e1;
+    font-size: 1rem;
+    line-height: 1.8;
+}
+.blog-body h2 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #ffffff;
+    margin: 2.5rem 0 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(42, 157, 143, 0.15);
+}
+.blog-body h2:first-of-type {
+    border-top: none;
+    padding-top: 0;
+}
+.blog-body p {
+    margin: 0 0 1rem;
+}
+.blog-body strong {
+    color: #ffffff;
+}
+.blog-body em {
+    color: #94a3b8;
+    font-style: italic;
+}
+.blog-body a {
+    color: #2A9D8F;
+    text-decoration: underline;
+    text-decoration-color: rgba(42, 157, 143, 0.3);
+}
+.blog-body a:hover {
+    text-decoration-color: #2A9D8F;
+}
+
+/* ── Archetype cards ── */
+.archetype {
+    background: rgba(30, 41, 59, 0.7);
+    border: 1px solid rgba(42, 157, 143, 0.15);
+    border-radius: 12px;
+    padding: 1.75rem;
+    margin: 1.5rem 0;
+    transition: border-color 0.2s;
+}
+.archetype:hover {
+    border-color: rgba(42, 157, 143, 0.3);
+}
+.archetype-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+.archetype-emoji {
+    font-size: 2rem;
+    line-height: 1;
+    flex-shrink: 0;
+}
+.archetype-title {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #ffffff;
+    line-height: 1.2;
+}
+.archetype-subtitle {
+    font-size: 0.85rem;
+    color: #64748b;
+    font-weight: 500;
+    margin-top: 0.15rem;
+}
+.archetype-section {
+    margin-bottom: 0.75rem;
+}
+.archetype-section-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #2A9D8F;
+    margin-bottom: 0.3rem;
+}
+.archetype-section p {
+    font-size: 0.9rem;
+    color: #94a3b8;
+    line-height: 1.6;
+    margin: 0;
+}
+.archetype-fix {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: rgba(42, 157, 143, 0.06);
+    border: 1px solid rgba(42, 157, 143, 0.15);
+    border-radius: 8px;
+    margin-top: 0.75rem;
+}
+.archetype-fix-arrow {
+    flex-shrink: 0;
+    color: #2A9D8F;
+    font-weight: 700;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+.archetype-fix p {
+    color: #5ec4b6;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    margin: 0;
+}
+
+/* ── Spectrum bar ── */
+.spectrum-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    background: rgba(30, 41, 59, 0.7);
+    border: 1px solid rgba(42, 157, 143, 0.1);
+    border-radius: 100px;
+    margin: 2rem 0;
+    font-size: 0.75rem;
+    color: #64748b;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+.spectrum-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* ── CTA section ── */
+.blog-cta {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 2rem 1rem 3rem;
+    text-align: center;
+}
+.blog-cta h2 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #ffffff;
+    margin: 0 0 1rem;
+}
+.blog-cta p {
+    font-size: 1rem;
+    color: #94a3b8;
+    line-height: 1.7;
+}
+.blog-cta .cta-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+    padding: 0.7rem 1.5rem;
+    background: linear-gradient(135deg, #2A9D8F, #21867a);
+    color: #ffffff;
+    font-size: 0.9rem;
+    font-weight: 700;
+    border-radius: 100px;
+    text-decoration: none;
+    box-shadow: 0 2px 12px rgba(42, 157, 143, 0.35);
+    transition: all 0.2s ease;
+}
+.blog-cta .cta-btn:hover {
+    background: linear-gradient(135deg, #34b8a8, #2A9D8F);
+    box-shadow: 0 4px 18px rgba(42, 157, 143, 0.5);
+    transform: translateY(-1px);
+}
+
+@media (max-width: 600px) {
+    .blog-hero h1 { font-size: 1.6rem; }
+    .archetype { padding: 1.25rem; }
+    .archetype-title { font-size: 1.1rem; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+{# ── Hero ── #}
+<div class="blog-hero">
+    <h1>Les 7 types de <span>Graphical Abstracts</span></h1>
+    <p class="subtitle">Chaque GA raconte une histoire &mdash; mais pas toujours celle que vous croyez. GLANCE a identifie 7 archetypes recurrents. Lequel est le votre ?</p>
+    <div class="meta">Mars 2026 &middot; 10 min &middot; Deep Dive</div>
+</div>
+
+{# ── Article ── #}
+<div class="blog-body">
+
+    <p>Apres avoir analyse des dizaines de Graphical Abstracts, un constat emerge : la plupart des GAs tombent dans un nombre restreint de <strong>profils-types</strong>. Ce ne sont pas des categories arbitraires &mdash; ce sont des patterns structurels reveles par l'analyse du graphe semantique et de la propagation attentionnelle.</p>
+
+    <p>Comprendre dans quel archetype tombe votre GA est la premiere etape pour l'ameliorer. Chaque archetype a une <em>signature</em>, un <em>effet sur le lecteur</em>, et une <em>strategie de correction</em> specifique.</p>
+
+    <div class="spectrum-bar">
+        <span>Communication faible</span>
+        <span class="spectrum-dot" style="background:#EF4444;"></span>
+        <span class="spectrum-dot" style="background:#F97316;"></span>
+        <span class="spectrum-dot" style="background:#F59E0B;"></span>
+        <span class="spectrum-dot" style="background:#2A9D8F;"></span>
+        <span class="spectrum-dot" style="background:#10B981;"></span>
+        <span>Communication forte</span>
+    </div>
+
+    {# ── 1. Cristallin ── #}
+    <div class="archetype">
+        <div class="archetype-header">
+            <span class="archetype-emoji">&#x1F48E;</span>
+            <div>
+                <div class="archetype-title">Cristallin</div>
+                <div class="archetype-subtitle">Le GA qui transmet tout, instantanement</div>
+            </div>
+        </div>
+        <div class="archetype-section">
+            <div class="archetype-section-label">Signature</div>
+            <p>Hierarchie visuelle alignee sur la hierarchie scientifique. Chaque message est encode par plusieurs canaux simultanement (texte, couleur, position, taille). Le poids visuel decroit dans l'ordre exact d'importance. Score GLANCE typique : 80%+.</p>
+        </div>
+        <div class="archetype-section">
+            <div class="archetype-section-label">Ce que le lecteur vit</div>
+            <p>En 5 secondes, il capte la structure et le message principal. En 30 secondes, il a compris la methode et les resultats cles. Il n'a pas besoin de "chercher" &mdash; l'information vient a lui dans le bon ordre. L'experience est fluide, presque inevitable.</p>
+        </div>
+        <div class="archetype-section">
+            <div class="archetype-section-label">Le diagnostic</div>
+            <p>Les Cristallins sont rares. Ils representent environ 10-15% des GAs analyses. Ce qui les distingue n'est pas la beaute du design mais la <strong>coherence</strong> entre structure visuelle et structure scientifique. Un GA moche mais coherent bat un GA beau mais incoherent.</p>
+        </div>
+        <div class="archetype-fix">
+            <span class="archetype-fix-arrow">&rarr;</span>
+            <p>Si vous etes deja Cristallin : verifiez la robustesse. Votre message survit-il si on retire un canal ? La redondance est votre filet de securite.</p>
+        </div>
+    </div>
+
+    {# ── 2. Spectacle ── #}
+    <div class="archetype">
+        <div class="archetype-header">
+            <span class="archetype-emoji">&#x1F3AD;</span>
+            <div>
+                <div class="archetype-title">Spectacle</div>
+                <div class="archetype-subtitle">Visuellement saisissant, scientifiquement muet</div>
+            </div>
+        </div>
+        <div class="archetype-section">
+            <div class="archetype-section-label">Signature</div>
+            <p>Poids visuel eleve sur les elements decoratifs, faible sur les elements scientifiques. Le graphe montre des liens forts entre l'entree visuelle et les decoratifs, mais des liens faibles ou absents vers les messages. Score GLANCE typique : 30-50%.</p>
+        </div>
+        <div class="archetype-section">
+            <div class="archetype-section-label">Ce que le lecteur vit</div>
+            <p>"C'est beau." C'est litteralement tout. Le lecteur est impressionne par le visuel, mais quand on lui demande "de quoi parle ce GA ?", il hesite. Les couleurs, les illustrations, les degradees ont capte toute l'attention. Le message scientifique est reste en coulisse.</p>
+        </div>
+        <div class="archetype-section">
+            <div class="archetype-section-label">Le diagnostic</div>
+            <p>Le Spectacle est le piege des GAs commandes a un graphiste sans brief scientifique clair. L'investissement visuel est maximal, mais il travaille <em>contre</em> le message. Le decoratif est en competition attentionnelle avec le contenu &mdash; et il gagne.</p>
+        </div>
+        <div class="archetype-fix">
+            <span class="archetype-fix-arrow">&rarr;</span>
+            <p>Reduisez le poids visuel des decoratifs. Chaque element qui n'est pas porteur de message scientifique doit etre soit supprime, soit reduit en taille et contraste. Redirigez l'energie visuelle vers les messages cles.</p>
+        </div>
+    </div>
+
+    {# ── 3. Tresor Enfoui ── #}
+    <div class="archetype">
+        <div class="archetype-header">
+            <span class="archetype-emoji">&#x1F4E6;</span>
+            <div>
+                <div class="archetype-title">Tresor Enfoui</div>
+                <div class="archetype-subtitle">Tout est la &mdash; mais invisible au scroll</div>
+            </div>
+        </div>
+        <div class="archetype-section">
+            <div class="archetype-section-label">Signature</div>
+            <p>Score System 2 eleve (le contenu est complet et correct), score System 1 faible (rien ne survit au scan rapide). Le graphe est riche en noeuds et en liens, mais les points d'entree visuels sont faibles. Score GLANCE typique : 35-55%.</p>
+        </div>
+        <div class="archetype-section">
+            <div class="archetype-section-label">Ce que le lecteur vit</div>
+            <p>Au scroll : rien. Un rectangle dense qui ne capte pas l'attention. S'il s'arrete (par obligation professionnelle, par exemple), il decouvre un GA complet, bien structure, avec toutes les informations necessaires. Mais il ne s'arrete pas &mdash; il scrolle.</p>
+        </div>
+        <div class="archetype-section">
+            <div class="archetype-section-label">Le diagnostic</div>
+            <p>C'est le GA du chercheur qui maitrise son sujet mais sous-estime le contexte de lecture. Le contenu est impeccable. L'architecture visuelle est inexistante. La difference System1/System2 est le signal le plus clair de ce pattern.</p>
+        </div>
+        <div class="archetype-fix">
+            <span class="archetype-fix-arrow">&rarr;</span>
+            <p>Ajoutez des points d'accroche visuels : un titre plus grand, un chiffre-cle en gros, une couleur dominante sur la conclusion. Le contenu n'a pas besoin de changer &mdash; son emballage visuel si.</p>
+        </div>
+    </div>
+
+    {# ── 4. Encyclopedie ── #}
+    <div class="archetype">
+        <div class="archetype-header">
+            <span class="archetype-emoji">&#x1F4DA;</span>
+            <div>
+                <div class="archetype-title">Encyclopedie</div>
+                <div class="archetype-subtitle">Trop de texte, le lecteur abandonne</div>
+            </div>
+        </div>
+        <div class="archetype-section">
+            <div class="archetype-section-label">Signature</div>
+            <p>Ratio texte/visuel desequilibre : plus de 60% de la surface est du texte brut. Le graphe montre une surcharge de noeuds textuels faiblement lies entre eux. Le poids visuel est distribue uniformement (rien ne ressort). Score GLANCE typique : 20-40%.</p>
+        </div>
+        <div class="archetype-section">
+            <div class="archetype-section-label">Ce que le lecteur vit</div>
+            <p>Il voit un mur de texte. Son System 1 classe immediatement le GA comme "cout cognitif eleve" et desactive l'engagement. Meme en System 2, la lecture est penible : sans hierarchie visuelle, le lecteur ne sait pas par ou commencer ni quoi prioriser.</p>
+        </div>
+        <div class="archetype-section">
+            <div class="archetype-section-label">Le diagnostic</div>
+            <p>L'Encyclopedie est souvent le resultat d'un copier-coller de l'abstract textuel dans un cadre visuel. Le GA reproduit le texte au lieu de le traduire en langage visuel. C'est un abstract illustre, pas un Graphical Abstract.</p>
+        </div>
+        <div class="archetype-fix">
+            <span class="archetype-fix-arrow">&rarr;</span>
+            <p>Regle des 3 phrases : votre GA ne devrait pas contenir plus de 3 blocs de texte lisibles. Tout le reste doit etre converti en elements visuels &mdash; fleches, icones, encodage couleur, spatialisation des concepts.</p>
+        </div>
+    </div>
+
+    {# ── 5. Desequilibre ── #}
+    <div class="archetype">
+        <div class="archetype-header">
+            <span class="archetype-emoji">&#x2696;&#xFE0F;</span>
+            <div>
+                <div class="archetype-title">Desequilibre</div>
+                <div class="archetype-subtitle">Un element ecrase tous les autres</div>
+            </div>
+        </div>
+        <div class="archetype-section">
+            <div class="archetype-section-label">Signature</div>
+            <p>Un noeud concentre plus de 50% du poids visuel total. Le reste du GA est dans son ombre. La distribution d'attention suit une loi de puissance extreme : premier element = 60%, deuxieme = 15%, le reste se partage les miettes. Score GLANCE typique : 25-45%.</p>
+        </div>
+        <div class="archetype-section">
+            <div class="archetype-section-label">Ce que le lecteur vit</div>
+            <p>Il ne voit qu'une chose. Une image de microscope geante. Un graphique qui occupe 70% de la surface. Un logo institutionnel surdimensionne. Tout le reste &mdash; methode, conclusion, contexte &mdash; disparait. Le GA transmet un fragment au lieu d'une histoire.</p>
+        </div>
+        <div class="archetype-section">
+            <div class="archetype-section-label">Le diagnostic</div>
+            <p>Le Desequilibre vient souvent d'une image "hero" non redimensionnee, ou d'un element dont l'importance emotionnelle pour l'auteur (ma plus belle image de microscopie!) ne correspond pas a son importance communicationnelle.</p>
+        </div>
+        <div class="archetype-fix">
+            <span class="archetype-fix-arrow">&rarr;</span>
+            <p>Reduisez l'element dominant a max 30% de la surface. Redistribuez le poids visuel sur les messages secondaires. Si l'image est belle mais non porteuse de message, relegues-la en arriere-plan attenue.</p>
+        </div>
+    </div>
+
+    {# ── 6. Embelli ── #}
+    <div class="archetype">
+        <div class="archetype-header">
+            <span class="archetype-emoji">&#x2728;</span>
+            <div>
+                <div class="archetype-title">Embelli</div>
+                <div class="archetype-subtitle">Communique efficacement &mdash; mais biaise</div>
+            </div>
+        </div>
+        <div class="archetype-section">
+            <div class="archetype-section-label">Signature</div>
+            <p>Score de transmission eleve, mais les messages transmis sont <em>amplifies</em> par rapport au contenu reel de l'article. Le GA "vend" plus que l'article ne prouve. Les elements visuels induisent une certitude que les donnees ne supportent pas. Score GLANCE : 55-75% (trompeur).</p>
+        </div>
+        <div class="archetype-section">
+            <div class="archetype-section-label">Ce que le lecteur vit</div>
+            <p>Il comprend un message clair. Mais ce message est plus affirmatif que l'article. Les barres d'erreur sont absentes du GA. L'effet est presente comme definitif quand l'article dit "suggestif". Le vert est plus vert que les donnees. C'est du spin visuel.</p>
+        </div>
+        <div class="archetype-section">
+            <div class="archetype-section-label">Le diagnostic</div>
+            <p>L'Embelli est le plus insidieux : il a un bon score de transmission parce qu'il transmet <em>efficacement</em> un message <em>deforme</em>. GLANCE le detecte en comparant l'intensite des signaux visuels aux qualificateurs de l'article source (limites, intervalles de confiance, formulations conditionnelles).</p>
+        </div>
+        <div class="archetype-fix">
+            <span class="archetype-fix-arrow">&rarr;</span>
+            <p>Alignez les signaux visuels sur le niveau de preuve. Si le resultat est p=0.048, ne le colorez pas en vert franc. Si l'effet est "modere", ne le representez pas en pleine barre. L'honnetete visuelle est un choix de design.</p>
+        </div>
+    </div>
+
+    {# ── 7. Fantome ── #}
+    <div class="archetype">
+        <div class="archetype-header">
+            <span class="archetype-emoji">&#x1F47B;</span>
+            <div>
+                <div class="archetype-title">Fantome</div>
+                <div class="archetype-subtitle">N'existe pas visuellement</div>
+            </div>
+        </div>
+        <div class="archetype-section">
+            <div class="archetype-section-label">Signature</div>
+            <p>Poids visuel total extremement faible. Contraste minimal, couleurs desaturees, absence de hierarchie, taille sous-dimensionnee. Le GA se fond dans le bruit du feed. Le simulateur de lecture ne s'arrete meme pas. Score GLANCE typique : 5-20%.</p>
+        </div>
+        <div class="archetype-section">
+            <div class="archetype-section-label">Ce que le lecteur vit</div>
+            <p>Il ne le voit pas. Litteralement. Le GA est scrolle sans que le systeme attentionnel du lecteur le detecte comme un objet digne d'attention. Ce n'est pas que le message est mauvais &mdash; c'est que le GA n'existe pas dans le champ visuel competitif d'un feed.</p>
+        </div>
+        <div class="archetype-section">
+            <div class="archetype-section-label">Le diagnostic</div>
+            <p>Le Fantome est souvent un GA cree par obligation ("le journal l'exige") sans reflexion sur sa fonction communicationnelle. Il remplit le cahier des charges formel mais echoue a sa fonction reelle : attirer l'attention et transmettre un message.</p>
+        </div>
+        <div class="archetype-fix">
+            <span class="archetype-fix-arrow">&rarr;</span>
+            <p>Tout reprendre. Commencez par le message principal (une phrase), choisissez un element visuel dominant qui le porte, et construisez autour. Un Fantome ne se repare pas &mdash; il se reconstruit.</p>
+        </div>
+    </div>
+
+    <h2>Pourquoi les archetypes comptent</h2>
+
+    <p>Connaitre son archetype permet de <strong>concentrer l'effort de correction</strong>. Un Spectacle et un Tresor Enfoui ont des scores similaires mais des problemes opposes : le premier a trop de style et pas assez de substance visuelle scientifique, le second a trop de substance et pas assez d'accroche.</p>
+
+    <p>Le diagnostic GLANCE identifie automatiquement l'archetype dominant de votre GA et propose des recommandations calibrees sur ce profil. Pas de conseil generique &mdash; des actions specifiques a votre configuration.</p>
+
+</div>
+
+{# ── CTA ── #}
+<div class="blog-cta">
+    <h2>Quel est l'archetype de votre GA ?</h2>
+    <p>GLANCE identifie le profil de votre Graphical Abstract et vous donne les cles pour passer au niveau suivant. Analyse gratuite, 30 secondes.</p>
+    <a href="/analyze" class="cta-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/></svg>
+        Tester mon GA
+    </a>
+</div>
+{% endblock %}
