@@ -132,12 +132,12 @@ def _build_intent_from_diagnosis(turn_data):
         issue = ch.get("issues", "").strip()
         if issue:
             prompts.append(
-                f"'{channel}' ne transmet que {eff:.0%} de son signal. "
+                f"'{channel}' n'est utilisé qu'à {eff:.0%} de son potentiel pour transmettre de l'information. "
                 f"{issue} "
                 f"Comment exploiter ce canal différemment ?")
         else:
             prompts.append(
-                f"'{channel}' ne transmet que {eff:.0%} de son signal. "
+                f"'{channel}' n'est utilisé qu'à {eff:.0%} de son potentiel pour transmettre de l'information. "
                 f"Comment exploiter ce canal différemment ?")
 
     # Archetype-specific — dynamic problem description
