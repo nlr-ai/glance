@@ -191,8 +191,8 @@ def assemble_render_data(graph, sim_result, image_width, image_height):
 
         color_rgb = attention_to_color(att_ratio)
         res_depth = thing.get("resolution_depth", 0)
-        radius = (3 + weight * 7) / (1 + res_depth)  # smaller for deeper nodes
-        glow = 4 + energy * 16
+        radius = (8 + weight * 18) / (1 + res_depth)  # visible spheres
+        glow = 8 + energy * 20
         opacity = (0.4 + stability * 0.6) * (0.8 ** res_depth)  # more transparent for deeper
 
         # Border: check anti-patterns
@@ -275,7 +275,7 @@ def assemble_render_data(graph, sim_result, image_width, image_height):
         tgt_narrs = [n for n, _w, _l in adj.get(tgt, []) if n.startswith("narrative:")]
         is_gold = bool(src_narrs and tgt_narrs)
 
-        line_width = 1 + w * 2
+        line_width = 2 + w * 3
         color = "#fbbf24" if is_gold else "#64748b"
 
         render_links.append({
