@@ -1776,10 +1776,26 @@ async def analyze_submit(request: Request, file: UploadFile = File(...), public:
     ).fetchone()
     db_dup.close()
     if existing:
-        # Same image already analyzed — add this user as designer and redirect
+        # Same image already analyzed — add this user as designer
         glance_user = _get_glance_user(request)
         designer_id = glance_user or request.cookies.get("glance_session", str(int(time.time())))
         add_designer(existing["id"], designer_id)
+        # Restore image file if missing (lost during deploy)
+        ex_db = get_db()
+        ex_row = ex_db.execute("SELECT filename FROM ga_images WHERE id = ?", (existing["id"],)).fetchone()
+        ex_db.close()
+        if ex_row:
+            ex_path = os.path.join(BASE, "ga_library", ex_row[0])
+            if not os.path.exists(ex_path):
+                os.makedirs(os.path.dirname(ex_path), exist_ok=True)
+                with open(ex_path, "wb") as f:
+                    f.write(image_bytes)
+                logger.info(f"Restored missing image: {ex_path}")
+                # Also persist to /var/data/
+                persist_dir = os.path.join(os.environ.get("GLANCE_DATA_DIR", os.path.join(BASE, "ga_library")), "user_uploads")
+                os.makedirs(persist_dir, exist_ok=True)
+                with open(os.path.join(persist_dir, os.path.basename(ex_row[0])), "wb") as f:
+                    f.write(image_bytes)
         redirect_key = existing["slug"] or str(existing["id"])
         return RedirectResponse(url=f"/analyze?ga={redirect_key}", status_code=303)
 
