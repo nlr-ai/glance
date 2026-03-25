@@ -1829,6 +1829,28 @@ def card_dashboard(participant_token: str):
 _ga_og_cache: dict[int, tuple[bytes, int]] = {}
 
 
+# ── Blog: GA evolution timeline ──
+
+BLOG_VERSIONS = [
+    {"v": 1, "title": "Bare bones", "desc": "Title + 3 bars only. No visual context.", "reco": "No visual hierarchy \u2014 bars alone don\u2019t communicate the problem", "score": None},
+    {"v": 2, "title": "Add scissors graph", "desc": "Engagement vs Comprehension diverging lines show the gap.", "reco": "No methodological context \u2014 reader doesn\u2019t know what this measures", "score": None},
+    {"v": 3, "title": "Visual Spin lens + chronometer", "desc": "Magnifying lens shows data distortion. 5.0s chrono adds the time constraint.", "reco": "Labels overflow \u2014 text competes with visual elements", "score": "~30%"},
+    {"v": 4, "title": "Fix layout", "desc": "Labels below bars, axis scale, checkmark, angular accents.", "reco": "Low contrast on pink background \u2014 Comprehension label barely visible", "score": "~50%"},
+    {"v": 5, "title": "Boost contrast", "desc": "Stronger red tint, annotations, 6 RCTs \u00b7 538 participants.", "reco": "S9b=0.70 (target \u22650.80), 6/11 nodes high energy", "score": "~60%"},
+    {"v": 6, "title": "Gradient shine + multiplier", "desc": "\u00d77.7 multiplier, grid lines, GLANCE bar gradient glow, bigger chrono.", "reco": "Word count 31, engagement energy still 0.9", "score": "70%"},
+]
+
+
+@app.get("/blog", response_class=HTMLResponse)
+def blog(request: Request):
+    lang = _lang(request)
+    return templates.TemplateResponse("blog.html", {
+        "request": request,
+        "lang": lang,
+        "versions": BLOG_VERSIONS,
+    })
+
+
 @app.get("/og/ga/{ga_id}.png")
 def og_ga_image(ga_id: int):
     """Generate a 1200x630 OG card for a GA detail page.

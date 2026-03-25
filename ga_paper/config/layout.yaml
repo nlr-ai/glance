@@ -1,4 +1,4 @@
-# Layout — GLANCE Paper Graphical Abstract V6
+# Layout — GLANCE Paper Graphical Abstract V7
 # Two-zone architecture: Left = Le Fossé, Right = La Mesure
 # Dimensions: 2400x1256 working, 1200x628 delivery (1.91:1 ratio)
 
@@ -125,8 +125,8 @@ bars:
       show_check: true
       gradient_shine: true
     - key: "grade"
-      width_pct: 0.68
-      label: "GRADE Symbols (68%)"
+      width_pct: 0.65
+      label: "GRADE Symbols (65%)"
       show_check: false
       gradient_shine: false
     - key: "vanity"

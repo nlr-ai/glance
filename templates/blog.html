@@ -1,0 +1,326 @@
+{% extends "base.html" %}
+
+{% block title %}The GA That Tests Itself — GLANCE Blog{% endblock %}
+
+{% block head %}
+<style>
+/* ── Blog Timeline ── */
+.blog-hero {
+    text-align: center;
+    padding: 3rem 1rem 2rem;
+    max-width: 800px;
+    margin: 0 auto;
+}
+.blog-hero h1 {
+    font-size: 2.4rem;
+    font-weight: 900;
+    color: #ffffff;
+    margin: 0 0 0.75rem;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+}
+.blog-hero h1 span {
+    background: linear-gradient(135deg, #2A9D8F, #5ec4b6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+.blog-hero .subtitle {
+    font-size: 1.1rem;
+    color: #94a3b8;
+    line-height: 1.6;
+    max-width: 640px;
+    margin: 0 auto;
+}
+.blog-hero .loop-diagram {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+    padding: 0.6rem 1.2rem;
+    background: rgba(42, 157, 143, 0.08);
+    border: 1px solid rgba(42, 157, 143, 0.2);
+    border-radius: 100px;
+    color: #2A9D8F;
+    font-size: 0.85rem;
+    font-weight: 600;
+    font-family: 'SF Mono', 'Cascadia Code', monospace;
+    letter-spacing: 0.03em;
+}
+
+/* ── Timeline container ── */
+.timeline {
+    position: relative;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem 1rem 4rem;
+}
+
+/* Vertical line */
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: linear-gradient(to bottom, transparent, #2A9D8F 5%, #2A9D8F 95%, transparent);
+    transform: translateX(-50%);
+}
+
+/* ── Timeline item ── */
+.timeline-item {
+    position: relative;
+    width: 50%;
+    padding: 1rem 2.5rem 2.5rem;
+    box-sizing: border-box;
+}
+.timeline-item:nth-child(odd) {
+    left: 0;
+    text-align: right;
+}
+.timeline-item:nth-child(even) {
+    left: 50%;
+    text-align: left;
+}
+
+/* Version badge on the line */
+.timeline-badge {
+    position: absolute;
+    top: 1.2rem;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #1D3557;
+    border: 3px solid #2A9D8F;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    font-size: 0.85rem;
+    color: #2A9D8F;
+    z-index: 2;
+    font-family: 'SF Mono', 'Cascadia Code', monospace;
+}
+.timeline-item:nth-child(odd) .timeline-badge {
+    right: -22px;
+}
+.timeline-item:nth-child(even) .timeline-badge {
+    left: -22px;
+}
+
+/* Card */
+.timeline-card {
+    background: rgba(30, 41, 59, 0.7);
+    border: 1px solid rgba(42, 157, 143, 0.15);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.timeline-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+    border-color: rgba(42, 157, 143, 0.3);
+}
+
+/* GA image */
+.timeline-card .ga-img {
+    width: 100%;
+    display: block;
+    background: #0f172a;
+}
+
+/* Card body */
+.timeline-card-body {
+    padding: 1rem 1.25rem 1.25rem;
+    text-align: left;
+}
+.timeline-card-body h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0 0 0.5rem;
+}
+.timeline-card-body .desc {
+    font-size: 0.875rem;
+    color: #94a3b8;
+    line-height: 1.5;
+    margin: 0 0 0.75rem;
+}
+
+/* Score row */
+.timeline-score-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+/* Mini donut */
+.mini-donut {
+    flex-shrink: 0;
+}
+
+.score-label {
+    font-size: 0.75rem;
+    color: #64748b;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Recommendation callout */
+.reco-callout {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.6rem 0.75rem;
+    background: rgba(245, 158, 11, 0.08);
+    border: 1px solid rgba(245, 158, 11, 0.2);
+    border-radius: 8px;
+    font-size: 0.8rem;
+    color: #fbbf24;
+    line-height: 1.45;
+}
+.reco-callout .reco-arrow {
+    flex-shrink: 0;
+    font-size: 1rem;
+    line-height: 1.2;
+    color: #f59e0b;
+}
+
+/* ── Conclusion section ── */
+.blog-conclusion {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 2rem 1rem 3rem;
+    text-align: center;
+}
+.blog-conclusion h2 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #ffffff;
+    margin: 0 0 1rem;
+}
+.blog-conclusion p {
+    font-size: 1rem;
+    color: #94a3b8;
+    line-height: 1.7;
+}
+.blog-conclusion .cta-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+    padding: 0.7rem 1.5rem;
+    background: linear-gradient(135deg, #2A9D8F, #21867a);
+    color: #ffffff;
+    font-size: 0.9rem;
+    font-weight: 700;
+    border-radius: 100px;
+    text-decoration: none;
+    box-shadow: 0 2px 12px rgba(42, 157, 143, 0.35);
+    transition: all 0.2s ease;
+}
+.blog-conclusion .cta-btn:hover {
+    background: linear-gradient(135deg, #34b8a8, #2A9D8F);
+    box-shadow: 0 4px 18px rgba(42, 157, 143, 0.5);
+    transform: translateY(-1px);
+}
+
+/* ── Mobile: single column ── */
+@media (max-width: 768px) {
+    .blog-hero h1 {
+        font-size: 1.7rem;
+    }
+    .blog-hero .subtitle {
+        font-size: 0.95rem;
+    }
+    .timeline::before {
+        left: 24px;
+    }
+    .timeline-item,
+    .timeline-item:nth-child(odd),
+    .timeline-item:nth-child(even) {
+        left: 0;
+        width: 100%;
+        padding-left: 56px;
+        padding-right: 1rem;
+        text-align: left;
+    }
+    .timeline-item:nth-child(odd) .timeline-badge,
+    .timeline-item:nth-child(even) .timeline-badge {
+        left: 2px;
+        right: auto;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+{# ── Hero ── #}
+<div class="blog-hero">
+    <h1>The GA That <span>Tests Itself</span></h1>
+    <p class="subtitle">How GLANCE iteratively improved its own Graphical Abstract through automated analysis &mdash; proving the system is not just a score, but an iterative design tool.</p>
+    <div class="loop-diagram">GENERATE &rarr; ANALYZE &rarr; RECOMMEND &rarr; FIX &rarr; REPEAT</div>
+</div>
+
+{# ── Timeline ── #}
+<div class="timeline">
+    {% for v in versions %}
+    <div class="timeline-item">
+        <div class="timeline-badge">V{{ v.v }}</div>
+        <div class="timeline-card">
+            <img class="ga-img" src="/static/blog/v{{ v.v }}_delivery.png" alt="GA Version {{ v.v }} — {{ v.title }}" loading="lazy">
+            <div class="timeline-card-body">
+                <h3>V{{ v.v }}: {{ v.title }}</h3>
+                <p class="desc">{{ v.desc }}</p>
+
+                {% if v.score %}
+                <div class="timeline-score-row">
+                    {# Mini donut ring #}
+                    {% set pct_str = v.score | replace('~','') | replace('%','') %}
+                    {% set pct = pct_str | int %}
+                    {% set score_01 = pct / 100.0 %}
+                    {% set color = '#10B981' if pct >= 80 else '#2A9D8F' if pct >= 60 else '#F59E0B' if pct >= 40 else '#F97316' if pct >= 20 else '#EF4444' %}
+                    {% set r = 15 %}
+                    {% set circ = 2 * 3.14159 * r %}
+                    {% set offset = circ - (circ * pct / 100) %}
+                    <div class="mini-donut">
+                        <svg width="40" height="40" viewBox="0 0 40 40">
+                            <circle cx="20" cy="20" r="{{ r }}" fill="none" stroke="currentColor" stroke-width="4" opacity="0.1" style="color:{{ color }}"/>
+                            <circle cx="20" cy="20" r="{{ r }}" fill="none" stroke="{{ color }}" stroke-width="4"
+                                    stroke-linecap="round"
+                                    stroke-dasharray="{{ circ | round(1) }}"
+                                    stroke-dashoffset="{{ offset | round(1) }}"
+                                    transform="rotate(-90 20 20)"/>
+                            <text x="20" y="24" text-anchor="middle" fill="{{ color }}"
+                                  font-family="'SF Mono','Cascadia Code',monospace"
+                                  font-weight="800" font-size="12">{{ pct }}</text>
+                        </svg>
+                    </div>
+                    <span class="score-label">GLANCE Score</span>
+                </div>
+                {% endif %}
+
+                <div class="reco-callout">
+                    <span class="reco-arrow">&rarr;</span>
+                    <span>{{ v.reco }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{# ── Conclusion ── #}
+<div class="blog-conclusion">
+    <h2>The graph tells you exactly what to fix next.</h2>
+    <p>Each version was guided by GLANCE's own analysis. No guesswork, no subjective redesign &mdash; just the graph highlighting what remained unresolved. This is what makes GLANCE more than a benchmark: it's a closed-loop design companion.</p>
+    <a href="/analyze" class="cta-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/></svg>
+        Try GLANCE on your GA
+    </a>
+</div>
+{% endblock %}

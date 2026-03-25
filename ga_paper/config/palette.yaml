@@ -9,7 +9,7 @@ problem:
 
 solution:
   dominant: "#1D3557"      # deep blue (GRADE bar, title)
-  secondary: "#2A9D8F"     # teal (GLANCE bar)
+  secondary: "#1A8D7F"     # teal (GLANCE bar)
   accent: "#A8DADC"        # light blue (vanity bar)
 
 fracture:
@@ -18,7 +18,7 @@ fracture:
   chrono_needle: "#F4A261" # orange needle
 
 bars:
-  glance: "#2A9D8F"        # teal — 100%
+  glance: "#1A8D7F"        # teal — 100%
   grade: "#1D3557"         # deep blue — 74%
   vanity: "#A8DADC"        # light blue — ~5%
 

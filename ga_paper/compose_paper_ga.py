@@ -172,6 +172,10 @@ def draw_scissors_graph(dwg, layout, palette, W, H):
         py = graph_top + graph_h * fy
         eng_pts.append((px, py))
 
+    # Shaded area under engagement line (filled polygon, red 10% opacity) for grounding
+    eng_fill_pts = list(eng_pts) + [(eng_pts[-1][0], graph_bot), (eng_pts[0][0], graph_bot)]
+    dwg.add(dwg.polygon(eng_fill_pts, fill=palette["problem"]["dominant"], opacity=0.10))
+
     dwg.add(dwg.polyline(eng_pts, fill="none",
                          stroke=palette["problem"]["dominant"],
                          stroke_width=eng["stroke_width"],
@@ -200,6 +204,10 @@ def draw_scissors_graph(dwg, layout, palette, W, H):
         py = graph_top + graph_h * fy
         comp_pts.append((px, py))
 
+    # Shaded area under comprehension line (filled polygon, gray 5% opacity) for grounding
+    comp_fill_pts = list(comp_pts) + [(comp_pts[-1][0], graph_bot), (comp_pts[0][0], graph_bot)]
+    dwg.add(dwg.polygon(comp_fill_pts, fill=palette["problem"]["accent"], opacity=0.05))
+
     dwg.add(dwg.polyline(comp_pts, fill="none",
                          stroke=palette["problem"]["accent"],
                          stroke_width=comp["stroke_width"],
@@ -212,16 +220,23 @@ def draw_scissors_graph(dwg, layout, palette, W, H):
         dwg.add(dwg.circle((px, py), 4,
                            fill=palette["problem"]["accent"]))
 
-    # Inline label for comprehension (darker for contrast on pink bg)
+    # Inline label for comprehension (white backdrop + dark text for contrast on pink bg)
     last_comp = comp_pts[-1]
     lbl_off = comp["label_offset"]
-    # White backing for readability on pink
+    comp_lbl_x = last_comp[0] + lbl_off[0]
+    comp_lbl_y = last_comp[1] + lbl_off[1]
+    # Semi-transparent white backdrop pill behind label
+    comp_lbl_w = len(comp["label"]) * 11 + 16
+    comp_lbl_h = 28
+    dwg.add(dwg.rect(
+        (comp_lbl_x - comp_lbl_w + 4, comp_lbl_y - comp_lbl_h + 6),
+        (comp_lbl_w, comp_lbl_h),
+        fill="#FFFFFF", opacity=0.70, rx=4, ry=4))
     dwg.add(dwg.text(comp["label"],
-                     insert=(last_comp[0] + lbl_off[0], last_comp[1] + lbl_off[1]),
+                     insert=(comp_lbl_x, comp_lbl_y),
                      font_size=20, fill=palette["text"]["primary"],
                      font_family=font, text_anchor="end",
-                     font_weight="500",
-                     opacity=0.7))
+                     font_weight="600"))
 
     # --- Annotation below graph (higher contrast) ---
     ann = sc["annotation"]
@@ -565,7 +580,7 @@ def draw_bars(dwg, layout, palette, W, H):
 
     # Stats line
     stats_y = subtitle_y + 36
-    dwg.add(dwg.text("47 GAs · 15 domains · glance.scisense.fr",
+    dwg.add(dwg.text("49 GAs · glance.scisense.fr",
                      insert=(bars_left + bars_max_w // 2, stats_y),
                      font_size=18,
                      fill=palette["text"]["light"],
