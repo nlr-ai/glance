@@ -155,44 +155,46 @@ When displaying the reader sim scanpath on the graph:
 
 ## Ideogram Test Prompts
 
+All prompts use **top-down flat view** — looking straight down at the mechanism, like a blueprint on a table. No perspective, no 3D angle.
+
 ### 1. Full graph — blueprint overview
 ```
-Top-down view of a scientific knowledge graph rendered as a glowing mechanism inside a dark blueprint. Deep navy background (#0a0e1a) with faint engineering grid lines. 12 metallic circular nodes of varying sizes connected by thin steel-grey links and flowing gold energy currents with animated particles. Nodes glow in a temperature spectrum: 3 nodes steaming hot red-orange, 4 nodes vibrant emerald green, 3 nodes calm blue, 2 nodes dim grey (dead). Gold energy flows along the main transmission paths like liquid light in circuits. Futuristic, intelligent, clean. No text. No labels. Ultra-detailed, 4K.
+Flat top-down view looking straight down at a scientific knowledge graph rendered as a glowing mechanism on a dark blueprint table. Deep navy background with faint engineering grid lines. 12 metallic circular nodes of varying sizes connected by thin steel-grey links and flowing gold energy currents. Nodes glow in a temperature spectrum: 3 nodes steaming hot red-orange, 4 nodes vibrant emerald green, 3 nodes calm blue, 2 nodes dim grey dead. Gold energy flows along the main paths like liquid light in circuits. Flat 2D layout, no perspective, no 3D. Futuristic, intelligent, clean. No text. Ultra-detailed, 4K.
 ```
 
 ### 2. Overlay on GA image
 ```
-A scientific infographic (graphical abstract) about immunology with a transparent overlay showing glowing analysis nodes. The overlay is semi-transparent dark blue. Circular metallic nodes sit on top of key visual elements — a large gold node on the main chart, medium green nodes on supporting elements, small blue nodes on minor text, grey ghost nodes on decorative elements. A dotted gold line traces the reading path from top-left to bottom-right. One area in the bottom-right has a dark red wash indicating it was never read. X-ray vision effect revealing the hidden attention mechanism. 4K, photorealistic overlay on scientific figure.
+Flat top-down view of a scientific infographic about immunology with a transparent glowing overlay. Seen from directly above. Semi-transparent dark blue layer over the figure. Circular metallic nodes positioned on key elements — a large gold node on the main chart, medium green nodes on supporting elements, small blue nodes on minor text, grey ghost nodes on decorations. A dotted gold line traces the reading path in Z-pattern. Bottom-right area has a dark red wash — never read. Flat 2D, no perspective. X-ray vision effect. 4K.
 ```
 
 ### 3. Gold energy flow close-up
 ```
-Extreme close-up of a gold energy current flowing through a metallic circuit on a dark blueprint background. The current is liquid gold light — bright amber particles streaming along a curved path between two glowing nodes. Source node is large, emerald green, brushed metal surface with a bright highlight at the top edge. Target node is a hexagonal shape with a pulsing gold accent ring. The energy stream narrows at a bottleneck point where some particles turn red and fade. Volumetric lighting, cinematic, depth of field. 4K.
+Flat top-down close-up of a gold energy current flowing through a metallic circuit on a dark blueprint surface. The current is liquid gold light — bright amber particles streaming along a curved path between two glowing nodes. Source node: large, emerald green, brushed metal. Target node: hexagonal with gold accent ring. The stream narrows at a bottleneck where particles turn red and fade. Flat 2D view from above, no perspective. Volumetric glow, cinematic lighting. 4K.
 ```
 
 ### 4. Dead zone contrast
 ```
-Split view of a scientific graph overlay. Left side: vibrant — gold energy flowing, green and amber nodes glowing, metallic surfaces reflecting light, gold particle trails. Right side: dead zone — same graph but nodes are dim grey, no glow, a dark red translucent wash covers the area, small red X markers on unvisited nodes. The contrast between alive and dead sides of the same mechanism. Blueprint background, engineering aesthetic, cinematic lighting. 4K.
+Flat top-down split view of a scientific graph. Left half: vibrant — gold energy flowing, green and amber nodes glowing, metallic surfaces, gold particle trails. Right half: dead zone — nodes dim grey, no glow, dark red translucent wash, small red X markers. Sharp contrast between alive and dead sides. Flat 2D blueprint, seen from directly above. Engineering aesthetic. 4K.
 ```
 
-### 5. Reader scanpath animation frame
+### 5. Reader scanpath
 ```
-A scientific figure with an attention scanpath overlay. A glowing green entry point pulses in the top-left corner. A dotted gold line traces a Z-pattern path across the image, passing through 8 metallic nodes. Each visited node has concentric halo rings — more rings = more time spent. The largest node (center) has 3 bright gold halos. Two nodes at the bottom have no halos and are greyed out with tiny red X marks. Timestamp labels in small monospace font: "0ms", "400ms", "1200ms", "2800ms". Dark semi-transparent overlay on the scientific figure. Futuristic HUD aesthetic. 4K.
+Flat top-down view of a scientific figure with an attention scanpath overlay. Glowing green entry point top-left. A dotted gold line traces a Z-pattern through 8 metallic nodes. Each visited node has concentric halo rings — more rings = more time spent. Center node has 3 bright gold halos. Two bottom nodes greyed out with red X marks. Small monospace timestamps: "0ms", "400ms", "1200ms". Flat 2D HUD overlay, no perspective. Futuristic. 4K.
 ```
 
 ### 6. Anti-pattern visualization
 ```
-Three metallic nodes on a dark blueprint background, each showing a different problem. Left node: large bright circle but with a red dashed border flickering — "fragile, single channel". Center node: medium size, border alternating between red and amber in a glitch effect — "incongruent, conflicting signals". Right node: very large circle (important) but colored cold dim blue (no attention received) — "inverse, important but invisible". Subtle warning icons float near each node. Gold energy particles approach but scatter or fade before reaching the problematic nodes. Diagnostic, clinical, precise. 4K.
+Flat top-down view of three metallic nodes on a dark blueprint surface. Left: large bright circle with red dashed border — fragile, single channel. Center: medium node with border alternating red and amber — incongruent, conflicting signals. Right: very large circle colored cold dim blue — inverse, important but invisible. Gold energy particles approach but scatter before reaching them. Flat 2D, no perspective. Diagnostic, precise. 4K.
 ```
 
 ### 7. Narrative transmission
 ```
-A hexagonal node glowing with a bright gold pulsing ring, connected to three circular metallic carrier nodes by flowing gold energy streams. Each stream has different intensity — one thick and bright (strong transmission), one medium, one thin and fading to red (weak transmission, energy lost to friction). The hexagon represents a scientific message being carried by three visual elements. Small gold dots and red dots on the carrier nodes indicate transmission success or failure. Dark blueprint background with faint grid. The gold light from the successful streams illuminates the surrounding area. Cinematic, volumetric. 4K.
+Flat top-down view of a hexagonal node with bright gold pulsing ring, connected to three circular metallic nodes by flowing gold energy streams. One stream thick and bright — strong transmission. One medium. One thin, fading to red — weak, energy lost. Small gold and red dots on carrier nodes. Dark blueprint surface with faint grid. Gold light illuminates surrounding area. Flat 2D, no perspective. Cinematic glow. 4K.
 ```
 
 ### 8. Full dashboard view
 ```
-A futuristic scientific analysis dashboard showing a graphical abstract in the center with a glowing graph overlay. Left panel: aggregate stats in monospace font — "Clarity: 72% CLAIR", "Coverage: 14/17", "Narratives: 3/4". Right panel: vertical list of recommendations with amber warning icons. The graph overlay on the central image shows the full mechanism — gold flows, temperature-coded nodes, scanpath trail, dead zone wash in the bottom corner. Blueprint aesthetic, dark theme, clean typography, professional. Widescreen 16:9, 4K.
+Flat top-down view of a futuristic scientific analysis dashboard. Center: a graphical abstract with glowing graph overlay — gold flows, temperature-coded nodes, scanpath trail, dead zone wash. Left panel: stats in monospace — "Clarity: 72%", "Coverage: 14/17", "Narratives: 3/4". Right panel: recommendations with amber warning icons. Dark blueprint theme, clean typography. Flat 2D layout, no perspective. Widescreen 16:9. 4K.
 ```
 
 ---
