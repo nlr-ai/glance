@@ -63,10 +63,20 @@ GLANCE measures whether a GA communicates its key message in 5 seconds of scroll
 Analyze this image thoroughly and return a YAML document with the following structure.
 
 nodes:
-  # SPACE nodes = the MESSAGES the GA should communicate (2-4 per GA)
-  - id: "space:{message_id}"
-    name: "{the message in one sentence}"
+  # SPACE nodes = visual CONTAINERS / zones on the GA (2-5 per GA)
+  - id: "space:{zone_id}"
+    name: "{zone name — e.g. 'left panel', 'evidence bars area', 'header'}"
     node_type: "space"
+    synthesis: "{what this zone contains and how it's visually bounded}"
+    weight: 0.0-1.0  # visual prominence of this zone
+    stability: 1.0
+    energy: 0.0-1.0
+
+  # NARRATIVE nodes = the MESSAGES the GA communicates (2-4 per GA)
+  # Narratives LIVE INSIDE spaces. They are the meaning, not the container.
+  - id: "narrative:{message_id}"
+    name: "{the message in one sentence}"
+    node_type: "narrative"
     synthesis: "{what this message means for the reader}"
     weight: 1.0  # primary message = 1.0, secondary = 0.6-0.8
     stability: 1.0
@@ -82,12 +92,23 @@ nodes:
     energy: 0.0-1.0
 
 links:
-  # thing → space links = "this element CARRIES this message"
-  # weight = how well the element transmits the message (1.0 = perfectly)
+  # thing → narrative links = "this element CARRIES this message"
   - source: "thing:{source_id}"
-    target: "space:{message_id}"
+    target: "narrative:{message_id}"
     link_type: "link"
-    weight: 0.0-1.0
+    weight: 0.0-1.0  # how well the element transmits the message
+
+  # thing → space links = "this element LIVES IN this zone"
+  - source: "thing:{source_id}"
+    target: "space:{zone_id}"
+    link_type: "link"
+    weight: 1.0  # containment
+
+  # narrative → space links = "this message is communicated IN this zone"
+  - source: "narrative:{message_id}"
+    target: "space:{zone_id}"
+    link_type: "link"
+    weight: 1.0  # residency
 
   # thing → thing links = visual relationships (arrows, proximity, color)
   - source: "thing:{source_id}"
@@ -112,27 +133,30 @@ metadata:
 
 Instructions — follow this order strictly:
 
-STEP 1: Identify the MESSAGES (space nodes)
-- What are the 2-4 key messages this GA is trying to communicate?
-- The primary message (weight=1.0) is THE takeaway a reader should get in 5 seconds
-- Secondary messages (weight=0.6-0.8) support or contextualize the primary
-- A space node has energy=0.0 (the message itself is resolved — it's the elements that may not be)
+STEP 1: Identify the ZONES (space nodes, 2-5)
+- What are the visual containers/regions of this GA?
+- E.g., "left panel", "bottom bar", "header", "evidence section"
+- Space = a bounded visual area, not a message
 
-STEP 2: Identify the VISUAL ELEMENTS (thing nodes)
-- What visual elements exist on the GA? (bars, icons, text, shapes, arrows, images...)
-- weight = visual prominence (1.0 = most prominent)
-- stability = how clearly/unambiguously encoded (1.0 = crystal clear)
-- energy = unresolved visual tension (1.0 = element grabs attention but confuses)
-- Create 5-12 thing nodes
+STEP 2: Identify the MESSAGES (narrative nodes, 2-4)
+- What are the key messages this GA communicates?
+- Primary message = weight 1.0, secondary = 0.6-0.8
+- Narratives LIVE IN spaces (link narrative→space)
+- A narrative has energy=0.0 (the message is resolved — elements may not be)
 
-STEP 3: Link things to spaces
-- Which visual element CARRIES which message?
-- link weight = how well the element transmits that message (1.0 = perfectly)
-- A thing with no link to any space = visual noise (carries no message)
-- A space with no link from any thing = invisible message (not encoded)
+STEP 3: Identify the VISUAL ELEMENTS (thing nodes, 5-12)
+- What concrete visual elements exist? (bars, icons, text, shapes, arrows...)
+- weight = visual prominence, stability = clarity, energy = unresolved tension
+- Things LIVE IN spaces (link thing→space)
+- Things CARRY narratives (link thing→narrative)
 
-STEP 4: Link things to things
-- Visual relationships: arrows, proximity, shared color, containment, flow
+STEP 4: Link everything
+- thing → narrative = "this element carries this message" (weight = transmission quality)
+- thing → space = "this element lives in this zone" (containment)
+- narrative → space = "this message is communicated in this zone"
+- thing → thing = visual relationships (arrows, proximity, color)
+- A thing with no narrative link = visual noise
+- A narrative with no thing link = invisible message
 
 STEP 5: Metadata
 - executive_summary_fr must be in French
