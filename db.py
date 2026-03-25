@@ -61,7 +61,7 @@ CREATE TABLE IF NOT EXISTS ga_images (
     ingestion_source TEXT DEFAULT 'manual',
     reddit_post_id TEXT,
     image_hash TEXT,
-    designer TEXT
+    designers TEXT
 );
 
 CREATE TABLE IF NOT EXISTS ga_graphs (
@@ -296,9 +296,10 @@ def init_db():
         ("prompts_json", "TEXT"),
         ("plan_vs_actual_json", "TEXT"),
     ])
-    # Migrate: add designer column to ga_images (first person to /analyze)
+    # Migrate: add designers column to ga_images (comma-separated user IDs)
     _migrate_add_columns(conn, "ga_images", [
-        ("designer", "TEXT"),
+        ("designer", "TEXT"),  # legacy — kept for migration compat
+        ("designers", "TEXT"),
     ])
     # Migrate: add is_admin column to participants
     _migrate_add_columns(conn, "participants", [
@@ -565,18 +566,22 @@ def get_reading_sims(ga_image_id=None, graph_id=None):
     return [dict(r) for r in rows]
 
 
-def claim_designer(ga_image_id, designer_id):
-    """Set the designer of a GA if not already claimed.
+def add_designer(ga_image_id, designer_id):
+    """Add a designer to a GA. Multiple designers allowed (comma-separated).
 
-    The first person to /analyze a GA becomes its designer.
-    Returns True if claimed, False if already taken.
+    Same image uploaded by different users → all become designers.
+    Returns True if newly added, False if already listed.
     """
     db = get_db()
-    row = db.execute("SELECT designer FROM ga_images WHERE id = ?", (ga_image_id,)).fetchone()
-    if row and row[0]:
+    row = db.execute("SELECT designers FROM ga_images WHERE id = ?", (ga_image_id,)).fetchone()
+    current = row[0] if row and row[0] else ""
+    designers = [d.strip() for d in current.split(",") if d.strip()]
+    if designer_id in designers:
         db.close()
-        return False  # already claimed
-    db.execute("UPDATE ga_images SET designer = ? WHERE id = ?", (designer_id, ga_image_id))
+        return False
+    designers.append(designer_id)
+    db.execute("UPDATE ga_images SET designers = ? WHERE id = ?",
+               (",".join(designers), ga_image_id))
     db.commit()
     db.close()
     return True

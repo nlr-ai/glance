@@ -1660,9 +1660,12 @@ async def analyze_submit(request: Request, file: UploadFile = File(...)):
     ).fetchone()
     db_dup.close()
     if existing:
-        # Same image already analyzed — redirect to existing
+        # Same image already analyzed — add this user as designer and redirect
+        from db import add_designer
+        session_id = request.cookies.get("glance_session", str(int(time.time())))
+        add_designer(existing["id"], session_id)
         redirect_key = existing["slug"] or str(existing["id"])
-        return RedirectResponse(url=f"/ga-detail/{redirect_key}", status_code=303)
+        return RedirectResponse(url=f"/analyze?ga={redirect_key}", status_code=303)
 
     # Save uploaded image to ga_library/user_uploads/
     timestamp = int(time.time())
