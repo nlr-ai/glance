@@ -23,6 +23,7 @@ from db import get_all_tests, get_image_count, get_all_images, add_ga_image
 from db import get_image_by_id, get_image_by_slug, get_tests_for_image, get_tests_for_participant, get_landing_stats, get_example_ga
 from db import get_referral_count, get_top_referrers, save_analysis_lead
 from db import get_latest_graph, get_reading_sims, save_graph
+from db import create_auth_token, verify_auth_token, get_user_gas, add_designer
 from scoring import score_test, classify_speed_accuracy
 from analytics import (
     compute_aggregate_stats,
@@ -302,12 +303,123 @@ def terms(request: Request):
     })
 
 
+# ── Auth (magic link) ─────────────────────────────────────────────────
+
+
+def _get_glance_user(request: Request) -> str | None:
+    """Return the logged-in user's email from cookie, or None."""
+    return request.cookies.get("glance_user")
+
+
+@app.get("/auth/login", response_class=HTMLResponse)
+def auth_login(request: Request):
+    lang = _lang(request)
+    sent = request.query_params.get("sent", "")
+    error = request.query_params.get("error", "")
+    return templates.TemplateResponse("auth_login.html", {
+        "request": request,
+        "lang": lang,
+        "glance_user": _get_glance_user(request),
+        "sent": sent,
+        "error": error,
+        "og_title": "Connexion — GLANCE",
+        "og_description": "Connectez-vous a GLANCE pour retrouver vos Graphical Abstracts.",
+    })
+
+
+@app.post("/auth/send-link")
+async def auth_send_link(request: Request, email: str = Form(...)):
+    """Generate a magic link token and send it via Telegram + console."""
+    email = email.strip().lower()
+    if not email or "@" not in email:
+        return RedirectResponse(url="/auth/login?error=email", status_code=303)
+
+    token = create_auth_token(email)
+    base_url = os.environ.get("GLANCE_BASE_URL", "https://glance.scisense.fr")
+    magic_link = f"{base_url}/auth/verify?token={token}"
+
+    # Always log to console
+    logger = logging.getLogger("auth")
+    logger.info(f"[AUTH] Magic link for {email}: {magic_link}")
+
+    # Send via Telegram if bot token is available
+    tg_bot_token = os.environ.get("TG_BOT_TOKEN", "")
+    tg_chat_id = os.environ.get("TG_ADMIN_CHAT_ID", "")
+    if tg_bot_token and tg_chat_id:
+        try:
+            import urllib.request
+            tg_payload = json.dumps({
+                "chat_id": tg_chat_id,
+                "text": f"GLANCE login link for {email}:\n{magic_link}",
+                "parse_mode": "HTML",
+            }).encode("utf-8")
+            tg_req = urllib.request.Request(
+                f"https://api.telegram.org/bot{tg_bot_token}/sendMessage",
+                data=tg_payload,
+                headers={"Content-Type": "application/json"},
+                method="POST",
+            )
+            urllib.request.urlopen(tg_req, timeout=10)
+        except Exception as e:
+            logger.warning(f"TG magic link send failed: {e}")
+
+    return RedirectResponse(url="/auth/login?sent=1", status_code=303)
+
+
+@app.get("/auth/verify")
+def auth_verify(request: Request, token: str = ""):
+    """Verify magic link token, set session cookie, redirect to profile."""
+    if not token:
+        return RedirectResponse(url="/auth/login?error=missing", status_code=303)
+
+    email = verify_auth_token(token)
+    if not email:
+        return RedirectResponse(url="/auth/login?error=expired", status_code=303)
+
+    response = RedirectResponse(url="/profile", status_code=303)
+    response.set_cookie(
+        "glance_user",
+        email,
+        max_age=86400 * 30,  # 30 days
+        httponly=True,
+        samesite="lax",
+    )
+    return response
+
+
+@app.get("/profile", response_class=HTMLResponse)
+def profile_page(request: Request):
+    lang = _lang(request)
+    glance_user = _get_glance_user(request)
+    if not glance_user:
+        return RedirectResponse(url="/auth/login", status_code=303)
+
+    user_gas = get_user_gas(glance_user)
+
+    return templates.TemplateResponse("profile.html", {
+        "request": request,
+        "lang": lang,
+        "glance_user": glance_user,
+        "user_gas": user_gas,
+        "og_title": "Mon profil — GLANCE",
+        "og_description": "Retrouvez vos Graphical Abstracts analyses sur GLANCE.",
+    })
+
+
+@app.get("/auth/logout")
+def auth_logout(request: Request):
+    response = RedirectResponse(url="/", status_code=303)
+    response.delete_cookie("glance_user")
+    return response
+
+
 @app.get("/pricing", response_class=HTMLResponse)
 def pricing(request: Request):
     lang = _lang(request)
     return templates.TemplateResponse("pricing.html", {
         "request": request,
         "lang": lang,
+        "glance_user": _get_glance_user(request),
         "og_title": "Offres GLANCE — SciSense",
         "og_description": "Du test gratuit à l'audit complet — choisissez votre niveau d'analyse GLANCE.",
     })
@@ -1663,9 +1775,9 @@ async def analyze_submit(request: Request, file: UploadFile = File(...)):
     db_dup.close()
     if existing:
         # Same image already analyzed — add this user as designer and redirect
-        from db import add_designer
-        session_id = request.cookies.get("glance_session", str(int(time.time())))
-        add_designer(existing["id"], session_id)
+        glance_user = _get_glance_user(request)
+        designer_id = glance_user or request.cookies.get("glance_session", str(int(time.time())))
+        add_designer(existing["id"], designer_id)
         redirect_key = existing["slug"] or str(existing["id"])
         return RedirectResponse(url=f"/analyze?ga={redirect_key}", status_code=303)
 
@@ -1747,6 +1859,11 @@ async def analyze_submit(request: Request, file: UploadFile = File(...)):
     except Exception as e:
         logger.error(f"DB insert failed: {e}")
         raise HTTPException(status_code=500, detail="Erreur base de donnees")
+
+    # Add logged-in user as designer of this new GA
+    glance_user = _get_glance_user(request)
+    if glance_user and ga_id:
+        add_designer(ga_id, glance_user)
 
     # Persist graph in DB → triggers async reader sim S1+S2 + health + overlay
     try:

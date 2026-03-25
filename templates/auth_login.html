@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% block title %}Connexion — GLANCE{% endblock %}
+
+{% block head %}
+<style>
+.auth-page {
+    max-width: 440px;
+    margin: 4rem auto;
+    padding: 0 1rem;
+}
+.auth-card {
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(26,35,50,0.10);
+    padding: 2.5rem 2rem;
+    text-align: center;
+}
+.auth-card h1 {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #1a2332;
+    margin: 0 0 0.5rem;
+    letter-spacing: -0.02em;
+}
+.auth-card p.subtitle {
+    color: #64748b;
+    font-size: 0.9rem;
+    margin: 0 0 2rem;
+    line-height: 1.5;
+}
+.auth-card form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+.auth-card input[type="email"] {
+    padding: 0.85rem 1rem;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 1rem;
+    color: #1a2332;
+    background: #f8fafc;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+}
+.auth-card input[type="email"]:focus {
+    border-color: #2A9D8F;
+    box-shadow: 0 0 0 3px rgba(42,157,143,0.15);
+    background: #fff;
+}
+.auth-card input[type="email"]::placeholder {
+    color: #94a3b8;
+}
+.auth-card button {
+    padding: 0.85rem 1.5rem;
+    background: linear-gradient(135deg, #2A9D8F, #21867a);
+    color: #ffffff;
+    font-size: 1rem;
+    font-weight: 700;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 2px 8px rgba(42,157,143,0.3);
+}
+.auth-card button:hover {
+    background: linear-gradient(135deg, #34b8a8, #2A9D8F);
+    box-shadow: 0 4px 14px rgba(42,157,143,0.45);
+    transform: translateY(-1px);
+}
+.auth-msg {
+    padding: 0.85rem 1rem;
+    border-radius: 10px;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    margin-bottom: 0.5rem;
+}
+.auth-msg.success {
+    background: rgba(42,157,143,0.1);
+    color: #1a6b62;
+    border: 1px solid rgba(42,157,143,0.2);
+}
+.auth-msg.error {
+    background: rgba(239,68,68,0.08);
+    color: #b91c1c;
+    border: 1px solid rgba(239,68,68,0.15);
+}
+.auth-footer {
+    margin-top: 1.5rem;
+    font-size: 0.8rem;
+    color: #94a3b8;
+}
+.auth-icon {
+    width: 56px;
+    height: 56px;
+    margin: 0 auto 1.25rem;
+    background: linear-gradient(135deg, rgba(42,157,143,0.12), rgba(42,157,143,0.05));
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.auth-icon svg {
+    width: 28px;
+    height: 28px;
+    color: #2A9D8F;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+    <div class="auth-card">
+        <div class="auth-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+        <h1>Connexion</h1>
+        <p class="subtitle">Entrez votre email pour recevoir un lien de connexion magique. Aucun mot de passe necessaire.</p>
+
+        {% if sent %}
+        <div class="auth-msg success">
+            Lien envoye ! Verifiez votre messagerie (ou la console serveur en mode dev). Le lien expire dans 24h.
+        </div>
+        {% endif %}
+
+        {% if error == 'email' %}
+        <div class="auth-msg error">
+            Veuillez entrer une adresse email valide.
+        </div>
+        {% elif error == 'expired' %}
+        <div class="auth-msg error">
+            Ce lien a expire ou a deja ete utilise. Demandez un nouveau lien.
+        </div>
+        {% elif error == 'missing' %}
+        <div class="auth-msg error">
+            Lien invalide. Demandez un nouveau lien de connexion.
+        </div>
+        {% endif %}
+
+        <form action="/auth/send-link" method="post">
+            <input type="email" name="email" placeholder="votre@email.com" required autofocus>
+            <button type="submit">Envoyer le lien magique</button>
+        </form>
+
+        <p class="auth-footer">
+            Pas de mot de passe. Un lien unique vous sera envoye par email.<br>
+            Il est valide 24 heures.
+        </p>
+    </div>
+</div>
+{% endblock %}

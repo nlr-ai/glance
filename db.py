@@ -4,6 +4,8 @@ import sqlite3
 import os
 import json
 import re
+import uuid
+from datetime import datetime, timedelta
 import yaml
 
 DB_PATH = os.environ.get("GLANCE_DB_PATH", os.path.join(os.path.dirname(__file__), "data", "glance.db"))
@@ -148,6 +150,15 @@ CREATE TABLE IF NOT EXISTS analysis_leads (
     ga_image_id INTEGER,
     source TEXT DEFAULT 'analyze',
     paid INTEGER DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS auth_tokens (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    email TEXT NOT NULL,
+    token TEXT UNIQUE NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    expires_at TEXT NOT NULL,
+    used INTEGER DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS tests (
@@ -309,6 +320,18 @@ def init_db():
     _migrate_add_columns(conn, "ga_graphs", [
         ("overlay_path", "TEXT"),
     ])
+    # Migrate: ensure auth_tokens table exists (for existing DBs)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS auth_tokens (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT NOT NULL,
+            token TEXT UNIQUE NOT NULL,
+            created_at TEXT NOT NULL DEFAULT (datetime('now')),
+            expires_at TEXT NOT NULL,
+            used INTEGER DEFAULT 0
+        )
+    """)
+    conn.commit()
     # Generate slugs for any images that don't have one yet
     _backfill_slugs(conn)
     conn.close()
@@ -1044,3 +1067,63 @@ def save_analysis_lead(email: str, ga_image_id: int | None = None, source: str =
     db.commit()
     db.close()
     return lead_id
+
+
+# ── Auth (magic link) ────────────────────────────────────────────────
+
+
+def create_auth_token(email: str) -> str:
+    """Create a magic link token for the given email. Returns the token string."""
+    token = uuid.uuid4().hex
+    expires_at = (datetime.utcnow() + timedelta(hours=24)).strftime("%Y-%m-%d %H:%M:%S")
+    db = get_db()
+    db.execute(
+        "INSERT INTO auth_tokens (email, token, expires_at) VALUES (?, ?, ?)",
+        (email.strip().lower(), token, expires_at),
+    )
+    db.commit()
+    db.close()
+    return token
+
+
+def verify_auth_token(token: str) -> str | None:
+    """Verify and consume a magic link token.
+
+    Returns the email if valid, None if expired/used/missing.
+    """
+    db = get_db()
+    row = db.execute(
+        "SELECT * FROM auth_tokens WHERE token = ? AND used = 0",
+        (token,),
+    ).fetchone()
+    if not row:
+        db.close()
+        return None
+    # Check expiry
+    expires_at = datetime.strptime(row["expires_at"], "%Y-%m-%d %H:%M:%S")
+    if datetime.utcnow() > expires_at:
+        db.close()
+        return None
+    # Mark as used
+    db.execute("UPDATE auth_tokens SET used = 1 WHERE id = ?", (row["id"],))
+    db.commit()
+    db.close()
+    return row["email"]
+
+
+def get_user_gas(email: str) -> list[dict]:
+    """Get all GAs where this email appears in the designers field."""
+    db = get_db()
+    rows = db.execute(
+        "SELECT * FROM ga_images WHERE designers LIKE ? ORDER BY id DESC",
+        (f"%{email}%",),
+    ).fetchall()
+    db.close()
+    # Filter precisely: the LIKE query may match partial emails
+    result = []
+    for r in rows:
+        designers_str = r["designers"] or ""
+        designers_list = [d.strip().lower() for d in designers_str.split(",") if d.strip()]
+        if email.strip().lower() in designers_list:
+            result.append(dict(r))
+    return result
