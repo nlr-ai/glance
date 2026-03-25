@@ -4,306 +4,211 @@
 {% block head %}
 <style>
 /* ===== GLANCE Leaderboard — Overview Page =====
-   Professional scientific palette (Nature/PLOS ONE inspired)
-   All styles self-contained — no style.css modifications
+   Uses app-wide dark blue theme from style.css variables.
+   All styles self-contained — no style.css modifications.
    ================================================ */
-
-/* --- Color Palette --- */
-:root {
-    --lb-navy: #1a2332;
-    --lb-teal: #0d9488;
-    --lb-amber: #f59e0b;
-    --lb-bg: #f8fafc;
-    --lb-card: #ffffff;
-    --lb-border: #e2e8f0;
-    --lb-text: #1a2332;
-    --lb-text-dim: #64748b;
-    --lb-text-muted: #94a3b8;
-    --lb-shadow-sm: 0 1px 3px rgba(26,35,50,0.06), 0 1px 2px rgba(26,35,50,0.04);
-    --lb-shadow-md: 0 4px 12px rgba(26,35,50,0.08), 0 2px 4px rgba(26,35,50,0.04);
-    --lb-shadow-hover: 0 8px 24px rgba(26,35,50,0.12), 0 4px 8px rgba(26,35,50,0.06);
-    --lb-radius: 12px;
-    --lb-font-mono: 'SF Mono', 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
-}
 
 /* --- Layout --- */
 .lb-page {
-    max-width: 1200px;
+    max-width: 1100px;
     margin: 0 auto;
-    padding: 2rem 1.5rem 4rem;
-    background: var(--lb-bg);
-    min-height: 100vh;
+    padding: var(--sp-8) 0 var(--sp-16);
 }
 
-/* --- Header with gradient accent --- */
-.leaderboard-header {
+/* --- Header --- */
+.lb-header {
     text-align: center;
-    margin-bottom: 2.5rem;
-    padding-bottom: 2rem;
-    border-bottom: 1px solid var(--lb-border);
+    margin-bottom: var(--sp-10);
 }
-.leaderboard-header h1 {
-    font-size: 2.25rem;
+.lb-header h1 {
+    font-size: var(--text-2xl);
     font-weight: 700;
-    color: var(--lb-navy);
+    color: var(--text);
     letter-spacing: -0.02em;
-    margin-bottom: 0.25rem;
-    background: linear-gradient(135deg, var(--lb-navy) 0%, var(--lb-teal) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    margin-bottom: var(--sp-2);
 }
-.leaderboard-header h1::after {
-    content: '';
-    display: block;
-    width: 60px;
-    height: 3px;
-    background: linear-gradient(90deg, var(--lb-teal), var(--lb-amber));
-    border-radius: 2px;
-    margin: 0.75rem auto 0;
-}
-.leaderboard-header .subtitle {
-    color: var(--lb-text-dim);
-    font-size: 1rem;
-    font-weight: 300;
-    margin: 0.75rem 0 0;
-    letter-spacing: 0.01em;
+.lb-header .subtitle {
+    color: var(--text-dim);
+    font-size: var(--text-sm);
+    font-weight: 400;
 }
 
-/* --- Breadcrumb navigation --- */
-.leaderboard-nav {
+/* --- Breadcrumb --- */
+.lb-nav {
     display: flex;
-    gap: 0.5rem;
+    gap: var(--sp-2);
     justify-content: center;
-    margin-bottom: 2.5rem;
-    flex-wrap: wrap;
+    margin-bottom: var(--sp-8);
     align-items: center;
+    font-size: var(--text-sm);
 }
-.leaderboard-nav a {
-    color: var(--lb-text-muted);
+.lb-nav a {
+    color: var(--text-muted);
     text-decoration: none;
-    font-size: 0.875rem;
-    font-weight: 400;
-    padding: 0.375rem 0.75rem;
-    border-radius: 6px;
-    transition: color 0.2s, background 0.2s;
+    transition: color 0.2s;
 }
-.leaderboard-nav a:hover {
-    color: var(--lb-teal);
-    background: rgba(13,148,136,0.06);
+.lb-nav a:hover {
+    color: var(--primary);
 }
-.leaderboard-nav .nav-separator {
-    color: var(--lb-border);
-    font-size: 0.75rem;
+.lb-nav .sep {
+    color: var(--text-dim);
+    font-size: var(--text-xs);
+}
+.lb-nav .active {
+    color: var(--text);
+    font-weight: 600;
 }
 
 /* --- Domain Cards Grid --- */
 .domain-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 1.25rem;
-    margin-bottom: 2.5rem;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--sp-5);
 }
 
-/* --- Domain accent colors --- */
-.domain-card:nth-child(6n+1) { --domain-accent: #0d9488; }
-.domain-card:nth-child(6n+2) { --domain-accent: #6366f1; }
-.domain-card:nth-child(6n+3) { --domain-accent: #f59e0b; }
-.domain-card:nth-child(6n+4) { --domain-accent: #ec4899; }
-.domain-card:nth-child(6n+5) { --domain-accent: #8b5cf6; }
-.domain-card:nth-child(6n+6) { --domain-accent: #06b6d4; }
-
 .domain-card {
-    background: var(--lb-card);
-    border: 1px solid var(--lb-border);
-    border-radius: var(--lb-radius);
-    padding: 1.5rem;
+    background: var(--surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: var(--sp-6);
     text-decoration: none;
     color: inherit;
     display: flex;
     flex-direction: column;
-    gap: 1rem;
-    box-shadow: var(--lb-shadow-sm);
-    transition: transform 0.2s ease, box-shadow 0.25s ease, border-color 0.2s ease;
-    border-top: 3px solid var(--domain-accent, var(--lb-teal));
-    opacity: 0;
-    animation: cardFadeIn 0.5s ease forwards;
+    gap: var(--sp-5);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
-.domain-card:nth-child(1) { animation-delay: 0.05s; }
-.domain-card:nth-child(2) { animation-delay: 0.1s; }
-.domain-card:nth-child(3) { animation-delay: 0.15s; }
-.domain-card:nth-child(4) { animation-delay: 0.2s; }
-.domain-card:nth-child(5) { animation-delay: 0.25s; }
-.domain-card:nth-child(6) { animation-delay: 0.3s; }
-.domain-card:nth-child(7) { animation-delay: 0.35s; }
-.domain-card:nth-child(8) { animation-delay: 0.4s; }
-.domain-card:nth-child(9) { animation-delay: 0.45s; }
-.domain-card:nth-child(10) { animation-delay: 0.5s; }
-
-@keyframes cardFadeIn {
-    from { opacity: 0; transform: translateY(12px); }
-    to   { opacity: 1; transform: translateY(0); }
-}
-
 .domain-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--lb-shadow-hover);
-    border-color: var(--domain-accent, var(--lb-teal));
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+    border-color: var(--border);
 }
 
-.domain-card-title {
-    font-size: 1.125rem;
+/* --- Card title --- */
+.dc-title {
+    font-size: var(--text-lg);
     font-weight: 700;
-    color: var(--lb-navy);
+    color: var(--text);
     letter-spacing: -0.01em;
+    line-height: 1.3;
 }
 
-.domain-card-stats {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.75rem;
-}
-
-.domain-card-stat {
+/* --- Score hero (avg score as big number) --- */
+.dc-score-hero {
     display: flex;
-    flex-direction: column;
+    align-items: baseline;
+    gap: var(--sp-2);
 }
-.domain-card-stat-value {
-    font-family: var(--lb-font-mono);
+.dc-score-number {
+    font-family: var(--font-mono);
+    font-weight: 800;
+    font-size: 2.5rem;
+    line-height: 1;
+    letter-spacing: -0.03em;
+}
+.dc-score-unit {
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+    font-weight: 400;
+}
+.dc-score-dash {
+    font-family: var(--font-mono);
     font-weight: 700;
-    font-size: 1.25rem;
-    color: var(--lb-navy);
-    line-height: 1.2;
-}
-.domain-card-stat-label {
-    font-size: 0.6875rem;
-    color: var(--lb-text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    font-weight: 500;
-    margin-top: 0.125rem;
+    font-size: 2rem;
+    color: var(--text-dim);
+    line-height: 1;
 }
 
-/* --- Score Bar with gradient fill --- */
-.domain-card-bar {
-    height: 8px;
-    background: #f1f5f9;
-    border-radius: 4px;
+/* Score colors */
+.score-green  { color: #22c55e; }
+.score-yellow { color: #eab308; }
+.score-orange { color: #f97316; }
+.score-red    { color: #ef4444; }
+
+/* --- Score bar --- */
+.dc-bar {
+    height: 10px;
+    background: var(--bg-subtle);
+    border-radius: 5px;
     overflow: hidden;
-    margin-top: auto;
-    box-shadow: inset 0 1px 2px rgba(0,0,0,0.06);
 }
-.domain-card-bar-fill {
+.dc-bar-fill {
     height: 100%;
-    border-radius: 4px;
-    transition: width 0.8s ease-out;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.2);
+    border-radius: 5px;
+    transition: width 0.6s ease-out;
 }
-/* Gradient fill classes applied via Jinja */
-.bar-gradient-green  { background: linear-gradient(90deg, #34d399, #10b981, #059669); }
-.bar-gradient-yellow { background: linear-gradient(90deg, #fbbf24, #eab308, #ca8a04); }
-.bar-gradient-orange { background: linear-gradient(90deg, #fb923c, #f97316, #ea580c); }
-.bar-gradient-red    { background: linear-gradient(90deg, #f87171, #ef4444, #dc2626); }
+.bar-green  { background: #22c55e; }
+.bar-yellow { background: #eab308; }
+.bar-orange { background: #f97316; }
+.bar-red    { background: #ef4444; }
 
-/* Mapped gradient based on score: red->orange->yellow->green for 0->100% */
-.bar-auto-gradient {
-    background: linear-gradient(90deg,
-        #ef4444 0%, #f97316 25%, #eab308 50%, #22c55e 75%, #10b981 100%);
-    background-size: 200% 100%;
-}
-
-/* --- Empty state --- */
-.domain-card-empty {
-    opacity: 0.6;
-}
-.domain-card-empty .domain-card-stat-value {
-    color: var(--lb-text-dim);
-}
-.domain-card-empty .domain-card-bar {
-    background: #f1f5f9;
-}
-
-/* --- Score distribution mini indicator --- */
-.domain-card-distribution {
+/* --- Meta line (GA count + test count) --- */
+.dc-meta {
     display: flex;
-    gap: 2px;
-    height: 20px;
-    align-items: flex-end;
-    margin-top: 0.25rem;
+    gap: var(--sp-4);
+    font-size: var(--text-sm);
+    color: var(--text-muted);
 }
-.domain-card-distribution-bar {
-    flex: 1;
-    background: var(--domain-accent, var(--lb-teal));
-    border-radius: 2px 2px 0 0;
-    min-height: 3px;
-    opacity: 0.6;
-    transition: opacity 0.2s;
+.dc-meta-item {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-1);
 }
-.domain-card:hover .domain-card-distribution-bar {
-    opacity: 1;
+.dc-meta-val {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    color: var(--text);
 }
 
-/* --- Empty state with image placeholder --- */
-.lb-empty-state {
+/* --- Empty card state --- */
+.domain-card-empty {
+    opacity: 0.55;
+}
+.domain-card-empty:hover {
+    opacity: 0.7;
+}
+
+/* --- Global empty state --- */
+.lb-empty {
     text-align: center;
-    padding: 4rem 2rem;
-    background: var(--lb-card);
-    border: 1px solid var(--lb-border);
-    border-radius: var(--lb-radius);
-    box-shadow: var(--lb-shadow-sm);
+    padding: var(--sp-16) var(--sp-8);
+    background: var(--surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
 }
-.lb-empty-state-img {
-    width: 200px;
-    height: 150px;
-    border-radius: 8px;
-    filter: grayscale(100%);
-    opacity: 0.4;
-    margin: 0 auto 1.5rem;
-    object-fit: cover;
-    display: block;
+.lb-empty-icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto var(--sp-4);
+    opacity: 0.3;
 }
-.lb-empty-state-overlay {
-    position: relative;
-    display: inline-block;
-}
-.lb-empty-state-overlay::after {
-    content: 'En attente de donnees';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: rgba(26,35,50,0.85);
-    color: #ffffff;
-    padding: 0.5rem 1.25rem;
-    border-radius: 6px;
-    font-size: 0.875rem;
-    font-weight: 500;
-    letter-spacing: 0.01em;
-    white-space: nowrap;
-}
-.lb-empty-state p {
-    color: var(--lb-text-dim);
-    font-size: 0.875rem;
-    margin-top: 0.5rem;
+.lb-empty p {
+    color: var(--text-dim);
+    font-size: var(--text-sm);
 }
 
-/* --- Mobile responsive --- */
-@media (max-width: 680px) {
-    .lb-page {
-        padding: 1.25rem 1rem 3rem;
+/* --- Responsive --- */
+@media (max-width: 900px) {
+    .domain-grid {
+        grid-template-columns: repeat(2, 1fr);
     }
-    .leaderboard-header h1 {
-        font-size: 1.75rem;
+}
+@media (max-width: 560px) {
+    .lb-page {
+        padding: var(--sp-6) 0 var(--sp-12);
+    }
+    .lb-header h1 {
+        font-size: var(--text-xl);
     }
     .domain-grid {
         grid-template-columns: 1fr;
-        gap: 1rem;
+        gap: var(--sp-4);
     }
     .domain-card {
-        padding: 1.25rem;
+        padding: var(--sp-5);
     }
-    .domain-card-stat-value {
-        font-size: 1.125rem;
+    .dc-score-number {
+        font-size: 2rem;
     }
 }
 </style>
@@ -311,136 +216,73 @@
 
 {% block content %}
 <div class="lb-page">
-    <div class="leaderboard-header">
+    <div class="lb-header">
         <h1>GLANCE Leaderboard</h1>
         <p class="subtitle">Classement des Graphical Abstracts par domaine</p>
     </div>
 
-    <div class="leaderboard-nav">
+    <nav class="lb-nav">
         <a href="/">Accueil</a>
-        <span class="nav-separator">&#8250;</span>
+        <span class="sep">&#8250;</span>
         <a href="/dashboard">Dashboard</a>
-        <span class="nav-separator">&#8250;</span>
-        <a href="/leaderboard" style="color: var(--lb-teal); font-weight: 600;">Leaderboard</a>
-    </div>
+        <span class="sep">&#8250;</span>
+        <span class="active">Leaderboard</span>
+    </nav>
 
+    {% if domains %}
     <div class="domain-grid">
         {% for domain_key, domain_data in domains %}
-        <a href="/leaderboard/{{ domain_key }}" class="domain-card {{ 'domain-card-empty' if domain_data.top_score is none }}">
-            <div class="domain-card-title">{{ domain_data.label }}</div>
-            <div class="domain-card-stats">
-                <div class="domain-card-stat">
-                    <span class="domain-card-stat-value">{{ domain_data.n_gas }}</span>
-                    <span class="domain-card-stat-label">GAs</span>
-                </div>
-                <div class="domain-card-stat">
-                    <span class="domain-card-stat-value">{{ domain_data.n_tests }}</span>
-                    <span class="domain-card-stat-label">Tests</span>
-                </div>
-                <div class="domain-card-stat">
-                    <span class="domain-card-stat-value">
-                        {% if domain_data.top_score is not none %}
-                            {{ (domain_data.top_score * 100) | round(0) }}%
-                        {% else %}
-                            &mdash;
-                        {% endif %}
-                    </span>
-                    <span class="domain-card-stat-label">Meilleur score</span>
-                </div>
-                <div class="domain-card-stat">
-                    <span class="domain-card-stat-value">
-                        {% if domain_data.avg_score is not none %}
-                            {{ (domain_data.avg_score * 100) | round(0) }}%
-                        {% else %}
-                            &mdash;
-                        {% endif %}
-                    </span>
-                    <span class="domain-card-stat-label">Score moyen</span>
-                </div>
-            </div>
-            <div class="domain-card-bar">
-                {% if domain_data.top_score is not none %}
-                    {% set pct = (domain_data.top_score * 100) | round(0) %}
+        {% set has_data = domain_data.avg_score is not none %}
+        {% if has_data %}
+            {% set pct = (domain_data.avg_score * 100) | round(0) | int %}
+        {% endif %}
+        <a href="/leaderboard/{{ domain_key }}" class="domain-card {{ 'domain-card-empty' if not has_data }}">
+            <div class="dc-title">{{ domain_data.label }}</div>
+
+            <div class="dc-score-hero">
+                {% if has_data %}
                     {% if pct >= 80 %}
-                        {% set bar_class = "bar-gradient-green" %}
+                        {% set sc = "green" %}
                     {% elif pct >= 60 %}
-                        {% set bar_class = "bar-gradient-yellow" %}
+                        {% set sc = "yellow" %}
                     {% elif pct >= 40 %}
-                        {% set bar_class = "bar-gradient-orange" %}
+                        {% set sc = "orange" %}
                     {% else %}
-                        {% set bar_class = "bar-gradient-red" %}
+                        {% set sc = "red" %}
                     {% endif %}
-                    <div class="domain-card-bar-fill {{ bar_class }}" style="width: {{ pct }}%;"></div>
+                    <span class="dc-score-number score-{{ sc }}">{{ pct }}</span>
+                    <span class="dc-score-unit">% moy.</span>
+                {% else %}
+                    <span class="dc-score-dash">&mdash;</span>
                 {% endif %}
+            </div>
+
+            <div class="dc-bar">
+                {% if has_data %}
+                    <div class="dc-bar-fill bar-{{ sc }}" style="width: {{ pct }}%;"></div>
+                {% endif %}
+            </div>
+
+            <div class="dc-meta">
+                <div class="dc-meta-item">
+                    <span class="dc-meta-val">{{ domain_data.n_gas }}</span> GAs
+                </div>
+                <div class="dc-meta-item">
+                    <span class="dc-meta-val">{{ domain_data.n_tests }}</span> tests
+                </div>
             </div>
         </a>
         {% endfor %}
     </div>
-
-    {% if not domains %}
-    <div class="lb-empty-state">
-        <div class="lb-empty-state-overlay">
-            <div style="width: 200px; height: 150px; background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%); border-radius: 8px; margin: 0 auto; display: flex; align-items: center; justify-content: center;">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                    <circle cx="8.5" cy="8.5" r="1.5"/>
-                    <polyline points="21 15 16 10 5 21"/>
-                </svg>
-            </div>
-        </div>
+    {% else %}
+    <div class="lb-empty">
+        <svg class="lb-empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+            <circle cx="8.5" cy="8.5" r="1.5"/>
+            <polyline points="21 15 16 10 5 21"/>
+        </svg>
         <p>Ajoutez des GA images dans ga_library/ pour commencer.</p>
     </div>
     {% endif %}
 </div>
-{% endblock %}
-
-{% block scripts %}
-<script>
-// Score count-up animation on page load
-document.addEventListener('DOMContentLoaded', function() {
-    const statValues = document.querySelectorAll('.domain-card-stat-value');
-    const observer = new IntersectionObserver(function(entries) {
-        entries.forEach(function(entry) {
-            if (entry.isIntersecting) {
-                const el = entry.target;
-                const text = el.textContent.trim();
-                const match = text.match(/^(\d+)(%?)$/);
-                if (match) {
-                    const target = parseInt(match[1], 10);
-                    const suffix = match[2] || '';
-                    let current = 0;
-                    const duration = 600;
-                    const steps = 30;
-                    const increment = target / steps;
-                    const interval = duration / steps;
-                    el.textContent = '0' + suffix;
-                    const timer = setInterval(function() {
-                        current += increment;
-                        if (current >= target) {
-                            current = target;
-                            clearInterval(timer);
-                        }
-                        el.textContent = Math.round(current) + suffix;
-                    }, interval);
-                }
-                observer.unobserve(el);
-            }
-        });
-    }, { threshold: 0.3 });
-
-    statValues.forEach(function(el) { observer.observe(el); });
-
-    // Animate score bars on load
-    const bars = document.querySelectorAll('.domain-card-bar-fill');
-    bars.forEach(function(bar) {
-        const w = bar.style.width;
-        bar.style.width = '0%';
-        requestAnimationFrame(function() {
-            requestAnimationFrame(function() {
-                bar.style.width = w;
-            });
-        });
-    });
-});
-</script>
 {% endblock %}

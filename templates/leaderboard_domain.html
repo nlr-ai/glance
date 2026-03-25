@@ -4,405 +4,274 @@
 {% block head %}
 <style>
 /* ===== GLANCE Leaderboard — Domain Detail Page =====
-   Professional scientific palette (Nature/PLOS ONE inspired)
-   All styles self-contained — no style.css modifications
+   Uses app-wide dark blue theme from style.css variables.
+   All styles self-contained — no style.css modifications.
    ===================================================== */
-
-/* --- Color Palette (mirrors overview page) --- */
-:root {
-    --lb-navy: #1a2332;
-    --lb-teal: #0d9488;
-    --lb-amber: #f59e0b;
-    --lb-bg: #f8fafc;
-    --lb-card: #ffffff;
-    --lb-border: #e2e8f0;
-    --lb-text: #1a2332;
-    --lb-text-dim: #64748b;
-    --lb-text-muted: #94a3b8;
-    --lb-shadow-sm: 0 1px 3px rgba(26,35,50,0.06), 0 1px 2px rgba(26,35,50,0.04);
-    --lb-shadow-md: 0 4px 12px rgba(26,35,50,0.08), 0 2px 4px rgba(26,35,50,0.04);
-    --lb-shadow-hover: 0 8px 24px rgba(26,35,50,0.12), 0 4px 8px rgba(26,35,50,0.06);
-    --lb-radius: 12px;
-    --lb-font-mono: 'SF Mono', 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
-    --lb-gold: #f59e0b;
-    --lb-silver: #9ca3af;
-    --lb-bronze: #d97706;
-}
 
 /* --- Layout --- */
 .lb-page {
-    max-width: 1200px;
+    max-width: 900px;
     margin: 0 auto;
-    padding: 2rem 1.5rem 4rem;
-    background: var(--lb-bg);
-    min-height: 100vh;
+    padding: var(--sp-8) 0 var(--sp-16);
 }
 
-/* --- Breadcrumb navigation --- */
+/* --- Breadcrumb --- */
 .lb-breadcrumb {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 1.5rem;
-    font-size: 0.875rem;
+    gap: var(--sp-2);
+    margin-bottom: var(--sp-6);
+    font-size: var(--text-sm);
 }
 .lb-breadcrumb a {
-    color: var(--lb-text-muted);
+    color: var(--text-muted);
     text-decoration: none;
     transition: color 0.2s;
 }
 .lb-breadcrumb a:hover {
-    color: var(--lb-teal);
+    color: var(--primary);
 }
-.lb-breadcrumb .separator {
-    color: var(--lb-border);
+.lb-breadcrumb .sep {
+    color: var(--text-dim);
+    font-size: var(--text-xs);
 }
 .lb-breadcrumb .current {
-    color: var(--lb-navy);
+    color: var(--text);
     font-weight: 600;
 }
 
-/* --- Header with gradient accent --- */
+/* --- Header --- */
 .lb-header {
-    margin-bottom: 2rem;
-    padding-bottom: 1.5rem;
-    border-bottom: 1px solid var(--lb-border);
+    margin-bottom: var(--sp-6);
 }
 .lb-header h1 {
-    font-size: 2rem;
+    font-size: var(--text-2xl);
     font-weight: 700;
-    color: var(--lb-navy);
+    color: var(--text);
     letter-spacing: -0.02em;
     margin-bottom: 0;
-    background: linear-gradient(135deg, var(--lb-navy) 0%, var(--lb-teal) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-.lb-header h1::after {
-    content: '';
-    display: block;
-    width: 48px;
-    height: 3px;
-    background: linear-gradient(90deg, var(--lb-teal), var(--lb-amber));
-    border-radius: 2px;
-    margin-top: 0.625rem;
 }
 
-/* --- Summary stat cards --- */
+/* --- Summary stats bar --- */
 .lb-summary {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 1rem;
-    margin-bottom: 2.5rem;
+    display: flex;
+    gap: var(--sp-3);
+    margin-bottom: var(--sp-8);
 }
-.lb-summary .stat {
-    background: var(--lb-card);
-    border: 1px solid var(--lb-border);
-    border-radius: var(--lb-radius);
-    padding: 1.25rem 1rem;
-    box-shadow: var(--lb-shadow-sm);
+.lb-stat {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: var(--sp-5) var(--sp-4);
     text-align: center;
-    opacity: 0;
-    animation: statFadeIn 0.4s ease forwards;
 }
-.lb-summary .stat:nth-child(1) { animation-delay: 0.05s; }
-.lb-summary .stat:nth-child(2) { animation-delay: 0.1s; }
-.lb-summary .stat:nth-child(3) { animation-delay: 0.15s; }
-.lb-summary .stat:nth-child(4) { animation-delay: 0.2s; }
-.lb-summary .stat:nth-child(5) { animation-delay: 0.25s; }
-
-@keyframes statFadeIn {
-    from { opacity: 0; transform: translateY(8px); }
-    to   { opacity: 1; transform: translateY(0); }
-}
-
-.lb-summary .stat-value {
-    font-family: var(--lb-font-mono);
+.lb-stat-value {
+    font-family: var(--font-mono);
     font-weight: 700;
-    font-size: 1.5rem;
-    color: var(--lb-navy);
+    font-size: var(--text-xl);
+    color: var(--text);
     line-height: 1.2;
+    margin-bottom: var(--sp-1);
 }
-.lb-summary .stat-label {
-    font-size: 0.6875rem;
-    color: var(--lb-text-muted);
+.lb-stat-label {
+    font-size: var(--text-xs);
+    color: var(--text-dim);
     text-transform: uppercase;
     letter-spacing: 0.05em;
     font-weight: 500;
-    margin-top: 0.375rem;
 }
 
 /* --- Ranking list --- */
 .lb-rank-list {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
-    margin-bottom: 2.5rem;
+    gap: var(--sp-3);
 }
 
 .lb-rank-item {
-    background: var(--lb-card);
-    border: 1px solid var(--lb-border);
-    border-left: 4px solid transparent;
-    border-radius: var(--lb-radius);
-    padding: 1.25rem 1.5rem;
+    background: var(--surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: var(--sp-5) var(--sp-6);
     display: grid;
-    grid-template-columns: 52px 1fr auto;
-    gap: 1.25rem;
+    grid-template-columns: 48px 1fr;
+    gap: var(--sp-5);
     align-items: center;
-    box-shadow: var(--lb-shadow-sm);
-    transition: transform 0.15s ease, box-shadow 0.2s ease;
-    opacity: 0;
-    animation: rowSlideIn 0.4s ease forwards;
+    transition: border-color 0.15s ease, box-shadow 0.2s ease;
 }
-/* Stagger animation */
-.lb-rank-item:nth-child(1) { animation-delay: 0.1s; }
-.lb-rank-item:nth-child(2) { animation-delay: 0.15s; }
-.lb-rank-item:nth-child(3) { animation-delay: 0.2s; }
-.lb-rank-item:nth-child(4) { animation-delay: 0.25s; }
-.lb-rank-item:nth-child(5) { animation-delay: 0.3s; }
-.lb-rank-item:nth-child(6) { animation-delay: 0.35s; }
-.lb-rank-item:nth-child(7) { animation-delay: 0.4s; }
-.lb-rank-item:nth-child(8) { animation-delay: 0.45s; }
-.lb-rank-item:nth-child(9) { animation-delay: 0.5s; }
-.lb-rank-item:nth-child(10) { animation-delay: 0.55s; }
-
-@keyframes rowSlideIn {
-    from { opacity: 0; transform: translateX(-8px); }
-    to   { opacity: 1; transform: translateX(0); }
-}
-
-/* Alternating row backgrounds */
-.lb-rank-item:nth-child(even) {
-    background: linear-gradient(90deg, rgba(248,250,252,0.8) 0%, var(--lb-card) 100%);
-}
-
 .lb-rank-item:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--lb-shadow-md);
+    border-color: var(--border);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
 }
 
-/* --- Top 3 medal accents --- */
-.lb-rank-item.lb-top-1 {
-    border-left-color: var(--lb-gold);
-    box-shadow: var(--lb-shadow-sm), inset 0 0 0 1px rgba(245,158,11,0.1);
+/* --- Top 3 accents --- */
+.lb-rank-item.top-1 {
+    border-color: rgba(245, 158, 11, 0.4);
+    box-shadow: inset 0 0 0 1px rgba(245, 158, 11, 0.08);
 }
-.lb-rank-item.lb-top-2 {
-    border-left-color: var(--lb-silver);
-    box-shadow: var(--lb-shadow-sm), inset 0 0 0 1px rgba(156,163,175,0.1);
+.lb-rank-item.top-2 {
+    border-color: rgba(156, 163, 175, 0.35);
+    box-shadow: inset 0 0 0 1px rgba(156, 163, 175, 0.08);
 }
-.lb-rank-item.lb-top-3 {
-    border-left-color: var(--lb-bronze);
-    box-shadow: var(--lb-shadow-sm), inset 0 0 0 1px rgba(217,119,6,0.1);
+.lb-rank-item.top-3 {
+    border-color: rgba(217, 119, 6, 0.35);
+    box-shadow: inset 0 0 0 1px rgba(217, 119, 6, 0.08);
 }
 
-/* --- Rank badge --- */
-.lb-rank-badge {
-    font-family: var(--lb-font-mono);
-    font-weight: 700;
-    font-size: 1.125rem;
-    color: var(--lb-text-dim);
+/* --- Rank number --- */
+.lb-rank-num {
+    font-family: var(--font-mono);
+    font-weight: 800;
+    font-size: var(--text-xl);
+    color: var(--text-dim);
     text-align: center;
     line-height: 1;
-    width: 44px;
-    height: 44px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    background: #f1f5f9;
 }
-.lb-rank-badge.rank-1 {
-    font-size: 1.5rem;
-    background: linear-gradient(135deg, #fef3c7, #fde68a);
-    box-shadow: 0 2px 8px rgba(245,158,11,0.2);
-}
-.lb-rank-badge.rank-2 {
-    font-size: 1.5rem;
-    background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
-    box-shadow: 0 2px 8px rgba(156,163,175,0.2);
-}
-.lb-rank-badge.rank-3 {
-    font-size: 1.5rem;
-    background: linear-gradient(135deg, #fef3c7, #fde68a);
-    box-shadow: 0 2px 8px rgba(217,119,6,0.15);
-}
+.lb-rank-num.rank-1 { color: #f59e0b; font-size: var(--text-2xl); }
+.lb-rank-num.rank-2 { color: #9ca3af; font-size: var(--text-2xl); }
+.lb-rank-num.rank-3 { color: #d97706; font-size: var(--text-2xl); }
 
-/* --- Rank info --- */
-.lb-rank-info {
+/* --- Rank content (right side) --- */
+.lb-rank-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3);
     min-width: 0;
 }
+
+/* Title row: name + score on same line */
+.lb-rank-top {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--sp-4);
+}
 .lb-rank-title {
-    font-weight: 700;
-    font-size: 1rem;
-    color: var(--lb-navy);
+    font-weight: 600;
+    font-size: var(--text-base);
+    color: var(--text);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    letter-spacing: -0.01em;
+    min-width: 0;
 }
+.lb-rank-title a {
+    color: inherit;
+    text-decoration: none;
+}
+.lb-rank-title a:hover {
+    color: var(--primary);
+}
+.lb-rank-pct {
+    font-family: var(--font-mono);
+    font-weight: 800;
+    font-size: var(--text-lg);
+    flex-shrink: 0;
+}
+
+/* Score colors */
+.score-green  { color: #22c55e; }
+.score-yellow { color: #eab308; }
+.score-orange { color: #f97316; }
+.score-red    { color: #ef4444; }
+
+/* --- Wide score bar --- */
+.lb-bar {
+    height: 12px;
+    background: var(--bg-subtle);
+    border-radius: 6px;
+    overflow: hidden;
+}
+.lb-bar-fill {
+    height: 100%;
+    border-radius: 6px;
+    transition: width 0.6s ease-out;
+}
+.bar-green  { background: #22c55e; }
+.bar-yellow { background: #eab308; }
+.bar-orange { background: #f97316; }
+.bar-red    { background: #ef4444; }
+
+/* --- Meta line --- */
 .lb-rank-meta {
     display: flex;
-    gap: 1rem;
-    margin-top: 0.375rem;
-    font-size: 0.75rem;
-    color: var(--lb-text-dim);
-    flex-wrap: wrap;
-    font-weight: 400;
+    gap: var(--sp-4);
+    font-size: var(--text-xs);
+    color: var(--text-dim);
 }
-
-/* --- Score bars with gradient fills --- */
-.lb-rank-scores {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 0.375rem;
-    min-width: 200px;
-}
-.lb-score-bar-row {
-    display: flex;
-    align-items: center;
-    gap: 0.625rem;
-    width: 100%;
-}
-.lb-score-label {
-    font-size: 0.6875rem;
-    color: var(--lb-text-muted);
-    min-width: 50px;
-    text-align: right;
+.lb-rank-meta a {
+    color: var(--primary);
+    text-decoration: none;
     font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
 }
-.lb-score-bar {
-    flex: 1;
-    height: 10px;
-    background: #f1f5f9;
-    border-radius: 5px;
-    overflow: hidden;
-    box-shadow: inset 0 1px 2px rgba(0,0,0,0.06);
-    position: relative;
-}
-.lb-score-bar-fill {
-    height: 100%;
-    border-radius: 5px;
-    transition: width 0.8s ease-out;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.25);
+.lb-rank-meta a:hover {
+    text-decoration: underline;
 }
 
-/* Gradient bar classes */
-.bar-gradient-green  { background: linear-gradient(90deg, #34d399, #10b981, #059669); }
-.bar-gradient-yellow { background: linear-gradient(90deg, #fbbf24, #eab308, #ca8a04); }
-.bar-gradient-orange { background: linear-gradient(90deg, #fb923c, #f97316, #ea580c); }
-.bar-gradient-red    { background: linear-gradient(90deg, #f87171, #ef4444, #dc2626); }
-
-.lb-score-value {
-    font-family: var(--lb-font-mono);
-    font-weight: 700;
-    font-size: 0.9375rem;
-    min-width: 3.5em;
-    text-align: right;
-    color: var(--lb-navy);
+/* --- No data row --- */
+.lb-rank-nodata {
+    font-size: var(--text-sm);
+    color: var(--text-dim);
+    font-style: italic;
 }
-.lb-score-value.pass { color: #059669; }
-.lb-score-value.fail { color: #dc2626; }
 
-/* --- No data state --- */
-.lb-no-data {
+/* --- Empty domain state --- */
+.lb-empty {
     text-align: center;
-    padding: 2rem 1rem;
+    padding: var(--sp-16) var(--sp-8);
+    background: var(--surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
 }
-.lb-no-data p {
-    color: var(--lb-text-dim);
-    font-size: 0.875rem;
+.lb-empty p {
+    color: var(--text-dim);
+    font-size: var(--text-sm);
 }
-
-/* --- Empty domain state with image placeholder --- */
-.lb-empty-domain {
-    text-align: center;
-    padding: 4rem 2rem;
-    background: var(--lb-card);
-    border: 1px solid var(--lb-border);
-    border-radius: var(--lb-radius);
-    box-shadow: var(--lb-shadow-sm);
-}
-.lb-empty-domain-img-wrap {
-    position: relative;
-    display: inline-block;
-    margin-bottom: 1.5rem;
-}
-.lb-empty-domain-img-wrap::after {
-    content: 'En attente de donnees';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: rgba(26,35,50,0.85);
-    color: #ffffff;
-    padding: 0.5rem 1.25rem;
-    border-radius: 6px;
-    font-size: 0.875rem;
-    font-weight: 500;
-    white-space: nowrap;
-}
-.lb-empty-domain p {
-    color: var(--lb-text-dim);
-    font-size: 0.875rem;
+.lb-empty .ga-list {
+    margin-top: var(--sp-4);
+    color: var(--text-dim);
+    font-size: var(--text-xs);
+    opacity: 0.6;
 }
 
-/* --- Mobile: cards stack, table becomes card-based --- */
+/* --- Responsive --- */
 @media (max-width: 680px) {
     .lb-page {
-        padding: 1.25rem 1rem 3rem;
+        padding: var(--sp-6) 0 var(--sp-12);
     }
     .lb-header h1 {
-        font-size: 1.5rem;
+        font-size: var(--text-xl);
     }
     .lb-summary {
-        grid-template-columns: repeat(2, 1fr);
+        flex-wrap: wrap;
     }
-    .lb-summary .stat:last-child:nth-child(odd) {
-        grid-column: 1 / -1;
+    .lb-stat {
+        flex: 1 1 calc(33.333% - var(--sp-3));
+        min-width: calc(33.333% - var(--sp-3));
     }
     .lb-rank-item {
-        grid-template-columns: 44px 1fr;
-        gap: 0.75rem;
-        padding: 1rem 1.125rem;
+        grid-template-columns: 40px 1fr;
+        gap: var(--sp-3);
+        padding: var(--sp-4) var(--sp-4);
     }
-    .lb-rank-scores {
-        grid-column: 1 / -1;
-        min-width: 0;
+    .lb-rank-top {
+        flex-direction: column;
+        gap: var(--sp-1);
     }
     .lb-rank-title {
-        font-size: 0.9375rem;
         white-space: normal;
+        font-size: var(--text-sm);
     }
-    .lb-score-bar {
-        height: 8px;
-    }
-    .lb-rank-badge {
-        width: 38px;
-        height: 38px;
-        font-size: 1rem;
-    }
-    .lb-rank-badge.rank-1,
-    .lb-rank-badge.rank-2,
-    .lb-rank-badge.rank-3 {
-        font-size: 1.25rem;
-    }
-    /* Touch-friendly targets */
-    .lb-breadcrumb a {
-        padding: 0.5rem 0.25rem;
-        min-height: 44px;
-        display: inline-flex;
-        align-items: center;
+    .lb-rank-num.rank-1,
+    .lb-rank-num.rank-2,
+    .lb-rank-num.rank-3 {
+        font-size: var(--text-xl);
     }
 }
-
 @media (max-width: 400px) {
     .lb-summary {
-        grid-template-columns: 1fr;
+        flex-direction: column;
     }
 }
 </style>
@@ -412,7 +281,7 @@
 <div class="lb-page">
     <nav class="lb-breadcrumb">
         <a href="/leaderboard">Leaderboard</a>
-        <span class="separator">&#8250;</span>
+        <span class="sep">&#8250;</span>
         <span class="current">{{ data.label }}</span>
     </nav>
 
@@ -421,194 +290,97 @@
     </div>
 
     <div class="lb-summary">
-        <div class="stat">
-            <div class="stat-value">{{ data.n_gas }}</div>
-            <div class="stat-label">GAs</div>
+        <div class="lb-stat">
+            <div class="lb-stat-value">{{ data.n_gas }}</div>
+            <div class="lb-stat-label">GAs</div>
         </div>
-        <div class="stat">
-            <div class="stat-value">{{ data.n_tests }}</div>
-            <div class="stat-label">Tests</div>
+        <div class="lb-stat">
+            <div class="lb-stat-value">{{ data.n_tests }}</div>
+            <div class="lb-stat-label">Tests</div>
         </div>
-        <div class="stat">
-            <div class="stat-value">
+        <div class="lb-stat">
+            <div class="lb-stat-value">
                 {% if data.avg_score is not none %}
-                    {{ (data.avg_score * 100) | round(0) }}%
+                    {{ (data.avg_score * 100) | round(0) | int }}%
                 {% else %}
                     &mdash;
                 {% endif %}
             </div>
-            <div class="stat-label">Score moyen</div>
+            <div class="lb-stat-label">Score moyen</div>
         </div>
-        <div class="stat">
-            <div class="stat-value">
+        <div class="lb-stat">
+            <div class="lb-stat-value">
                 {% if data.median_score is not none %}
-                    {{ (data.median_score * 100) | round(0) }}%
+                    {{ (data.median_score * 100) | round(0) | int }}%
                 {% else %}
                     &mdash;
                 {% endif %}
             </div>
-            <div class="stat-label">Mediane</div>
-        </div>
-        <div class="stat">
-            <div class="stat-value">
-                {% if data.std_score is not none %}
-                    {{ (data.std_score * 100) | round(1) }}%
-                {% else %}
-                    &mdash;
-                {% endif %}
-            </div>
-            <div class="stat-label">Ecart-type</div>
+            <div class="lb-stat-label">Mediane</div>
         </div>
     </div>
 
+    {% if data.gas %}
     <div class="lb-rank-list">
         {% for ga in data.gas %}
         {% set rank = loop.index %}
         {% set has_data = ga.avg_glance is not none %}
-        <div class="lb-rank-item {{ 'lb-top-1' if rank == 1 and has_data else ('lb-top-2' if rank == 2 and has_data else ('lb-top-3' if rank == 3 and has_data else '')) }}">
-            <div class="lb-rank-badge {{ 'rank-' ~ rank if rank <= 3 and has_data else '' }}">
-                {% if rank == 1 and has_data %}
-                    &#x1F947;
-                {% elif rank == 2 and has_data %}
-                    &#x1F948;
-                {% elif rank == 3 and has_data %}
-                    &#x1F949;
-                {% else %}
-                    #{{ rank }}
-                {% endif %}
+
+        {# Compute score color class #}
+        {% if has_data %}
+            {% set pct = (ga.avg_glance * 100) | round(0) | int %}
+            {% if pct >= 80 %}
+                {% set sc = "green" %}
+            {% elif pct >= 60 %}
+                {% set sc = "yellow" %}
+            {% elif pct >= 40 %}
+                {% set sc = "orange" %}
+            {% else %}
+                {% set sc = "red" %}
+            {% endif %}
+        {% endif %}
+
+        <div class="lb-rank-item {{ 'top-1' if rank == 1 and has_data else ('top-2' if rank == 2 and has_data else ('top-3' if rank == 3 and has_data else '')) }}">
+            <div class="lb-rank-num {{ 'rank-' ~ rank if rank <= 3 and has_data else '' }}">
+                {{ rank }}
             </div>
 
-            <div class="lb-rank-info">
-                <div class="lb-rank-title"><a href="/ga-detail/{{ ga.ga_image_id }}" style="color: inherit; text-decoration: none;">{{ ga.title }}</a></div>
+            <div class="lb-rank-content">
+                <div class="lb-rank-top">
+                    <div class="lb-rank-title">
+                        <a href="/ga-detail/{{ ga.ga_image_id }}">{{ ga.title }}</a>
+                    </div>
+                    {% if has_data %}
+                        <span class="lb-rank-pct score-{{ sc }}">{{ pct }}%</span>
+                    {% endif %}
+                </div>
+
+                {% if has_data %}
+                <div class="lb-bar">
+                    <div class="lb-bar-fill bar-{{ sc }}" style="width: {{ pct }}%;"></div>
+                </div>
+
                 <div class="lb-rank-meta">
                     <span>{{ ga.n_tests }} test{{ 's' if ga.n_tests != 1 else '' }}</span>
                     {% if ga.avg_s9b is not none %}
-                    <span>S9b: {{ (ga.avg_s9b * 100) | round(0) }}%</span>
+                    <span>S9b: {{ (ga.avg_s9b * 100) | round(0) | int }}%</span>
                     {% endif %}
                     {% if ga.avg_s2_coverage is not none %}
-                    <span>S2 couverture: {{ (ga.avg_s2_coverage * 100) | round(0) }}%</span>
+                    <span>Couverture: {{ (ga.avg_s2_coverage * 100) | round(0) | int }}%</span>
                     {% endif %}
-                    <a href="/ga-detail/{{ ga.ga_image_id }}" style="color: var(--lb-teal); text-decoration: none; font-weight: 500;">Detail &rarr;</a>
+                    <a href="/ga-detail/{{ ga.ga_image_id }}">Detail &rarr;</a>
                 </div>
-            </div>
-
-            <div class="lb-rank-scores">
-                {% if has_data %}
-                    {% set pct = (ga.avg_glance * 100) | round(0) %}
-                    {% if pct >= 80 %}
-                        {% set bar_class = "bar-gradient-green" %}
-                        {% set text_class = "pass" %}
-                    {% elif pct >= 60 %}
-                        {% set bar_class = "bar-gradient-yellow" %}
-                        {% set text_class = "" %}
-                    {% elif pct >= 40 %}
-                        {% set bar_class = "bar-gradient-orange" %}
-                        {% set text_class = "" %}
-                    {% else %}
-                        {% set bar_class = "bar-gradient-red" %}
-                        {% set text_class = "fail" %}
-                    {% endif %}
-                    <div class="lb-score-bar-row">
-                        <span class="lb-score-label">GLANCE</span>
-                        <div class="lb-score-bar">
-                            <div class="lb-score-bar-fill {{ bar_class }}" style="width: {{ pct }}%;"></div>
-                        </div>
-                        <span class="lb-score-value {{ text_class }}">{{ pct }}%</span>
-                    </div>
-                    {% if ga.avg_s9b is not none %}
-                        {% set s9b_pct = (ga.avg_s9b * 100) | round(0) %}
-                        {% if s9b_pct >= 80 %}
-                            {% set s9b_class = "bar-gradient-green" %}
-                        {% elif s9b_pct >= 60 %}
-                            {% set s9b_class = "bar-gradient-yellow" %}
-                        {% elif s9b_pct >= 40 %}
-                            {% set s9b_class = "bar-gradient-orange" %}
-                        {% else %}
-                            {% set s9b_class = "bar-gradient-red" %}
-                        {% endif %}
-                        <div class="lb-score-bar-row">
-                            <span class="lb-score-label">S9b</span>
-                            <div class="lb-score-bar">
-                                <div class="lb-score-bar-fill {{ s9b_class }}" style="width: {{ s9b_pct }}%;"></div>
-                            </div>
-                            <span class="lb-score-value" style="color: var(--lb-text-dim);">{{ s9b_pct }}%</span>
-                        </div>
-                    {% endif %}
                 {% else %}
-                    <div class="lb-no-data">
-                        <p>Pas de donnees</p>
-                    </div>
+                <div class="lb-rank-nodata">Pas encore de donnees</div>
                 {% endif %}
             </div>
         </div>
         {% endfor %}
     </div>
-
-    {% if not data.gas %}
-    <div class="lb-empty-domain">
-        <div class="lb-empty-domain-img-wrap">
-            <div style="width: 200px; height: 150px; background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                    <circle cx="8.5" cy="8.5" r="1.5"/>
-                    <polyline points="21 15 16 10 5 21"/>
-                </svg>
-            </div>
-        </div>
+    {% else %}
+    <div class="lb-empty">
         <p>Aucune GA dans ce domaine.</p>
     </div>
     {% endif %}
 </div>
-{% endblock %}
-
-{% block scripts %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Score count-up animation
-    var statValues = document.querySelectorAll('.stat-value, .lb-score-value');
-    var observer = new IntersectionObserver(function(entries) {
-        entries.forEach(function(entry) {
-            if (entry.isIntersecting) {
-                var el = entry.target;
-                var text = el.textContent.trim();
-                var match = text.match(/^(\d+(?:\.\d+)?)(%?)$/);
-                if (match) {
-                    var target = parseFloat(match[1]);
-                    var suffix = match[2] || '';
-                    var isDecimal = match[1].indexOf('.') !== -1;
-                    var current = 0;
-                    var duration = 600;
-                    var steps = 30;
-                    var increment = target / steps;
-                    var interval = duration / steps;
-                    el.textContent = '0' + suffix;
-                    var timer = setInterval(function() {
-                        current += increment;
-                        if (current >= target) {
-                            current = target;
-                            clearInterval(timer);
-                        }
-                        el.textContent = (isDecimal ? current.toFixed(1) : Math.round(current)) + suffix;
-                    }, interval);
-                }
-                observer.unobserve(el);
-            }
-        });
-    }, { threshold: 0.3 });
-
-    statValues.forEach(function(el) { observer.observe(el); });
-
-    // Animate score bars from 0 on load
-    var bars = document.querySelectorAll('.lb-score-bar-fill');
-    bars.forEach(function(bar) {
-        var targetWidth = bar.style.width;
-        bar.style.width = '0%';
-        requestAnimationFrame(function() {
-            requestAnimationFrame(function() {
-                bar.style.width = targetWidth;
-            });
-        });
-    });
-});
-</script>
 {% endblock %}
