@@ -1,0 +1,101 @@
+# GLANCE Reddit Ingestion & Reaction Pipeline — Configuration
+# Version: 1.0
+
+reddit:
+  # PRAW credentials — set via environment variables or fill in here
+  client_id: ${REDDIT_CLIENT_ID}
+  client_secret: ${REDDIT_CLIENT_SECRET}
+  user_agent: "GLANCE-Pipeline/1.0 (by u/SciSense_GLANCE)"
+  username: ${REDDIT_USERNAME}
+  password: ${REDDIT_PASSWORD}
+
+polling:
+  interval_seconds: 300        # 5 minutes between polls
+  max_posts_per_poll: 25       # limit per sub per cycle
+  lookback_hours: 24           # on first run, how far back to look
+  dry_run: true                # when true, log actions without Reddit API
+
+sources:
+  - sub: dataisugly
+    pipeline: reaction
+    min_score: 5
+    flairs: []
+    keywords: ["chart", "graph", "infographic", "visualization", "plot"]
+    require_academic: false
+    template: dataisugly
+    responder: "@Auroracles"
+
+  - sub: medicalwriters
+    pipeline: reaction
+    min_score: 3
+    flairs: []
+    keywords: ["graphical abstract", "figure", "GA", "visual abstract"]
+    require_academic: false
+    template: medicalwriters
+    responder: "@Auroracles"
+
+  - sub: academicpublishing
+    pipeline: reaction
+    min_score: 3
+    flairs: []
+    keywords: ["graphical abstract", "figure", "GA", "visual abstract", "visualization"]
+    require_academic: false
+    template: academicpublishing
+    responder: "@Auroracles"
+
+  - sub: bioinformatics
+    pipeline: ingestion
+    min_score: 10
+    flairs: []
+    keywords: []
+    require_academic: true
+    template: bioinformatics
+    responder: "@Auroracles"
+
+  - sub: dataisbeautiful
+    pipeline: ingestion
+    min_score: 50
+    flairs: ["OC"]
+    keywords: []
+    require_academic: false
+    template: null
+    responder: null
+
+  - sub: science
+    pipeline: ingestion
+    min_score: 100
+    flairs: []
+    keywords: []
+    require_academic: true
+    template: null
+    responder: null
+
+  - sub: biology
+    pipeline: ingestion
+    min_score: 20
+    flairs: []
+    keywords: ["paper", "study", "published"]
+    require_academic: true
+    template: null
+    responder: null
+
+  - sub: immunology
+    pipeline: ingestion
+    min_score: 5
+    flairs: []
+    keywords: []
+    require_academic: true
+    template: null
+    responder: null
+
+ingestion:
+  shadow_mode: true             # ingested GAs are NOT public on Leaderboard
+  ga_library_dir: "../ga_library"
+  db_path: "ingestion.db"
+  alerts_path: "alerts.jsonl"
+
+alerts:
+  telegram_enabled: false
+  telegram_chat_id: null
+  stdout: true
+  jsonl: true
