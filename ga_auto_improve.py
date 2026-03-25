@@ -132,13 +132,13 @@ def _build_intent_from_diagnosis(turn_data):
         issue = ch.get("issues", "").strip()
         if issue:
             prompts.append(
-                f"Le canal '{channel}' a une effectiveness de {eff:.1f}. "
-                f"Diagnostic : {issue} "
-                f"Quelle modification concrète le ferait passer au-dessus de 0.7 ?")
+                f"'{channel}' ne transmet que {eff:.0%} de son signal. "
+                f"{issue} "
+                f"Quelle modification concrète le ferait passer au-dessus de 70% ?")
         else:
             prompts.append(
-                f"Le canal '{channel}' a une effectiveness de {eff:.1f} — sous le seuil fonctionnel. "
-                f"Quelle modification concrète le ferait passer au-dessus de 0.7 ?")
+                f"'{channel}' ne transmet que {eff:.0%} de son signal — sous le seuil fonctionnel. "
+                f"Quelle modification concrète le rendrait efficace ?")
 
     # Archetype-specific — dynamic problem description
     archetype = turn_data.get("archetype", "")
