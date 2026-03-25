@@ -274,6 +274,49 @@ def _validate_graph(graph: dict) -> dict:
     metadata.setdefault("executive_summary_fr", "")
     metadata.setdefault("main_finding", "")
 
+    # ── Auto-link by bbox overlap ──
+    # If things/narratives have bbox and overlap with a space bbox,
+    # create containment links automatically (thing→space, narrative→space)
+    existing_links = {(l["source"], l["target"]) for l in valid_links}
+    existing_links |= {(l["target"], l["source"]) for l in valid_links}
+
+    spaces_with_bbox = [
+        n for n in valid_nodes
+        if n.get("node_type") == "space" and n.get("bbox") and len(n.get("bbox", [])) == 4
+    ]
+
+    for node in valid_nodes:
+        if node.get("node_type") == "space":
+            continue
+        bbox = node.get("bbox")
+        if not bbox or not isinstance(bbox, list) or len(bbox) != 4:
+            continue
+        try:
+            nx, ny, nw, nh = [float(v) for v in bbox]
+        except (ValueError, TypeError):
+            continue
+        # Center of this node
+        ncx, ncy = nx + nw / 2, ny + nh / 2
+
+        for space in spaces_with_bbox:
+            try:
+                sx, sy, sw, sh = [float(v) for v in space["bbox"]]
+            except (ValueError, TypeError):
+                continue
+            # Check if node center is inside space bbox (containment)
+            if sx <= ncx <= sx + sw and sy <= ncy <= sy + sh:
+                pair = (node["id"], space["id"])
+                if pair not in existing_links:
+                    valid_links.append({
+                        "source": node["id"],
+                        "target": space["id"],
+                        "link_type": "link",
+                        "weight": 1.0,
+                        "_auto": "bbox_containment",
+                    })
+                    existing_links.add(pair)
+                    existing_links.add((space["id"], node["id"]))
+
     return {
         "nodes": valid_nodes,
         "links": valid_links,
