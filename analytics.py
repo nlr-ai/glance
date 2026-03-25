@@ -1272,6 +1272,34 @@ def get_admin_analytics() -> dict:
             "q2_choice": t.get("q2_choice") or "-",
         })
 
+    # ── Graphs ──
+    db2 = get_db()
+    graphs_rows = db2.execute("""
+        SELECT g.id, g.ga_image_id, g.graph_type, g.created_at, g.source, g.version,
+               g.node_count, g.link_count, g.avg_effectiveness, g.anti_pattern_count,
+               i.filename as ga_filename, i.slug as ga_slug
+        FROM ga_graphs g
+        LEFT JOIN ga_images i ON g.ga_image_id = i.id
+        ORDER BY g.id DESC
+    """).fetchall()
+    graphs = [dict(r) for r in graphs_rows]
+
+    # ── Reading simulations ──
+    sims_rows = db2.execute("""
+        SELECT rs.id, rs.ga_image_id, rs.graph_id, rs.created_at, rs.mode,
+               rs.total_ticks, rs.ticks_used, rs.budget_pressure, rs.complexity_verdict,
+               rs.nodes_visited, rs.nodes_total, rs.nodes_skipped,
+               rs.narrative_coverage, rs.avg_narrative_attention,
+               rs.dead_space_count, rs.orphan_narrative_count,
+               rs.narrative_text,
+               i.filename as ga_filename, i.slug as ga_slug
+        FROM reading_simulations rs
+        LEFT JOIN ga_images i ON rs.ga_image_id = i.id
+        ORDER BY rs.id DESC
+    """).fetchall()
+    sims = [dict(r) for r in sims_rows]
+    db2.close()
+
     return {
         "kpis": {
             "n_participants": n_participants,
@@ -1293,6 +1321,8 @@ def get_admin_analytics() -> dict:
         },
         "input_mode_comparison": input_mode_comparison,
         "response_table": response_table,
+        "graphs": graphs,
+        "reading_sims": sims,
     }
 
 

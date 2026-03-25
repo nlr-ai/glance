@@ -377,6 +377,119 @@
         </table>
     </div>
     {% endif %}
+
+    <!-- ── Section: Graphs ── -->
+    <h2 class="section-title">Graphs L3 ({{ analytics.graphs | length }})</h2>
+    <div class="table-scroll" style="max-height:400px;">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>GA</th>
+                    <th>Type</th>
+                    <th>Source</th>
+                    <th>Nodes</th>
+                    <th>Links</th>
+                    <th>Avg Eff</th>
+                    <th>Anti-pat</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for g in analytics.graphs %}
+                <tr>
+                    <td class="mono">{{ g.id }}</td>
+                    <td><a href="/ga-detail/{{ g.ga_slug }}" style="color:var(--primary);">{{ g.ga_filename or g.ga_image_id }}</a></td>
+                    <td>{{ g.graph_type }}</td>
+                    <td>{{ g.source }}</td>
+                    <td class="mono">{{ g.node_count or '-' }}</td>
+                    <td class="mono">{{ g.link_count or '-' }}</td>
+                    <td class="mono">{{ '%.2f'|format(g.avg_effectiveness) if g.avg_effectiveness else '-' }}</td>
+                    <td class="mono">{{ g.anti_pattern_count or 0 }}</td>
+                    <td class="mono">{{ g.created_at[:16] if g.created_at else '-' }}</td>
+                </tr>
+                {% endfor %}
+                {% if not analytics.graphs %}
+                <tr><td colspan="9" class="empty-state">Aucun graph enregistré.</td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ── Section: Reading Simulations ── -->
+    <h2 class="section-title">Lectures simulées ({{ analytics.reading_sims | length }})</h2>
+    <div class="table-scroll" style="max-height:500px;">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>GA</th>
+                    <th>Graph</th>
+                    <th>Mode</th>
+                    <th>Verdict</th>
+                    <th>Pressure</th>
+                    <th>Visited</th>
+                    <th>Skipped</th>
+                    <th>Narr. Cov.</th>
+                    <th>Dead Sp.</th>
+                    <th>Orphan N.</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in analytics.reading_sims %}
+                <tr>
+                    <td class="mono">{{ s.id }}</td>
+                    <td><a href="/ga-detail/{{ s.ga_slug }}" style="color:var(--primary);">{{ s.ga_filename or s.ga_image_id or '-' }}</a></td>
+                    <td class="mono">{{ s.graph_id or '-' }}</td>
+                    <td>
+                        {% if s.mode == 'system1' %}
+                        <span style="color:#3b82f6;">S1 (5s)</span>
+                        {% elif s.mode == 'system2' %}
+                        <span style="color:#a855f7;">S2 (90s)</span>
+                        {% else %}
+                        {{ s.mode }}
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if s.complexity_verdict == 'OK' %}
+                        <span style="color:#22c55e;">OK</span>
+                        {% elif s.complexity_verdict == 'DENSE' %}
+                        <span style="color:#eab308;">DENSE</span>
+                        {% elif s.complexity_verdict == 'OVERLOADED' %}
+                        <span style="color:#ef4444;">OVERLOADED</span>
+                        {% else %}
+                        {{ s.complexity_verdict or '-' }}
+                        {% endif %}
+                    </td>
+                    <td class="mono">{{ '%.2f'|format(s.budget_pressure) if s.budget_pressure else '-' }}x</td>
+                    <td class="mono">{{ s.nodes_visited or 0 }}/{{ s.nodes_total or 0 }}</td>
+                    <td class="mono {% if s.nodes_skipped and s.nodes_skipped > 0 %}fail{% endif %}">{{ s.nodes_skipped or 0 }}</td>
+                    <td class="mono">{{ '%.0f'|format(s.narrative_coverage * 100) if s.narrative_coverage else '0' }}%</td>
+                    <td class="mono {% if s.dead_space_count and s.dead_space_count > 0 %}fail{% endif %}">{{ s.dead_space_count or 0 }}</td>
+                    <td class="mono {% if s.orphan_narrative_count and s.orphan_narrative_count > 0 %}fail{% endif %}">{{ s.orphan_narrative_count or 0 }}</td>
+                    <td class="mono">{{ s.created_at[:16] if s.created_at else '-' }}</td>
+                </tr>
+                {% endfor %}
+                {% if not analytics.reading_sims %}
+                <tr><td colspan="12" class="empty-state">Aucune simulation enregistrée.</td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Narrative text expandable for each sim -->
+    {% for s in analytics.reading_sims %}
+    {% if s.narrative_text %}
+    <details style="margin:0.5rem 0;border:1px solid var(--border-subtle);border-radius:var(--radius);padding:0.75rem;background:var(--surface);">
+        <summary style="cursor:pointer;color:var(--text-dim);font-size:var(--text-sm);">
+            Lecture #{{ s.id }} — {{ s.mode }} {{ s.ga_filename or '' }} ({{ s.complexity_verdict }})
+        </summary>
+        <p style="margin:0.75rem 0 0;color:var(--text-muted);font-size:var(--text-sm);line-height:1.6;white-space:pre-wrap;">{{ s.narrative_text }}</p>
+    </details>
+    {% endif %}
+    {% endfor %}
+
 </div>
 {% endblock %}
 
