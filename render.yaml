@@ -1,16 +1,13 @@
 services:
   - type: web
-    runtime: python
+    runtime: docker
     name: glance
     plan: standard
     autoDeploy: false
-    buildCommand: pip install -r deploy/requirements.txt
-    startCommand: bash start.sh
+    dockerfilePath: ./Dockerfile
     envVars:
       - key: GLANCE_DB_PATH
         value: /var/data/glance.db
-      - key: PYTHON_VERSION
-        value: "3.11.7"
       - key: GEMINI_API_KEY
         sync: false
       - key: GEMINI_MODEL
