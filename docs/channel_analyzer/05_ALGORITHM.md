@@ -75,6 +75,42 @@ GENERATE GA → ANALYZE (vision_scorer) → L3 GRAPH
                               NEXT ITERATION
 ```
 
+## A5: Anti-Pattern Detection
+
+Runs after step 5 of A1 (graph enrichment), on the enriched graph. Pure graph math — no LLM call.
+
+```
+INPUT: Enriched L3 graph (nodes with visual_channels[] and channel_score)
+OUTPUT: metadata.channel_analysis.anti_patterns[]
+
+For each node in graph:
+  w = node.weight
+  channels = node.visual_channels
+  score = node.channel_score
+
+  1. FRAGILE check
+     IF w >= 0.6 AND len(channels) < 2:
+       → emit {node_id, type: "fragile", detail: "w={w}, channels={len(channels)}"}
+
+  2. INVERSE check
+     IF w >= 0.8 AND score < 0.5:
+       → emit {node_id, type: "inverse", detail: "w={w}, channel_score={score}"}
+
+  3. INCONGRUENT check
+     For each pair (ch_a, ch_b) in channels:
+       IF ch_a.semantic_direction OPPOSES ch_b.semantic_direction:
+         → emit {node_id, type: "incongruent", detail: "{ch_a.channel} vs {ch_b.channel}"}
+
+     Semantic opposition is detected by Gemini during batch analysis (A2).
+     Each channel response includes an optional `semantic_direction` field:
+       - "positive", "negative", "neutral", "hierarchical", "danger", "emphasis"
+     Opposition pairs: positive/negative, danger/positive, emphasis/negative.
+```
+
+### Detection order matters
+
+Fragile and inverse are pure numeric — deterministic, zero ambiguity. Incongruent requires semantic interpretation from the Gemini batch response. If `semantic_direction` is absent, incongruent detection is skipped for that channel pair.
+
 ## A4: CLI Usage
 
 ```bash

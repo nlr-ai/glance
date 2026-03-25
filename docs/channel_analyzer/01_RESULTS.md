@@ -25,9 +25,29 @@ Average effectiveness across all used channels — the GA's "visual transmission
 
 **Measurement:** `metadata.channel_analysis.avg_effectiveness` (0-1).
 
+## R6: Anti-Pattern Detection
+
+Each node is checked for 3 structural anti-patterns in its channel usage:
+
+| Type | Detection | Meaning | Example |
+|------|-----------|---------|---------|
+| **fragile** | Important node (w>=0.6) with < 2 visual channels | No redundancy — if the single channel fails (colorblind, thumbnail, fast scan), message is lost | "Immature Immune System" encoded only as text |
+| **incongruent** | Channels on same node point to OPPOSING semantic meanings | Brain receives contradictory signals — confusion, not hierarchy | Color says "danger" (red) but position says "positive result" (top-right, prominent) |
+| **inverse** | Important node (w>=0.8) but avg channel effectiveness < 0.5 | GA visually demotes something that should be prominent | Key finding buried in small gray text at bottom |
+
+**Measurement:** `metadata.channel_analysis.anti_patterns[]` — list of `{node_id, type, detail}`.
+
+### Critical distinction: incongruent != warped
+
+- **Warp** (existing GLANCE metric) = uneven WEIGHT distribution across nodes. Quantitative. "One element hogs all visual attention."
+- **Incongruent** (new anti-pattern) = channels on a SINGLE node send opposing SEMANTIC signals. Qualitative. "The node says two things at once."
+
+Warp is about between-node imbalance. Incongruence is about within-node conflict.
+
 ## Guarantee Loop
 
 ```
 R1 (channel map) → SENSE (channel_analyzer.py output) → HEALTH (non-zero channels per node) → CARRIER (Silas/designer)
 R5 (avg effectiveness) → SENSE (metadata.channel_analysis) → HEALTH (avg > 0.5) → CARRIER (iteration loop)
+R6 (anti-patterns) → SENSE (anti_patterns[]) → HEALTH (0 inverse on w>=0.8 nodes) → CARRIER (Silas/designer)
 ```
