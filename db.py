@@ -46,7 +46,34 @@ CREATE TABLE IF NOT EXISTS ga_images (
     products TEXT,
     title TEXT,
     description TEXT,
-    slug TEXT UNIQUE
+    slug TEXT UNIQUE,
+    bloc TEXT,
+    source_url TEXT,
+    doi TEXT,
+    journal TEXT,
+    predicted_score REAL,
+    archetype TEXT,
+    shadow INTEGER DEFAULT 0,
+    has_redesign INTEGER DEFAULT 0,
+    redesign_image_id INTEGER,
+    ingestion_source TEXT DEFAULT 'manual',
+    reddit_post_id TEXT,
+    image_hash TEXT
+);
+
+CREATE TABLE IF NOT EXISTS ga_graphs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ga_image_id INTEGER NOT NULL,
+    graph_type TEXT NOT NULL DEFAULT 'vision',
+    graph_yaml TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    source TEXT DEFAULT 'gemini_vision',
+    version TEXT,
+    node_count INTEGER,
+    link_count INTEGER,
+    avg_effectiveness REAL,
+    anti_pattern_count INTEGER,
+    FOREIGN KEY (ga_image_id) REFERENCES ga_images(id)
 );
 
 CREATE TABLE IF NOT EXISTS analysis_leads (
@@ -182,6 +209,21 @@ def init_db():
         conn.commit()
     except Exception:
         pass
+    # Migrate: add new ga_images columns for pipeline/redesign
+    _migrate_add_columns(conn, "ga_images", [
+        ("bloc", "TEXT"),
+        ("source_url", "TEXT"),
+        ("doi", "TEXT"),
+        ("journal", "TEXT"),
+        ("predicted_score", "REAL"),
+        ("archetype", "TEXT"),
+        ("shadow", "INTEGER DEFAULT 0"),
+        ("has_redesign", "INTEGER DEFAULT 0"),
+        ("redesign_image_id", "INTEGER"),
+        ("ingestion_source", "TEXT DEFAULT 'manual'"),
+        ("reddit_post_id", "TEXT"),
+        ("image_hash", "TEXT"),
+    ])
     # Generate slugs for any images that don't have one yet
     _backfill_slugs(conn)
     conn.close()
