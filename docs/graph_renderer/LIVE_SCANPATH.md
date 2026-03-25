@@ -361,6 +361,21 @@ The filament itself vibrates — a subtle oscillation perpendicular to the path:
 - Amplitude: 1-3px
 - This makes the links feel ALIVE — like cables under high voltage
 
+### Constant modulation (always-on, even before animation starts)
+Active links are NEVER static. Even at rest, they breathe:
+
+- **Intensity pulse**: `opacity: 0.6 + sin(t * 2) * 0.15` — subtle breathing at 2Hz
+- **Width modulation**: `stroke-width: base + sin(t * 3 + phase) * 0.5` — each link has its own phase offset so they don't sync
+- **Displacement ripple**: `feTurbulence baseFrequency` oscillates `0.01 ↔ 0.03` at 1Hz — the link path itself undulates
+- **Particle speed variation**: `speed *= 0.8 + sin(t * 5) * 0.4` — particles accelerate and decelerate in waves
+- **Color temperature shift**: gold shifts slightly warm→cool→warm (`hue-rotate: sin(t) * 5deg`) — alive, not mechanical
+
+All modulations use `sin()` with different frequencies and phase offsets per link. No two links pulse in sync. The network feels like a **living organism** — breathing, flowing, conducting.
+
+Heavy links (weight > 0.7): stronger modulation amplitude, faster base frequency.
+Light links (weight < 0.3): barely visible modulation, slow, subtle.
+The WEIGHT of the link dictates how much LIFE it shows.
+
 ### Dead links
 Links that never activate (dead nodes, orphan narratives):
 - Stay dark grey, no particles, no vibration
@@ -390,6 +405,22 @@ When attention inside a space successfully transmits to a narrative:
 - A pulse of gold light floods the space interior (200ms, fade out over 500ms)
 - This is the "transmission event" — the MOMENT the message gets through
 - Multiple transmissions = multiple pulses = the space VIBRATES with successful communication
+
+### Space hue displacement
+Each space has its own **hue identity** derived from its position:
+- `space_hue = cos(space_index / n_spaces * PI) * 30` → range -30° to +30° from base teal
+- This means spaces that are far apart in the layout have different hue tints
+- Relative to the main teal (#0d9488 = hue 174°):
+  - First space: 174° + 30° = 204° (cooler blue-teal)
+  - Middle space: 174° + 0° = 174° (pure teal)
+  - Last space: 174° - 30° = 144° (warmer green-teal)
+- Applied via `filter: hue-rotate({offset}deg)` on the space's border + fill
+- When a space activates, its hue SHIFTS toward gold (hue 45°) proportional to transmission success:
+  `active_hue = lerp(space_hue, 45, transmission_ratio)`
+- Dead spaces shift toward red (hue 0°):
+  `dead_hue = lerp(space_hue, 0, 1.0)` over 1s at end of animation
+
+The hue displacement creates **spatial identity** — each zone has its own color signature. The viewer unconsciously maps zones by color even before reading the content.
 
 ### Dead zone reveal
 Spaces where NO thing was fixated:
