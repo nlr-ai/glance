@@ -63,7 +63,8 @@ CREATE TABLE IF NOT EXISTS ga_images (
     ingestion_source TEXT DEFAULT 'manual',
     reddit_post_id TEXT,
     image_hash TEXT,
-    designers TEXT
+    designers TEXT,
+    public INTEGER DEFAULT 1
 );
 
 CREATE TABLE IF NOT EXISTS ga_graphs (
@@ -307,11 +308,16 @@ def init_db():
         ("prompts_json", "TEXT"),
         ("plan_vs_actual_json", "TEXT"),
     ])
-    # Migrate: add designers column to ga_images (comma-separated user IDs)
+    # Migrate: add designers column + public flag to ga_images
     _migrate_add_columns(conn, "ga_images", [
-        ("designer", "TEXT"),  # legacy — kept for migration compat
+        ("designer", "TEXT"),  # legacy
         ("designers", "TEXT"),
+        ("public", "INTEGER DEFAULT 1"),
     ])
+    # Set existing user_upload GAs to private, rest to public
+    conn.execute("UPDATE ga_images SET public = 0 WHERE domain = 'user_upload' AND public IS NULL")
+    conn.execute("UPDATE ga_images SET public = 1 WHERE public = 1 AND public IS NULL")
+    conn.commit()
     # Migrate: add is_admin column to participants
     _migrate_add_columns(conn, "participants", [
         ("is_admin", "INTEGER DEFAULT 0"),
@@ -664,11 +670,11 @@ def get_next_image(participant_id):
     if seen_ids:
         placeholders = ",".join("?" * len(seen_ids))
         row = db.execute(
-            f"SELECT * FROM ga_images WHERE id NOT IN ({placeholders}) AND domain != 'user_upload' ORDER BY RANDOM() LIMIT 1",
+            f"SELECT * FROM ga_images WHERE id NOT IN ({placeholders}) AND public = 1 ORDER BY RANDOM() LIMIT 1",
             seen_ids,
         ).fetchone()
     else:
-        row = db.execute("SELECT * FROM ga_images WHERE domain != 'user_upload' ORDER BY RANDOM() LIMIT 1").fetchone()
+        row = db.execute("SELECT * FROM ga_images WHERE public = 1 ORDER BY RANDOM() LIMIT 1").fetchone()
 
     db.close()
     return dict(row) if row else None
@@ -945,8 +951,8 @@ def get_landing_stats() -> dict:
 
     total_participants = db.execute("SELECT COUNT(*) as c FROM participants").fetchone()["c"]
     total_tests = db.execute("SELECT COUNT(*) as c FROM tests").fetchone()["c"]
-    total_gas = db.execute("SELECT COUNT(*) as c FROM ga_images WHERE domain != 'user_upload'").fetchone()["c"]
-    total_domains = db.execute("SELECT COUNT(DISTINCT domain) as c FROM ga_images WHERE domain != 'user_upload'").fetchone()["c"]
+    total_gas = db.execute("SELECT COUNT(*) as c FROM ga_images WHERE public = 1").fetchone()["c"]
+    total_domains = db.execute("SELECT COUNT(DISTINCT domain) as c FROM ga_images WHERE public = 1").fetchone()["c"]
 
     avg_row = db.execute("SELECT AVG(glance_score) as avg_g FROM tests WHERE glance_score IS NOT NULL").fetchone()
     avg_glance = round(avg_row["avg_g"], 4) if avg_row["avg_g"] is not None else None
@@ -957,7 +963,7 @@ def get_landing_stats() -> dict:
                   COUNT(t.id) as n_tests
            FROM ga_images g
            JOIN tests t ON t.ga_image_id = g.id
-           WHERE t.glance_score IS NOT NULL AND g.domain != 'user_upload'
+           WHERE t.glance_score IS NOT NULL AND g.public = 1
            GROUP BY g.id
            ORDER BY avg_glance DESC
            LIMIT 5"""
@@ -965,7 +971,7 @@ def get_landing_stats() -> dict:
     top_gas = [dict(r) for r in top_rows]
 
     domain_rows = db.execute(
-        "SELECT domain, COUNT(*) as n_gas FROM ga_images WHERE domain != 'user_upload' GROUP BY domain ORDER BY n_gas DESC"
+        "SELECT domain, COUNT(*) as n_gas FROM ga_images WHERE public = 1 GROUP BY domain ORDER BY n_gas DESC"
     ).fetchall()
     domain_counts = {r["domain"]: r["n_gas"] for r in domain_rows}
 

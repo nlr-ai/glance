@@ -1837,8 +1837,8 @@ async def analyze_submit(request: Request, file: UploadFile = File(...)):
         slug = _generate_unique_slug(db, upload_filename)
         db.execute(
             """INSERT INTO ga_images
-               (filename, domain, version, is_control, correct_product, products, title, description, slug, image_hash)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+               (filename, domain, version, is_control, correct_product, products, title, description, slug, image_hash, public)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (
                 upload_filename,
                 "user_upload",
@@ -1850,6 +1850,7 @@ async def analyze_submit(request: Request, file: UploadFile = File(...)):
                 description,
                 slug,
                 img_hash,
+                0,  # private by default — user can make public later
             ),
         )
         db.commit()
@@ -2706,7 +2707,7 @@ def search_page(request: Request, q: str = ""):
         rows = db.execute(
             """SELECT id, filename, slug, title, domain, description
                FROM ga_images
-               WHERE domain != 'user_upload'
+               WHERE public = 1
                  AND (title LIKE ? OR domain LIKE ? OR description LIKE ? OR filename LIKE ?)
                ORDER BY id DESC LIMIT 30""",
             (f"%{q}%", f"%{q}%", f"%{q}%", f"%{q}%")

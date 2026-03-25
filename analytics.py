@@ -663,7 +663,7 @@ def get_leaderboard_data(domain_config: dict) -> dict:
     db = get_db()
 
     # All GA images
-    images = db.execute("SELECT * FROM ga_images WHERE domain != 'user_upload' ORDER BY id").fetchall()
+    images = db.execute("SELECT * FROM ga_images WHERE public = 1 ORDER BY id").fetchall()
     images = [dict(r) for r in images]
 
     # All tests with scores
