@@ -37,8 +37,8 @@ from analytics import (
     get_admin_analytics,
     compute_kpi_evolution,
     get_participant_percentile,
-    get_user_leaderboard_smartest,
-    get_user_leaderboard_active,
+    get_participant_ranking_comprehension,
+    get_participant_ranking_contribution,
 )
 from config_loader import get_constant
 from cards import generate_test_card, generate_dashboard_card, generate_default_card, generate_ga_og_card
@@ -820,28 +820,34 @@ def leaderboard_domain(request: Request, domain: str):
     })
 
 
-# ── Player leaderboard routes ────────────────────────────────────────
+# ── Participant ranking routes ──────────────────────────────────────
+
+
+@app.get("/participants", response_class=HTMLResponse)
+def participants(request: Request):
+    lang = _lang(request)
+    comprehension = get_participant_ranking_comprehension(min_tests=3)
+    contribution = get_participant_ranking_contribution()
+
+    n_participants = len(contribution)
+    n_qualified = len(comprehension)
+
+    return templates.TemplateResponse("participants.html", {
+        "request": request,
+        "lang": lang,
+        "comprehension": comprehension,
+        "contribution": contribution,
+        "n_participants": n_participants,
+        "n_qualified": n_qualified,
+        "og_title": "GLANCE — Classement des participants",
+        "og_description": f"{n_participants} participants, {n_qualified} qualifies. Classement par comprehension et contribution.",
+    })
 
 
 @app.get("/players", response_class=HTMLResponse)
-def players(request: Request):
-    lang = _lang(request)
-    smartest = get_user_leaderboard_smartest(min_tests=3)
-    active = get_user_leaderboard_active()
-
-    n_players = len(active)
-    n_qualified = len(smartest)
-
-    return templates.TemplateResponse("players.html", {
-        "request": request,
-        "lang": lang,
-        "smartest": smartest,
-        "active": active,
-        "n_players": n_players,
-        "n_qualified": n_qualified,
-        "og_title": "GLANCE Players — Classement des joueurs",
-        "og_description": f"{n_players} joueurs, {n_qualified} qualifiés. Les meilleurs yeux scientifiques.",
-    })
+def players_redirect(request: Request):
+    """Legacy redirect: /players -> /participants."""
+    return RedirectResponse(url="/participants", status_code=301)
 
 
 # ── GA Detail helpers ─────────────────────────────────────────────────
@@ -1334,6 +1340,7 @@ def admin_dashboard(request: Request):
         "request": request,
         "analytics": analytics,
         "analytics_json": json.dumps(analytics, ensure_ascii=False),
+        "hide_lang_switcher": True,
     })
 
 

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% set hide_nav = true %}
 {% block title %}Test — GLANCE{% endblock %}
 
 {% block head %}
@@ -468,9 +469,9 @@
     <div class="state-panel {% if not first_test %}hidden{% endif %}" id="panel-briefing">
         <div class="flux-briefing">
             <div class="briefing-icon">👁️</div>
-            <h1>Pret ?</h1>
-            <p>Un feed va defiler.<br>Regardez-le naturellement.</p>
-            <button class="btn btn-primary btn-large" id="btn-start">C'est parti</button>
+            <h1>{{ t('briefing_title', lang) }}</h1>
+            <p>{{ t('briefing_text', lang) }}</p>
+            <button class="btn btn-primary btn-large" id="btn-start">{{ t('briefing_btn', lang) }}</button>
         </div>
     </div>
 
@@ -534,8 +535,8 @@
         <div class="feed-pause-overlay hidden" id="feed-pause-overlay">
             <div class="feed-pause-content">
                 <div class="feed-pause-icon">⏸</div>
-                <p>Session en pause</p>
-                <p class="feed-pause-hint">Cliquez pour reprendre</p>
+                <p>{{ t('feed_paused', lang) }}</p>
+                <p class="feed-pause-hint">{{ t('feed_resume', lang) }}</p>
             </div>
         </div>
         <div class="flux-phone-home"></div>
@@ -550,8 +551,8 @@
     <!-- SELECTION — S10 saillance: thumbnail recognition step -->
     <div class="state-panel hidden" id="panel-selection">
         <div class="flux-selection">
-            <h2>Quelle image vous a marque ?</h2>
-            <p class="question-text">Cliquez sur celle dont vous vous souvenez le mieux.</p>
+            <h2>{{ t('selection_title', lang) }}</h2>
+            <p class="question-text">{{ t('selection_text', lang) }}</p>
             <div class="selection-thumbnails" id="selection-thumbnails">
                 {% for thumb in selection_thumbs %}
                 <div class="selection-thumb" data-filename="{{ thumb.filename }}">
@@ -559,7 +560,7 @@
                 </div>
                 {% endfor %}
                 <div class="selection-thumb selection-none" data-filename="none">
-                    <span>Aucune</span>
+                    <span>{{ t('selection_none', lang) }}</span>
                 </div>
             </div>
         </div>
@@ -575,32 +576,32 @@
         {% if input_mode == 'voice' %}
         <div id="voice-panel">
             <div id="voice-unsupported" class="voice-unsupported hidden">
-                <p>Votre navigateur ne supporte pas la reconnaissance vocale. Utilisez Chrome ou Edge.</p>
-                <textarea id="q1-input" rows="3" placeholder="Decrivez ce que vous avez vu..." autofocus></textarea>
-                <button class="btn btn-primary" id="btn-q1">Suivant</button>
+                <p>{{ t('q1_voice_unsupported', lang) }}</p>
+                <textarea id="q1-input" rows="3" placeholder="{{ t('q1_placeholder', lang) }}" autofocus></textarea>
+                <button class="btn btn-primary" id="btn-q1">{{ t('q1_next', lang) }}</button>
             </div>
             <div id="voice-supported">
                 <div style="display:flex;align-items:center;gap:0.5rem;justify-content:center;">
-                    <button class="btn btn-primary" id="btn-record">Parler</button>
-                    <button class="btn btn-secondary" id="btn-lang-toggle" style="padding:0.4rem 0.6rem;font-size:0.85rem;min-width:auto;border-radius:6px;" title="Changer la langue de reconnaissance">FR</button>
+                    <button class="btn btn-primary" id="btn-record">{{ t('btn_record', lang) }}</button>
+                    <button class="btn btn-secondary" id="btn-lang-toggle" style="padding:0.4rem 0.6rem;font-size:0.85rem;min-width:auto;border-radius:6px;" title="{{ t('lang_toggle_title', lang) }}">FR</button>
                 </div>
                 <div id="voice-status" class="voice-status hidden">
                     <div class="voice-pulse"></div>
-                    <span>Ecoute en cours...</span>
+                    <span>{{ t('voice_listening', lang) }}</span>
                 </div>
                 <div id="voice-transcript" class="voice-transcript hidden">
                     <p id="transcript-text" class="transcript-text"></p>
-                    <textarea id="q1-input-voice" rows="3" placeholder="Transcript — corrigez si necessaire"></textarea>
+                    <textarea id="q1-input-voice" rows="3" placeholder="{{ t('transcript_placeholder', lang) }}"></textarea>
                     <div class="voice-actions">
-                        <button class="btn btn-secondary" id="btn-re-record">Passer</button>
-                        <button class="btn btn-primary" id="btn-q1">Valider</button>
+                        <button class="btn btn-secondary" id="btn-re-record">{{ t('btn_skip', lang) }}</button>
+                        <button class="btn btn-primary" id="btn-q1">{{ t('btn_validate', lang) }}</button>
                     </div>
                 </div>
             </div>
         </div>
         {% else %}
-        <textarea id="q1-input" rows="3" placeholder="Decrivez ce que vous avez vu..." autofocus></textarea>
-        <button class="btn btn-primary" id="btn-q1">Suivant</button>
+        <textarea id="q1-input" rows="3" placeholder="{{ t('q1_placeholder', lang) }}" autofocus></textarea>
+        <button class="btn btn-primary" id="btn-q1">{{ t('q1_next', lang) }}</button>
         {% endif %}
     </div>
 
@@ -617,7 +618,7 @@
                 <span class="q2-product-name">{{ p }}</span>
             </button>
             {% endfor %}
-            <button class="btn btn-choice btn-muted" data-value="Je ne sais pas">🤷 Aucune idée</button>
+            <button class="btn btn-choice btn-muted" data-value="Je ne sais pas">{{ t('q2_no_idea', lang) }}</button>
         </div>
     </div>
 
@@ -641,16 +642,16 @@
             <div class="q-progress"><div class="q-progress-fill" style="width:100%"></div></div>
             <span class="q-step">4/4</span>
         </div>
-        <p class="question-text">Un commentaire ? (optionnel)</p>
-        <textarea id="q4-input" rows="3" placeholder="Impressions, remarques..."></textarea>
-        <button class="btn btn-primary" id="btn-q4">Terminer</button>
-        <button class="btn btn-secondary" id="btn-q4-skip">Passer</button>
+        <p class="question-text">{{ t('q4_text', lang) }}</p>
+        <textarea id="q4-input" rows="3" placeholder="{{ t('q4_placeholder', lang) }}"></textarea>
+        <button class="btn btn-primary" id="btn-q4">{{ t('q4_submit', lang) }}</button>
+        <button class="btn btn-secondary" id="btn-q4-skip">{{ t('q4_skip', lang) }}</button>
     </div>
 
     <!-- SUBMITTING -->
     <div class="state-panel hidden" id="panel-submitting">
         <div class="spinner"></div>
-        <p>Enregistrement...</p>
+        <p>{{ t('submitting', lang) }}</p>
     </div>
 
     <!-- Hidden form for submission -->

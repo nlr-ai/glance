@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% set hide_nav = true %}
 {% block title %}Résultat — GLANCE{% endblock %}
 
 {% block head %}
@@ -428,9 +429,9 @@
         {# ── Blur gate — gradient fade, pulsing button ── #}
         <div class="reveal-blur-gate" id="revealBlurGate">
             <button class="reveal-unblur-btn" id="revealUnblurBtn">
-                Découvrir mes résultats
+                {{ t('reveal_btn', lang) }}
             </button>
-            <span class="reveal-blur-hint">Appuyez pour révéler</span>
+            <span class="reveal-blur-hint">{{ t('reveal_hint', lang) }}</span>
         </div>
 
         {% if s10_hit == false %}
@@ -448,59 +449,59 @@
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
                     </svg>
-                    Vous ne l'avez pas remarquée
+                    {{ t('not_noticed', lang) }}
                 </span>
             </div>
 
-            <p class="reveal-miss-why-text">Pourquoi, à votre avis ?</p>
+            <p class="reveal-miss-why-text">{{ t('why_missed', lang) }}</p>
 
             <div class="reveal-rejection-grid" id="rejection-choices">
                 <button class="reveal-rejection-btn rejection-btn" data-reason="didnt_see">
-                    <span>👻</span> Pas vue du tout
+                    <span>👻</span> {{ t('rej_not_seen', lang) }}
                 </button>
                 <button class="reveal-rejection-btn rejection-btn" data-reason="scrolled_too_fast">
-                    <span>💨</span> Trop rapide
+                    <span>💨</span> {{ t('rej_too_fast', lang) }}
                 </button>
                 <button class="reveal-rejection-btn rejection-btn" data-reason="too_dense">
-                    <span>🤯</span> Trop chargée
+                    <span>🤯</span> {{ t('rej_too_dense', lang) }}
                 </button>
                 <button class="reveal-rejection-btn rejection-btn" data-reason="too_small">
-                    <span>🔍</span> Trop petit
+                    <span>🔍</span> {{ t('rej_too_small', lang) }}
                 </button>
                 <button class="reveal-rejection-btn rejection-btn" data-reason="looks_amateur">
-                    <span>🎨</span> Fait amateur
+                    <span>🎨</span> {{ t('rej_amateur', lang) }}
                 </button>
                 <button class="reveal-rejection-btn rejection-btn" data-reason="text_heavy">
-                    <span>📝</span> Trop de texte
+                    <span>📝</span> {{ t('rej_text_heavy', lang) }}
                 </button>
                 <button class="reveal-rejection-btn rejection-btn" data-reason="boring">
-                    <span>😴</span> Pas intéressant
+                    <span>😴</span> {{ t('rej_boring', lang) }}
                 </button>
                 <button class="reveal-rejection-btn rejection-btn" data-reason="confusing">
-                    <span>🤔</span> Incompréhensible
+                    <span>🤔</span> {{ t('rej_confusing', lang) }}
                 </button>
                 <button class="reveal-rejection-btn rejection-btn" data-reason="no_context">
-                    <span>❓</span> Pas de contexte
+                    <span>❓</span> {{ t('rej_no_context', lang) }}
                 </button>
                 <button class="reveal-rejection-btn rejection-btn" data-reason="other">
-                    <span>✏️</span> Autre raison
+                    <span>✏️</span> {{ t('rej_other', lang) }}
                 </button>
             </div>
 
             <div class="rejection-other hidden" id="rejection-other-input">
                 <div class="comment-input-wrap">
-                    <textarea id="rejection-other-text" rows="2" placeholder="Décrivez..."></textarea>
-                    <button type="button" class="btn-comment-mic" id="btn-rejection-mic" title="Dicter votre raison">&#127908;</button>
-                    <button type="button" class="btn-comment-mic" id="btn-rejection-lang" style="font-size:0.7rem;padding:2px 5px;min-width:auto;" title="Changer la langue de reconnaissance">FR</button>
+                    <textarea id="rejection-other-text" rows="2" placeholder="{{ t('rej_describe', lang) }}"></textarea>
+                    <button type="button" class="btn-comment-mic" id="btn-rejection-mic" title="{{ t('btn_record', lang) }}">&#127908;</button>
+                    <button type="button" class="btn-comment-mic" id="btn-rejection-lang" style="font-size:0.7rem;padding:2px 5px;min-width:auto;" title="{{ t('rej_lang_title', lang) }}">FR</button>
                 </div>
-                <button class="btn btn-primary rejection-btn-submit" id="rejection-other-submit" style="margin-top:8px; width:100%;">Envoyer</button>
+                <button class="btn btn-primary rejection-btn-submit" id="rejection-other-submit" style="margin-top:8px; width:100%;">{{ t('rej_send', lang) }}</button>
             </div>
 
             <div class="rejection-thanks hidden" id="rejection-thanks">
                 <p style="font-size:0.85rem; color:var(--pass,#22c55e); margin-bottom:0.75rem;">
-                    Merci — cette donnée aide à améliorer le design scientifique.
+                    {{ t('rej_thanks', lang) }}
                 </p>
-                <a href="/test" class="btn btn-primary btn-large reveal-btn-continue">Continuer</a>
+                <a href="/test" class="btn btn-primary btn-large reveal-btn-continue">{{ t('btn_continue', lang) }}</a>
             </div>
         </div>
 
@@ -522,7 +523,7 @@
                     </svg>
                     <div class="reveal-donut-label">
                         <span class="reveal-donut-pct color-{{ score_color }}" id="donutPct">0%</span>
-                        <span class="reveal-donut-sub">GLANCE</span>
+                        <span class="reveal-donut-sub">{{ t('glance_label', lang) }}</span>
                     </div>
                 </div>
             </div>
@@ -539,9 +540,9 @@
                 letter-spacing: 0.02em;
             ">
                 {% if pctl >= 90 %}
-                Top {{ 100 - pctl }}%
+                {{ t('top_pct', lang, pct=(100 - pctl)) }}
                 {% else %}
-                Meilleur que {{ pctl }}% des testeurs
+                {{ t('better_than_pct', lang, pct=pctl) }}
                 {% endif %}
             </div>
 
@@ -549,23 +550,23 @@
             <div class="reveal-subscores">
                 <div class="reveal-subscore-card">
                     <span class="reveal-subscore-icon">🎯</span>
-                    <span class="reveal-subscore-label">Sujet identifié</span>
+                    <span class="reveal-subscore-label">{{ t('subject_identified', lang) }}</span>
                     <span class="reveal-subscore-badge {{ 'pass' if test.s9a_pass else 'fail' }}">
-                        {{ 'OK' if test.s9a_pass else 'Raté' }}
+                        {{ t('badge_ok', lang) if test.s9a_pass else t('badge_fail', lang) }}
                     </span>
                 </div>
                 <div class="reveal-subscore-card">
                     <span class="reveal-subscore-icon">📊</span>
-                    <span class="reveal-subscore-label">Hiérarchie preuves</span>
+                    <span class="reveal-subscore-label">{{ t('evidence_hierarchy', lang) }}</span>
                     <span class="reveal-subscore-badge {{ 'pass' if test.s9b_pass else 'fail' }}">
-                        {{ 'OK' if test.s9b_pass else 'Raté' }}
+                        {{ t('badge_ok', lang) if test.s9b_pass else t('badge_fail', lang) }}
                     </span>
                 </div>
                 <div class="reveal-subscore-card">
                     <span class="reveal-subscore-icon">⚡</span>
-                    <span class="reveal-subscore-label">Impact pratique</span>
+                    <span class="reveal-subscore-label">{{ t('practice_impact', lang) }}</span>
                     <span class="reveal-subscore-badge {{ 'pass' if test.s9c_pass else 'fail' }}">
-                        {{ 'OK' if test.s9c_pass else 'Raté' }}
+                        {{ t('badge_ok', lang) if test.s9c_pass else t('badge_fail', lang) }}
                     </span>
                 </div>
             </div>
@@ -573,7 +574,7 @@
             {# 3. Fluency (subtle) #}
             {% if test.s9b_pass and fluency_score %}
             <div class="reveal-fluency-line">
-                Fluency : <span class="reveal-fluency-val">{{ (fluency_score * 1000) | round(1) }}</span>
+                {{ t('fluency_label', lang) }} : <span class="reveal-fluency-val">{{ (fluency_score * 1000) | round(1) }}</span>
                 <span style="font-size:0.65rem; opacity:0.6;"> (S9b/log(RT2) &times;1000)</span>
             </div>
             {% endif %}
@@ -582,7 +583,7 @@
             <div class="reveal-ga-compact">
                 <img src="/ga/{{ test.filename }}" alt="GA">
                 <div class="reveal-ga-info">
-                    <div class="reveal-ga-info-label">Image testée</div>
+                    <div class="reveal-ga-info-label">{{ t('image_tested', lang) }}</div>
                     {% if test.correct_product %}
                     <div class="reveal-ga-info-answer">{{ test.correct_product }}</div>
                     {% endif %}
@@ -593,7 +594,7 @@
             {% if s2_has_data %}
             <div class="reveal-s2-wrap">
                 <div class="reveal-s2-header">
-                    <span class="reveal-s2-title">Analyse approfondie</span>
+                    <span class="reveal-s2-title">{{ t('deep_analysis', lang) }}</span>
                     <span class="reveal-s2-score-tag {{ 'pass' if s2_coverage_score >= 0.50 else 'fail' }}">
                         {{ (s2_coverage_score * 100) | round(0) }}%
                     </span>
@@ -632,7 +633,7 @@
                 gap: 8px;
                 flex-wrap: wrap;
             ">
-                <span style="font-size: 0.7rem; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 0.05em; margin-right: 4px;">Partager</span>
+                <span style="font-size: 0.7rem; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 0.05em; margin-right: 4px;">{{ t('share_label', lang) }}</span>
                 <button id="shareCopyBtn" title="Copier le lien" style="
                     display: inline-flex; align-items: center; justify-content: center;
                     width: 36px; height: 36px; border-radius: 8px;
@@ -687,10 +688,10 @@
         {% if s10_hit != false %}
         <div class="reveal-cta-section">
             {% if has_more %}
-            <a href="/test" class="btn btn-primary reveal-btn-continue" style="display:block; width:100%;">Continuer à explorer</a>
+            <a href="/test" class="btn btn-primary reveal-btn-continue" style="display:block; width:100%;">{{ t('continue_explore', lang) }}</a>
             {% else %}
-            <p style="font-size:0.85rem; color:var(--text-muted,#94a3b8); margin-bottom:0.5rem;">Vous avez tout vu !</p>
-            <a href="/dashboard" class="btn btn-primary reveal-btn-continue" style="display:block; width:100%;">Voir le dashboard</a>
+            <p style="font-size:0.85rem; color:var(--text-muted,#94a3b8); margin-bottom:0.5rem;">{{ t('all_done', lang) }}</p>
+            <a href="/dashboard" class="btn btn-primary reveal-btn-continue" style="display:block; width:100%;">{{ t('see_dashboard', lang) }}</a>
             {% endif %}
         </div>
         {% endif %}

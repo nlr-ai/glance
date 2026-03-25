@@ -48,100 +48,180 @@ profile:
 domains:
   med:
     label: "Médical"
+    label_en: "Medical"
     q1: "De quoi parlait ce post ?"
+    q1_en: "What was this post about?"
     q2: "Dans cette image, quel produit semblait le mieux documenté ?"
+    q2_en: "In this image, which product seemed best documented?"
     q3: "Si vous étiez concerné, ça changerait quelque chose pour vous ?"
+    q3_en: "If this applied to you, would it change anything?"
     q3_choices: ["Oui", "Non", "Pas assez d'info"]
+    q3_choices_en: ["Yes", "No", "Not enough info"]
   tech:
     label: "Tech / IA"
+    label_en: "Tech / AI"
     q1: "De quoi parlait ce post ?"
+    q1_en: "What was this post about?"
     q2: "Dans cette image, quel modèle avait le meilleur résultat ?"
+    q2_en: "In this image, which model had the best result?"
     q3: "Vous l'utiliseriez dans votre travail ?"
+    q3_en: "Would you use it in your work?"
     q3_choices: ["Oui", "Non", "Faudrait creuser"]
+    q3_choices_en: ["Yes", "No", "Need to dig deeper"]
   policy:
     label: "Politique de santé publique"
+    label_en: "Public health policy"
     q1: "De quoi parlait ce post ?"
+    q1_en: "What was this post about?"
     q2: "Dans cette étude, quel résultat de santé était le plus impacté ?"
+    q2_en: "In this study, which health outcome was most impacted?"
     q3: "Ça changerait votre avis sur le sujet ?"
+    q3_en: "Would this change your opinion on the topic?"
     q3_choices: ["Oui", "Non", "Pas assez d'info"]
+    q3_choices_en: ["Yes", "No", "Not enough info"]
   education:
     label: "Éducation"
+    label_en: "Education"
     q1: "De quoi parlait ce post ?"
+    q1_en: "What was this post about?"
     q2: "Dans cette image, quelle approche semblait la plus efficace ?"
+    q2_en: "In this image, which approach seemed most effective?"
     q3: "Vous changeriez quelque chose dans votre façon d'enseigner ou d'apprendre ?"
+    q3_en: "Would you change anything about how you teach or learn?"
     q3_choices: ["Oui", "Non", "Pas assez d'info"]
+    q3_choices_en: ["Yes", "No", "Not enough info"]
   climate:
     label: "Climat / Environnement"
+    label_en: "Climate / Environment"
     q1: "De quoi parlait ce post ?"
+    q1_en: "What was this post about?"
     q2: "Dans cette image, quelle solution avait le plus grand impact ?"
+    q2_en: "In this image, which solution had the greatest impact?"
     q3: "Ça changerait vos habitudes ?"
+    q3_en: "Would this change your habits?"
     q3_choices: ["Oui", "Non", "Pas assez d'info"]
+    q3_choices_en: ["Yes", "No", "Not enough info"]
   psychology:
     label: "Psychologie"
+    label_en: "Psychology"
     q1: "De quoi parlait ce post ?"
+    q1_en: "What was this post about?"
     q2: "Dans cette étude, quelle condition avait le plus grand effet ?"
+    q2_en: "In this study, which condition had the greatest effect?"
     q3: "Ça change votre compréhension du sujet ?"
+    q3_en: "Does this change your understanding of the topic?"
     q3_choices: ["Oui", "Non", "Pas assez d'info"]
+    q3_choices_en: ["Yes", "No", "Not enough info"]
   economics:
     label: "Économie"
+    label_en: "Economics"
     q1: "De quoi parlait ce post ?"
+    q1_en: "What was this post about?"
     q2: "Dans cette image, quel résultat était le plus marquant ?"
+    q2_en: "In this image, which result was most striking?"
     q3: "Ça changerait votre avis sur cette politique ?"
+    q3_en: "Would this change your opinion on this policy?"
     q3_choices: ["Oui", "Non", "Pas assez d'info"]
+    q3_choices_en: ["Yes", "No", "Not enough info"]
   neuroscience:
     label: "Neurosciences"
+    label_en: "Neuroscience"
     q1: "De quoi parlait ce post ?"
+    q1_en: "What was this post about?"
     q2: "Dans cette étude, quelle condition avait le meilleur résultat ?"
+    q2_en: "In this study, which condition had the best result?"
     q3: "Vous changeriez vos habitudes (sommeil, sport...) ?"
+    q3_en: "Would you change your habits (sleep, exercise...)?"
     q3_choices: ["Oui", "Non", "Pas assez d'info"]
+    q3_choices_en: ["Yes", "No", "Not enough info"]
   nutrition:
     label: "Nutrition / Santé publique"
+    label_en: "Nutrition / Public health"
     q1: "De quoi parlait ce post ?"
+    q1_en: "What was this post about?"
     q2: "Dans cette image, quelle intervention semblait la plus efficace ?"
+    q2_en: "In this image, which intervention seemed most effective?"
     q3: "Ça changerait ce que vous mangez ou recommandez ?"
+    q3_en: "Would this change what you eat or recommend?"
     q3_choices: ["Oui", "Non", "Pas assez d'info"]
+    q3_choices_en: ["Yes", "No", "Not enough info"]
   energy:
     label: "Énergie / Ingénierie"
+    label_en: "Energy / Engineering"
     q1: "De quoi parlait ce post ?"
+    q1_en: "What was this post about?"
     q2: "Dans cette image, quelle techno semblait la plus performante ?"
+    q2_en: "In this image, which technology seemed most performant?"
     q3: "Ça change votre vision du sujet ?"
+    q3_en: "Does this change your perspective on the topic?"
     q3_choices: ["Oui", "Non", "Pas assez d'info"]
+    q3_choices_en: ["Yes", "No", "Not enough info"]
   epidemiology:
     label: "Épidémiologie"
+    label_en: "Epidemiology"
     q1: "De quoi parlait ce post ?"
+    q1_en: "What was this post about?"
     q2: "Dans cette étude, quel groupe ou intervention avait le meilleur résultat ?"
+    q2_en: "In this study, which group or intervention had the best result?"
     q3: "Ça changerait vos pratiques de prévention ?"
+    q3_en: "Would this change your prevention practices?"
     q3_choices: ["Oui", "Non", "Pas assez d'info"]
+    q3_choices_en: ["Yes", "No", "Not enough info"]
   ecology:
     label: "Écologie / Biologie"
+    label_en: "Ecology / Biology"
     q1: "De quoi parlait ce post ?"
+    q1_en: "What was this post about?"
     q2: "Dans cette image, quel facteur semblait le plus déterminant ?"
+    q2_en: "In this image, which factor seemed most significant?"
     q3: "Ça change votre compréhension des priorités ?"
+    q3_en: "Does this change your understanding of priorities?"
     q3_choices: ["Oui", "Non", "Pas assez d'info"]
+    q3_choices_en: ["Yes", "No", "Not enough info"]
   transport:
     label: "Transport / Urbanisme"
+    label_en: "Transport / Urban planning"
     q1: "De quoi parlait ce post ?"
+    q1_en: "What was this post about?"
     q2: "Dans cette image, quel mode de transport était le plus performant ?"
+    q2_en: "In this image, which transport mode was most efficient?"
     q3: "Ça changerait vos choix de mobilité ?"
+    q3_en: "Would this change your mobility choices?"
     q3_choices: ["Oui", "Non", "Pas assez d'info"]
+    q3_choices_en: ["Yes", "No", "Not enough info"]
   agriculture:
     label: "Agriculture"
+    label_en: "Agriculture"
     q1: "De quoi parlait ce post ?"
+    q1_en: "What was this post about?"
     q2: "Dans cette image, quelle méthode semblait la plus productive ?"
+    q2_en: "In this image, which method seemed most productive?"
     q3: "Ça change votre vision du sujet ?"
+    q3_en: "Does this change your perspective on the topic?"
     q3_choices: ["Oui", "Non", "Pas assez d'info"]
+    q3_choices_en: ["Yes", "No", "Not enough info"]
   materials:
     label: "Science des matériaux"
+    label_en: "Materials science"
     q1: "De quoi parlait ce post ?"
+    q1_en: "What was this post about?"
     q2: "Dans cette image, quelle alternative semblait la plus prometteuse ?"
+    q2_en: "In this image, which alternative seemed most promising?"
     q3: "Vous recommanderiez ce matériau ?"
+    q3_en: "Would you recommend this material?"
     q3_choices: ["Oui", "Non", "Pas assez d'info"]
+    q3_choices_en: ["Yes", "No", "Not enough info"]
   generic:
     label: "Générique"
+    label_en: "General"
     q1: "De quoi parlait ce post ?"
+    q1_en: "What was this post about?"
     q2: "Dans cette image, quel élément semblait le mieux démontré ?"
+    q2_en: "In this image, which element seemed best demonstrated?"
     q3: "Ça changerait quelque chose pour vous ?"
+    q3_en: "Would this change anything for you?"
     q3_choices: ["Oui", "Non", "Pas assez d'info"]
+    q3_choices_en: ["Yes", "No", "Not enough info"]
 
 scoring:
   keywords:
