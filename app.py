@@ -1333,8 +1333,20 @@ async def analyze_submit(request: Request, file: UploadFile = File(...)):
 
 
 @app.get("/admin", response_class=HTMLResponse)
-def admin_dashboard(request: Request):
-    """Admin analytics dashboard — platform-wide metrics and charts."""
+def admin_dashboard(request: Request, pwd: str = ""):
+    """Admin analytics dashboard — password-protected."""
+    admin_pwd = os.environ.get("GLANCE_ADMIN_PWD", "gL4NC3")
+    if pwd != admin_pwd:
+        return HTMLResponse(
+            content='<html><body style="background:#0f172a;color:#fff;display:flex;align-items:center;'
+            'justify-content:center;height:100vh;font-family:system-ui;">'
+            '<form><input name="pwd" type="password" placeholder="Mot de passe admin" '
+            'style="padding:12px 20px;border-radius:8px;border:1px solid #334155;background:#1e293b;'
+            'color:#fff;font-size:1rem;"><button type="submit" style="padding:12px 20px;'
+            'border-radius:8px;border:none;background:#0d9488;color:#fff;margin-left:8px;'
+            'cursor:pointer;font-size:1rem;">Entrer</button></form></body></html>',
+            status_code=200,
+        )
     analytics = get_admin_analytics()
     return templates.TemplateResponse("admin.html", {
         "request": request,
