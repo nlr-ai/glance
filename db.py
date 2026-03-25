@@ -4,6 +4,7 @@ import sqlite3
 import os
 import json
 import re
+import yaml
 
 DB_PATH = os.environ.get("GLANCE_DB_PATH", os.path.join(os.path.dirname(__file__), "data", "glance.db"))
 
@@ -108,6 +109,31 @@ CREATE TABLE IF NOT EXISTS improvement_runs (
     incongruent_count INTEGER,
     inverse_count INTEGER,
     missing_category_count INTEGER,
+    FOREIGN KEY (ga_image_id) REFERENCES ga_images(id),
+    FOREIGN KEY (graph_id) REFERENCES ga_graphs(id)
+);
+
+CREATE TABLE IF NOT EXISTS reading_simulations (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ga_image_id INTEGER,
+    graph_id INTEGER,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    mode TEXT NOT NULL DEFAULT 'system1',
+    total_ticks INTEGER NOT NULL,
+    ticks_used INTEGER,
+    budget_pressure REAL,
+    complexity_verdict TEXT,
+    nodes_visited INTEGER,
+    nodes_total INTEGER,
+    nodes_skipped INTEGER,
+    narrative_coverage REAL,
+    avg_narrative_attention REAL,
+    dead_space_count INTEGER,
+    orphan_narrative_count INTEGER,
+    narrative_text TEXT,
+    stats_json TEXT,
+    prompts_json TEXT,
+    plan_vs_actual_json TEXT,
     FOREIGN KEY (ga_image_id) REFERENCES ga_images(id),
     FOREIGN KEY (graph_id) REFERENCES ga_graphs(id)
 );
@@ -260,6 +286,13 @@ def init_db():
         ("reddit_post_id", "TEXT"),
         ("image_hash", "TEXT"),
     ])
+    # Migrate: add reading_simulations table columns for existing DBs
+    _migrate_add_columns(conn, "reading_simulations", [
+        ("narrative_text", "TEXT"),
+        ("stats_json", "TEXT"),
+        ("prompts_json", "TEXT"),
+        ("plan_vs_actual_json", "TEXT"),
+    ])
     # Generate slugs for any images that don't have one yet
     _backfill_slugs(conn)
     conn.close()
@@ -306,6 +339,176 @@ def _generate_unique_slug(conn, filename: str) -> str:
             return slug
         slug = f"{base_slug}-{counter}"
         counter += 1
+
+
+def save_reading_simulation(result, narrative_text, ga_image_id=None, graph_id=None, mode="system1"):
+    """Save a reader simulation result to the database."""
+    stats = result.get("stats", {})
+    db = get_db()
+    db.execute("""
+        INSERT INTO reading_simulations
+        (ga_image_id, graph_id, mode, total_ticks, ticks_used,
+         budget_pressure, complexity_verdict,
+         nodes_visited, nodes_total, nodes_skipped,
+         narrative_coverage, avg_narrative_attention,
+         dead_space_count, orphan_narrative_count,
+         narrative_text, stats_json, prompts_json, plan_vs_actual_json)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (
+        ga_image_id, graph_id, mode,
+        stats.get("total_ticks", 0) + stats.get("nodes_skipped", 0),  # planned ticks
+        stats.get("total_ticks", 0),
+        stats.get("budget_pressure"),
+        stats.get("complexity_verdict"),
+        stats.get("unique_nodes_visited"),
+        stats.get("total_things"),
+        stats.get("nodes_skipped"),
+        stats.get("narrative_coverage"),
+        stats.get("avg_narrative_attention"),
+        stats.get("dead_space_count"),
+        stats.get("orphan_narrative_count"),
+        narrative_text,
+        json.dumps(stats),
+        json.dumps(result.get("prompts", [])),
+        json.dumps(result.get("plan_vs_actual", [])),
+    ))
+    sim_id = db.execute("SELECT last_insert_rowid()").fetchone()[0]
+    db.commit()
+    db.close()
+    return sim_id
+
+
+def save_graph(graph, ga_image_id, graph_type="vision", source="gemini_vision",
+               version=None, yaml_path=None):
+    """Persist a graph to DB and trigger async reader simulation.
+
+    This is the SINGLE entry point for graph persistence. Every time a graph
+    is saved, S1 + S2 reader simulations are automatically launched in a
+    background thread.
+
+    Args:
+        graph: L3 graph dict (nodes, links, metadata)
+        ga_image_id: FK to ga_images
+        graph_type: 'vision', 'enriched', 'advised'
+        source: origin of graph ('gemini_vision', 'channel_analyzer', 'advisor')
+        version: optional version string
+        yaml_path: optional path to also save YAML file
+
+    Returns:
+        graph_id: ID of the inserted row
+    """
+    import threading
+
+    graph_yaml = yaml.dump(graph, default_flow_style=False, allow_unicode=True)
+    nodes = graph.get("nodes", [])
+    links = graph.get("links", [])
+    anti_patterns = graph.get("metadata", {}).get("channel_analysis", {}).get("anti_patterns", [])
+    avg_eff = graph.get("metadata", {}).get("channel_analysis", {}).get("avg_effectiveness")
+
+    db = get_db()
+    db.execute("""
+        INSERT INTO ga_graphs
+        (ga_image_id, graph_type, graph_yaml, source, version,
+         node_count, link_count, avg_effectiveness, anti_pattern_count)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (
+        ga_image_id, graph_type, graph_yaml, source, version,
+        len(nodes), len(links), avg_eff, len(anti_patterns),
+    ))
+    graph_id = db.execute("SELECT last_insert_rowid()").fetchone()[0]
+    db.commit()
+    db.close()
+
+    # Save YAML file too if path provided
+    if yaml_path:
+        os.makedirs(os.path.dirname(yaml_path), exist_ok=True)
+        with open(yaml_path, "w", encoding="utf-8") as f:
+            f.write(graph_yaml)
+
+    # ── Async reader simulation listener ──
+    def _run_reader_sim_async(graph_dict, gimg_id, gid):
+        """Background thread: run S1 + S2 reader sim and persist results."""
+        try:
+            from reader_sim import simulate_reading, generate_reading_narrative
+
+            # System 1 — 5s glance
+            sim_s1 = simulate_reading(graph_dict, total_ticks=50, mode="system1")
+            narr_s1 = generate_reading_narrative(sim_s1, graph_dict)
+            save_reading_simulation(sim_s1, narr_s1,
+                                    ga_image_id=gimg_id, graph_id=gid, mode="system1")
+
+            # System 2 — 90s deliberate
+            sim_s2 = simulate_reading(graph_dict, total_ticks=900, mode="system2")
+            narr_s2 = generate_reading_narrative(sim_s2, graph_dict)
+            save_reading_simulation(sim_s2, narr_s2,
+                                    ga_image_id=gimg_id, graph_id=gid, mode="system2")
+
+            import logging
+            logging.getLogger("db").info(
+                f"Reader sim complete for graph {gid}: "
+                f"S1={sim_s1['stats']['complexity_verdict']} "
+                f"S2={sim_s2['stats']['complexity_verdict']}")
+        except Exception as e:
+            import logging
+            logging.getLogger("db").warning(f"Async reader sim failed for graph {gid}: {e}")
+
+    # Fire and forget — non-blocking
+    t = threading.Thread(
+        target=_run_reader_sim_async,
+        args=(graph, ga_image_id, graph_id),
+        daemon=True,
+    )
+    t.start()
+
+    return graph_id
+
+
+def get_graph_by_id(graph_id):
+    """Return a graph row by ID."""
+    db = get_db()
+    row = db.execute("SELECT * FROM ga_graphs WHERE id = ?", (graph_id,)).fetchone()
+    db.close()
+    return dict(row) if row else None
+
+
+def get_latest_graph(ga_image_id, graph_type=None):
+    """Return the most recent graph for a GA image."""
+    db = get_db()
+    if graph_type:
+        row = db.execute(
+            "SELECT * FROM ga_graphs WHERE ga_image_id = ? AND graph_type = ? ORDER BY id DESC LIMIT 1",
+            (ga_image_id, graph_type)
+        ).fetchone()
+    else:
+        row = db.execute(
+            "SELECT * FROM ga_graphs WHERE ga_image_id = ? ORDER BY id DESC LIMIT 1",
+            (ga_image_id,)
+        ).fetchone()
+    db.close()
+    if row:
+        result = dict(row)
+        result["graph"] = yaml.safe_load(result["graph_yaml"])
+        return result
+    return None
+
+
+def get_reading_sims(ga_image_id=None, graph_id=None):
+    """Return reading simulations for a GA or graph."""
+    db = get_db()
+    if graph_id:
+        rows = db.execute(
+            "SELECT * FROM reading_simulations WHERE graph_id = ? ORDER BY id DESC",
+            (graph_id,)
+        ).fetchall()
+    elif ga_image_id:
+        rows = db.execute(
+            "SELECT * FROM reading_simulations WHERE ga_image_id = ? ORDER BY id DESC",
+            (ga_image_id,)
+        ).fetchall()
+    else:
+        rows = []
+    db.close()
+    return [dict(r) for r in rows]
 
 
 def get_image_by_slug(slug: str):
