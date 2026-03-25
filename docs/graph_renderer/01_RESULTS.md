@@ -19,7 +19,12 @@ When `save_graph()` fires, the overlay is generated async alongside the reader s
 
 **Measurement:** `save_graph()` → async thread generates overlay PNG → stored in DB or filesystem. No manual trigger needed.
 
-## R4: Reader Sim Scanpath Playback
-The overlay can animate the reader's scanpath — spheres light up in sequence over 5 seconds (or accelerated).
+## R4: Reader Sim Scanpath Auto-play
+The overlay auto-animates the reader's scanpath on page load — spheres light up in sequence over 5 seconds. No click required.
 
-**Measurement:** a "Play" button on ga-detail triggers a JS animation that highlights spheres in scanpath order.
+**Measurement:** page load triggers JS animation. After 5s, final state holds + "Rejouer" button appears.
+
+## R5: OG Card Diagonal Split
+The OG sharing card shows a diagonal split: original GA (top-left) / overlay render (bottom-right).
+
+**Measurement:** `/og/ga/{id}.png` returns a composite image with diagonal split when overlay exists.

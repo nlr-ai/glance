@@ -58,3 +58,17 @@ Linear interpolation between anchors in RGB space.
 ## B7: Responsive Sizing
 
 SVG overlay scales with the GA image. Node positions and sizes are relative (0-1 normalized), converted to pixels at render time based on display dimensions.
+
+## B8: OG Card — Diagonal Split
+
+The OG card (for social sharing) shows a **diagonal split**:
+- Top-left triangle: original GA image (full color, no overlay)
+- Bottom-right triangle: overlay render (spheres, filaments, dead zones on dark background)
+
+The diagonal cut communicates "we reveal what's hidden" in a single glance. The split angle is ~30° from top-right to bottom-left.
+
+Implementation: in `cards.py`, composite the GA image and the overlay PNG using a diagonal mask (Pillow polygon crop). The OG card already has the GA image — add the overlay as the second half.
+
+## B9: Auto-play Animation on Page Load
+
+The scanpath animation starts automatically when the page loads — no "Play" button. The user lands on the page and immediately sees the virtual eye scanning their GA. The animation runs once (5s at 1x speed), then holds the final state. A "Rejouer" button appears after completion.
