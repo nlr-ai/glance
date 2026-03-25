@@ -1027,11 +1027,11 @@ textarea::placeholder {
 
 /* Verdict color classes */
 .ga-score-limpide   { --score-color: #10B981; }
-.ga-score-fluide    { --score-color: #2A9D8F; }
-.ga-score-accessible{ --score-color: #F59E0B; }
-.ga-score-brumeux   { --score-color: #F97316; }
-.ga-score-opaque    { --score-color: #EF4444; }
-.ga-score-illisible { --score-color: #991B1B; }
+.ga-score-clair     { --score-color: #2A9D8F; }
+.ga-score-ambigu    { --score-color: #F59E0B; }
+.ga-score-confus    { --score-color: #F97316; }
+.ga-score-obscur    { --score-color: #EF4444; }
+.ga-score-incomprehensible { --score-color: #991B1B; }
 .ga-score-none      { --score-color: var(--text-dim); }
 
 /* Archetype badge */

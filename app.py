@@ -1533,6 +1533,19 @@ async def analyze_submit(request: Request, file: UploadFile = File(...)):
         image_bytes = extracted
         ext = "png"  # extracted image is raw, treat as PNG
 
+    # ── Dedup: check if this image was already uploaded ──
+    import hashlib
+    img_hash = hashlib.sha256(image_bytes).hexdigest()
+    db_dup = get_db()
+    existing = db_dup.execute(
+        "SELECT id, slug FROM ga_images WHERE image_hash = ?", (img_hash,)
+    ).fetchone()
+    db_dup.close()
+    if existing:
+        # Same image already analyzed — redirect to existing
+        redirect_key = existing["slug"] or str(existing["id"])
+        return RedirectResponse(url=f"/ga-detail/{redirect_key}", status_code=303)
+
     # Save uploaded image to ga_library/user_uploads/
     timestamp = int(time.time())
     safe_name = re.sub(r'[^\w\-.]', '_', file.filename)
@@ -1581,8 +1594,8 @@ async def analyze_submit(request: Request, file: UploadFile = File(...)):
         slug = _generate_unique_slug(db, upload_filename)
         db.execute(
             """INSERT INTO ga_images
-               (filename, domain, version, is_control, correct_product, products, title, description, slug)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+               (filename, domain, version, is_control, correct_product, products, title, description, slug, image_hash)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (
                 upload_filename,
                 "user_upload",
@@ -1593,6 +1606,7 @@ async def analyze_submit(request: Request, file: UploadFile = File(...)):
                 title,
                 description,
                 slug,
+                img_hash,
             ),
         )
         db.commit()

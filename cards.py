@@ -489,15 +489,15 @@ def _get_tier_key(score_pct: int) -> str:
     if score_pct >= 80:
         return 'limpide'
     elif score_pct >= 60:
-        return 'fluide'
+        return 'clair'
     elif score_pct >= 40:
-        return 'accessible'
+        return 'ambigu'
     elif score_pct >= 20:
-        return 'brumeux'
+        return 'confus'
     elif score_pct >= 10:
-        return 'opaque'
+        return 'obscur'
     else:
-        return 'illisible'
+        return 'incomprehensible'
 
 
 # ── Multi-channel tier parameter dicts ──────────────────────────────
@@ -505,71 +505,71 @@ def _get_tier_key(score_pct: int) -> str:
 # Channel 1: COLOR (gradient start, gradient end)
 TIER_COLORS = {
     'limpide':    ((5, 150, 105),  (4, 120, 87)),
-    'fluide':     ((13, 148, 136), (15, 118, 110)),
-    'accessible': ((217, 119, 6),  (180, 83, 9)),
-    'brumeux':    ((234, 88, 12),  (194, 65, 12)),
-    'opaque':     ((220, 38, 38),  (185, 28, 28)),
-    'illisible':  ((153, 27, 27),  (127, 29, 29)),
+    'clair':     ((13, 148, 136), (15, 118, 110)),
+    'ambigu': ((217, 119, 6),  (180, 83, 9)),
+    'confus':    ((234, 88, 12),  (194, 65, 12)),
+    'obscur':     ((220, 38, 38),  (185, 28, 28)),
+    'incomprehensible':  ((153, 27, 27),  (127, 29, 29)),
 }
 
 # Channel 2: ROTATION (degrees, positive = CCW in PIL)
 TIER_ROTATION = {
-    'illisible':  -7,
-    'opaque':     -5,
-    'brumeux':    -3,
-    'accessible': -2,
-    'fluide':     -1,
+    'incomprehensible':  -7,
+    'obscur':     -5,
+    'confus':    -3,
+    'ambigu': -2,
+    'clair':     -1,
     'limpide':     0,
 }
 
 # Channel 3: STAMP SIZE (width, height)
 TIER_STAMP_SIZE = {
-    'illisible':  (320, 210),
-    'opaque':     (290, 190),
-    'brumeux':    (260, 175),
-    'accessible': (250, 170),
-    'fluide':     (270, 175),
+    'incomprehensible':  (320, 210),
+    'obscur':     (290, 190),
+    'confus':    (260, 175),
+    'ambigu': (250, 170),
+    'clair':     (270, 175),
     'limpide':    (310, 200),
 }
 
 # Channel 6: TYPOGRAPHY — score number font size
 TIER_SCORE_FONT = {
-    'illisible':  72,
-    'opaque':     64,
-    'brumeux':    56,
-    'accessible': 52,
-    'fluide':     56,
+    'incomprehensible':  72,
+    'obscur':     64,
+    'confus':    56,
+    'ambigu': 52,
+    'clair':     56,
     'limpide':    64,
 }
 
 # Channel 7: SPEED LINES — count
 TIER_SPEED_LINES = {
-    'illisible':  6,
-    'opaque':     4,
-    'brumeux':    2,
-    'accessible': 1,
-    'fluide':     2,
+    'incomprehensible':  6,
+    'obscur':     4,
+    'confus':    2,
+    'ambigu': 1,
+    'clair':     2,
     'limpide':    4,
 }
 
 # Channel 8: EMOTION ICON
 TIER_ICONS = {
-    'illisible':  '\u26a0',   # warning
-    'opaque':     '\u2717',   # fail X
-    'brumeux':    '\u2193',   # down arrow
-    'accessible': '\u2192',   # right arrow
-    'fluide':     '\u2191',   # up arrow
+    'incomprehensible':  '\u26a0',   # warning
+    'obscur':     '\u2717',   # fail X
+    'confus':    '\u2193',   # down arrow
+    'ambigu': '\u2192',   # right arrow
+    'clair':     '\u2191',   # up arrow
     'limpide':    '\u2605',   # star
 }
 
 # Verdict labels (same as V4 but organized)
 TIER_VERDICT = {
     'limpide':    'LIMPIDE',
-    'fluide':     'FLUIDE',
-    'accessible': 'ACCESSIBLE',
-    'brumeux':    'BRUMEUX',
-    'opaque':     'OPAQUE',
-    'illisible':  'ILLISIBLE',
+    'clair':     'CLAIR',
+    'ambigu':    'AMBIGU',
+    'confus':    'CONFUS',
+    'obscur':    'OBSCUR',
+    'incomprehensible':  'INCOMPRÉHENSIBLE',
 }
 
 
@@ -661,7 +661,7 @@ def _draw_speed_lines(draw: ImageDraw.ImageDraw, cx: int, cy: int,
         draw.line(
             [(cx + sx, cy + sy), (cx + ex, cy + ey)],
             fill=line_color,
-            width=2 if tier in ('illisible', 'limpide') else 1,
+            width=2 if tier in ('incomprehensible', 'limpide') else 1,
         )
 
 
@@ -673,20 +673,20 @@ def _apply_ga_treatment(ga_img: Image.Image, tier: str) -> Image.Image:
         NOT blur (opaque ≠ blurry) and NOT darken (hiding the GA defeats the purpose)
         High scores: saturate + brighten (crystal clear, vibrant)
     """
-    if tier == 'illisible':
+    if tier == 'incomprehensible':
         # Strong desaturation — almost grayscale. "My brain can't process this"
         ga_img = ImageEnhance.Color(ga_img).enhance(0.15)
         ga_img = ImageEnhance.Brightness(ga_img).enhance(0.85)
-    elif tier == 'opaque':
+    elif tier == 'obscur':
         # Partial desaturation — washed out, dull. "I can see it but can't understand"
         ga_img = ImageEnhance.Color(ga_img).enhance(0.35)
         ga_img = ImageEnhance.Brightness(ga_img).enhance(0.9)
-    elif tier == 'brumeux':
+    elif tier == 'confus':
         # Slight desaturation — muted colors. "Not clear enough"
         ga_img = ImageEnhance.Color(ga_img).enhance(0.65)
-    elif tier == 'accessible':
+    elif tier == 'ambigu':
         pass  # Normal — no treatment
-    elif tier == 'fluide':
+    elif tier == 'clair':
         ga_img = ImageEnhance.Color(ga_img).enhance(1.15)
         ga_img = ImageEnhance.Brightness(ga_img).enhance(1.05)
     elif tier == 'limpide':
@@ -719,11 +719,11 @@ def _apply_ga_treatment(ga_img: Image.Image, tier: str) -> Image.Image:
 
 # Reaction smileys per tier — viewer's COMPREHENSION reaction, not emotion
 TIER_REACTION = {
-    'illisible': '🫠',    # melting brain — "what am I looking at"
-    'opaque':    '❓',     # question mark — "I don't get it"
-    'brumeux':   '🤔',    # thinking — "I think I get it... maybe"
-    'accessible': '💡',   # lightbulb — "ah I see"
-    'fluide':    '✅',     # check — "got it, clear"
+    'incomprehensible': '🫠',    # melting brain — "what am I looking at"
+    'obscur':    '❓',     # question mark — "I don't get it"
+    'confus':   '🤔',    # thinking — "I think I get it... maybe"
+    'ambigu': '💡',   # lightbulb — "ah I see"
+    'clair':    '✅',     # check — "got it, clear"
     'limpide':   '🤯',    # mind blown — "I understood everything instantly"
 }
 
@@ -768,7 +768,7 @@ def _build_stamp_v5(score_pct: int, score_source: str, tier: str,
     )
 
     # ── Channel 5: TEXTURE ON STAMP ──
-    if tier == 'illisible':
+    if tier == 'incomprehensible':
         # Heavy diagonal warning stripes + thick lines
         stripe_layer = Image.new("RGBA", (STAMP_W, STAMP_H), (0, 0, 0, 0))
         stripe_draw = ImageDraw.Draw(stripe_layer)
@@ -782,7 +782,7 @@ def _build_stamp_v5(score_pct: int, score_source: str, tier: str,
         stripe_layer.putalpha(mask)
         stamp_img = Image.alpha_composite(stamp_img, stripe_layer)
         _add_noise_texture(stamp_img, intensity=16)
-    elif tier in ('opaque', 'brumeux'):
+    elif tier in ('obscur', 'confus'):
         # Medium noise grain
         _add_noise_texture(stamp_img, intensity=12)
     elif tier == 'limpide':
@@ -802,7 +802,7 @@ def _build_stamp_v5(score_pct: int, score_source: str, tier: str,
 
     # ── White border ──
     border_draw = ImageDraw.Draw(stamp_img)
-    border_width = 4 if tier in ('illisible', 'limpide') else 3
+    border_width = 4 if tier in ('incomprehensible', 'limpide') else 3
     border_draw.rounded_rectangle(
         [(0, 0), (STAMP_W - 1, STAMP_H - 1)],
         radius=14,
@@ -878,7 +878,7 @@ def _build_stamp_v5(score_pct: int, score_source: str, tier: str,
         font_wm = _get_impact_font(80)
         draw.text((STAMP_W - 70, STAMP_H - 90), "\u2713",
                   fill=(255, 255, 255, 20), font=font_wm)
-    elif tier in ('illisible', 'opaque'):
+    elif tier in ('incomprehensible', 'obscur'):
         font_wm = _get_impact_font(80)
         draw.text((STAMP_W - 70, STAMP_H - 90), "\u2717",
                   fill=(255, 255, 255, 20), font=font_wm)
@@ -898,81 +898,81 @@ def _build_stamp_v5(score_pct: int, score_source: str, tier: str,
 
 # Seal radius per tier
 SEAL_RADIUS = {
-    'illisible':  160,
-    'opaque':     140,
-    'brumeux':    130,
-    'accessible': 120,
-    'fluide':     130,
+    'incomprehensible':  160,
+    'obscur':     140,
+    'confus':    130,
+    'ambigu': 120,
+    'clair':     130,
     'limpide':    150,
 }
 
 # Number of teeth on the seal edge
 SEAL_TEETH = {
     'limpide':    24,
-    'fluide':     20,
-    'accessible': 18,
-    'brumeux':    16,
-    'opaque':     14,
-    'illisible':  12,
+    'clair':     20,
+    'ambigu': 18,
+    'confus':    16,
+    'obscur':     14,
+    'incomprehensible':  12,
 }
 
 # Seal fill colors per tier
 SEAL_COLORS = {
     'limpide':    (184, 134, 11),   # #B8860B gold
-    'fluide':     (13, 148, 136),   # #0D9488 teal
-    'accessible': (217, 119, 6),    # #D97706 amber
-    'brumeux':    (234, 88, 12),    # #EA580C orange
-    'opaque':     (220, 38, 38),    # #DC2626 red
-    'illisible':  (153, 27, 27),    # #991B1B dark red
+    'clair':     (13, 148, 136),   # #0D9488 teal
+    'ambigu': (217, 119, 6),    # #D97706 amber
+    'confus':    (234, 88, 12),    # #EA580C orange
+    'obscur':     (220, 38, 38),    # #DC2626 red
+    'incomprehensible':  (153, 27, 27),    # #991B1B dark red
 }
 
 # Border width per tier
 SEAL_BORDER_W = {
     'limpide':    3,
-    'fluide':     2,
-    'accessible': 2,
-    'brumeux':    2,
-    'opaque':     3,
-    'illisible':  4,
+    'clair':     2,
+    'ambigu': 2,
+    'confus':    2,
+    'obscur':     3,
+    'incomprehensible':  4,
 }
 
 # Rotation (same progression as V5)
 SEAL_ROTATION = {
     'limpide':     0,
-    'fluide':     -2,
-    'accessible': -3,
-    'brumeux':    -4,
-    'opaque':     -5,
-    'illisible':  -7,
+    'clair':     -2,
+    'ambigu': -3,
+    'confus':    -4,
+    'obscur':     -5,
+    'incomprehensible':  -7,
 }
 
 # Reaction emoji per tier (comprehension reaction)
 SEAL_REACTION = {
-    'illisible':  '\U0001fae0',   # melting face
-    'opaque':     '\u2753',       # question mark
-    'brumeux':    '\U0001f914',   # thinking face
-    'accessible': '\U0001f4a1',   # lightbulb
-    'fluide':     '\u2705',       # check
+    'incomprehensible':  '\U0001fae0',   # melting face
+    'obscur':     '\u2753',       # question mark
+    'confus':    '\U0001f914',   # thinking face
+    'ambigu': '\U0001f4a1',   # lightbulb
+    'clair':     '\u2705',       # check
     'limpide':    '\U0001f92f',   # mind blown
 }
 
 # Score font size inside seal
 SEAL_SCORE_FONT = {
-    'illisible':  56,
-    'opaque':     52,
-    'brumeux':    48,
-    'accessible': 44,
-    'fluide':     48,
+    'incomprehensible':  56,
+    'obscur':     52,
+    'confus':    48,
+    'ambigu': 44,
+    'clair':     48,
     'limpide':    56,
 }
 
 # Verdict font size
 SEAL_VERDICT_FONT = {
-    'illisible':  22,
-    'opaque':     22,
-    'brumeux':    20,
-    'accessible': 18,
-    'fluide':     20,
+    'incomprehensible':  22,
+    'obscur':     22,
+    'confus':    20,
+    'ambigu': 18,
+    'clair':     20,
     'limpide':    22,
 }
 
@@ -1033,7 +1033,7 @@ def _build_stamp_v6(score_pct: int, score_source: str, tier: str,
     rng = _random.Random(42)
 
     # ── Ink splatter (ILLISIBLE only — behind everything) ──
-    if tier == 'illisible':
+    if tier == 'incomprehensible':
         splatter_layer = Image.new("RGBA", (canvas_size, canvas_size), (0, 0, 0, 0))
         sp_draw = ImageDraw.Draw(splatter_layer)
         for _ in range(20):
@@ -1045,10 +1045,10 @@ def _build_stamp_v6(score_pct: int, score_source: str, tier: str,
         canvas = Image.alpha_composite(canvas, splatter_layer)
 
     # ── Ink bleed (low scores: draw seal twice with offset at low opacity) ──
-    if tier in ('illisible', 'opaque'):
+    if tier in ('incomprehensible', 'obscur'):
         bleed_layer = Image.new("RGBA", (canvas_size, canvas_size), (0, 0, 0, 0))
         bleed_draw = ImageDraw.Draw(bleed_layer)
-        irregular = tier == 'illisible'
+        irregular = tier == 'incomprehensible'
         bleed_rng = _random.Random(99)
         _draw_seal_shape(bleed_draw, cx + 2, cy + 2,
                          outer_r, inner_r, n_teeth,
@@ -1059,7 +1059,7 @@ def _build_stamp_v6(score_pct: int, score_source: str, tier: str,
         canvas = Image.alpha_composite(canvas, bleed_layer)
 
     # ── Double-stamp bounce (ILLISIBLE only) ──
-    if tier == 'illisible':
+    if tier == 'incomprehensible':
         bounce_layer = Image.new("RGBA", (canvas_size, canvas_size), (0, 0, 0, 0))
         bounce_draw = ImageDraw.Draw(bounce_layer)
         bounce_rng = _random.Random(77)
@@ -1075,7 +1075,7 @@ def _build_stamp_v6(score_pct: int, score_source: str, tier: str,
     seal_layer = Image.new("RGBA", (canvas_size, canvas_size), (0, 0, 0, 0))
     seal_draw = ImageDraw.Draw(seal_layer)
 
-    irregular = tier in ('illisible', 'opaque')
+    irregular = tier in ('incomprehensible', 'obscur')
     main_rng = _random.Random(42)
     border_color = (255, 255, 255, 220)
     _draw_seal_shape(seal_draw, cx, cy,
@@ -1086,7 +1086,7 @@ def _build_stamp_v6(score_pct: int, score_source: str, tier: str,
                      irregular=irregular, rng=main_rng)
 
     # ── Inner ornamental circle (limpide and fluide only) ──
-    if tier in ('limpide', 'fluide'):
+    if tier in ('limpide', 'clair'):
         inner_ring_r = int(radius * 0.82)
         seal_draw.ellipse(
             [cx - inner_ring_r, cy - inner_ring_r,
@@ -1247,7 +1247,7 @@ def generate_ga_og_card(image: dict, avg_glance: float | None,
         tier = _get_tier_key(score_pct)
         verdict_label, grad_start, grad_end = _stamp_verdict(score_pct)
     else:
-        tier = 'accessible'  # neutral fallback for no-score
+        tier = 'ambigu'  # neutral fallback for no-score
         verdict_label = "EN ATTENTE"
         grad_start = (55, 65, 81)
         grad_end = (45, 55, 71)

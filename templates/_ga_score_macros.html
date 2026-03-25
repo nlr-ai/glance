@@ -1,13 +1,13 @@
 {# ── Reusable macros for GA score badges, verdict labels, and archetype badges ── #}
 
 {# ── Verdict label: returns the French verdict word for a 0-1 score ── #}
-{% macro verdict_label(score) %}{% if score >= 0.8 %}Limpide{% elif score >= 0.6 %}Fluide{% elif score >= 0.4 %}Accessible{% elif score >= 0.2 %}Brumeux{% elif score >= 0.1 %}Opaque{% else %}Illisible{% endif %}{% endmacro %}
+{% macro verdict_label(score) %}{% if score >= 0.8 %}Limpide{% elif score >= 0.6 %}Clair{% elif score >= 0.4 %}Ambigu{% elif score >= 0.2 %}Confus{% elif score >= 0.1 %}Obscur{% else %}Incompréhensible{% endif %}{% endmacro %}
 
 {# ── Verdict color: returns hex color for a 0-1 score ── #}
 {% macro verdict_color(score) %}{% if score >= 0.8 %}#10B981{% elif score >= 0.6 %}#2A9D8F{% elif score >= 0.4 %}#F59E0B{% elif score >= 0.2 %}#F97316{% elif score >= 0.1 %}#EF4444{% else %}#991B1B{% endif %}{% endmacro %}
 
 {# ── Score color class: returns CSS class suffix for a percentage (0-100) ── #}
-{% macro score_color_class(pct) %}{% if pct >= 80 %}limpide{% elif pct >= 60 %}fluide{% elif pct >= 40 %}accessible{% elif pct >= 20 %}brumeux{% elif pct >= 10 %}opaque{% else %}illisible{% endif %}{% endmacro %}
+{% macro score_color_class(pct) %}{% if pct >= 80 %}limpide{% elif pct >= 60 %}clair{% elif pct >= 40 %}ambigu{% elif pct >= 20 %}confus{% elif pct >= 10 %}obscur{% else %}incomprehensible{% endif %}{% endmacro %}
 
 {# ── Score badge: big number + donut ring + verdict pill ── #}
 {# score: float 0-1, size: 'lg' (80px gauge) | 'md' (56px) | 'sm' (40px) #}

@@ -941,18 +941,17 @@
 
     <div class="lp-hero-content">
         <div class="lp-hero-badge">{{ t('hero_badge', lang) }}</div>
-        <h1><span>GLANCE</span></h1>
+        <h1>{{ t('hero_title', lang) }}</h1>
         <p class="lp-hero-sub">
             {{ t('hero_subtitle', lang) }}
         </p>
 
-        <a href="/onboard" class="lp-hero-cta">{{ t('cta_start', lang) }}</a>
-        <a href="/spin" class="lp-hero-cta" style="background:transparent;border:2px solid rgba(255,255,255,0.3);margin-left:0.75rem;">Défi rapide &rarr;</a>
-        <a href="/analyze" class="lp-hero-cta" style="background:transparent;border:2px solid rgba(255,255,255,0.3);margin-left:0.75rem;">Note mon GA</a>
+        <a href="/analyze" class="lp-hero-cta" style="background:linear-gradient(135deg,#f59e0b,#d97706);font-weight:700;font-size:1.1rem;padding:1rem 2.5rem;">Analyse mon GA</a>
+        <a href="/onboard" class="lp-hero-cta" style="background:transparent;border:2px solid rgba(255,255,255,0.3);margin-left:0.75rem;">{{ t('cta_start', lang) }}</a>
 
         <div class="lp-stats-bar">
             <div class="lp-stat-pill">
-                <strong>{{ landing.total_gas }}</strong> GAs
+                <strong>{{ landing.total_gas }}</strong> figures
             </div>
             <div class="lp-stat-pill">
                 <strong>{{ landing.total_domains }}</strong> domaines
