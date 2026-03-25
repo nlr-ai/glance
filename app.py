@@ -3029,6 +3029,56 @@ def ga_video(ga_slug: str):
                     headers={"Cache-Control": "public, max-age=3600"})
 
 
+# ── Changelog ──────────────────────────────────────────────────────────
+
+@app.get("/changelog", response_class=HTMLResponse)
+def changelog_page(request: Request):
+    """Auto-generated changelog from git log."""
+    import subprocess
+    lang = _lang(request)
+    changelog = []
+    try:
+        result = subprocess.run(
+            ["git", "log", "--oneline", "--format=%H|%ai|%s", "-50"],
+            capture_output=True, text=True, timeout=5, cwd=BASE
+        )
+        current_day = None
+        day_items = []
+        for line in result.stdout.strip().split("\n"):
+            if not line or "|" not in line:
+                continue
+            parts = line.split("|", 2)
+            if len(parts) < 3:
+                continue
+            _, date_str, msg = parts
+            day = date_str[:10]
+            # Determine type from conventional commit prefix
+            if msg.startswith("feat"):
+                item_type = "feat"
+                text = msg.split(":", 1)[-1].strip() if ":" in msg else msg[5:].strip()
+            elif msg.startswith("fix"):
+                item_type = "fix"
+                text = msg.split(":", 1)[-1].strip() if ":" in msg else msg[4:].strip()
+            elif msg.startswith("docs"):
+                item_type = "docs"
+                text = msg.split(":", 1)[-1].strip() if ":" in msg else msg[5:].strip()
+            else:
+                continue  # skip non-conventional commits
+            if day != current_day:
+                if current_day and day_items:
+                    changelog.append({"date": current_day, "items": day_items})
+                current_day = day
+                day_items = []
+            day_items.append({"type": item_type, "text": text})
+        if current_day and day_items:
+            changelog.append({"date": current_day, "items": day_items})
+    except Exception:
+        pass
+    return templates.TemplateResponse("changelog.html", {
+        "request": request, "lang": lang, "changelog": changelog,
+    })
+
+
 # ── SEO: sitemap.xml + robots.txt ──────────────────────────────────────
 
 @app.get("/sitemap.xml")
