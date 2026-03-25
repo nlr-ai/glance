@@ -4,6 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}GLANCE — SciSense{% endblock %}</title>
+    <meta name="description" content="{{ og_description | default('GLANCE — Benchmark de compréhension des Graphical Abstracts scientifiques.') }}">
+    <meta name="theme-color" content="#0f172a">
+    <link rel="canonical" href="{{ request.url }}">
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="GLANCE — SciSense">
+    <meta property="og:title" content="{{ og_title | default('GLANCE — Testez votre oeil scientifique') }}">
+    <meta property="og:description" content="{{ og_description | default('Le premier benchmark de compréhension des Graphical Abstracts scientifiques. Gratuit, 2 minutes.') }}">
+    <meta property="og:url" content="{{ og_url | default(request.url) }}">
+    <meta property="og:image" content="{{ og_image | default('https://glance.scisense.fr/static/og-default.png') }}">
+    <meta property="og:locale" content="fr_FR">
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ og_title | default('GLANCE — Testez votre oeil scientifique') }}">
+    <meta name="twitter:description" content="{{ og_description | default('Benchmark de compréhension des Graphical Abstracts scientifiques.') }}">
+    <meta name="twitter:image" content="{{ og_image | default('https://glance.scisense.fr/static/og-default.png') }}">
     <link rel="stylesheet" href="/static/style.css">
     {% block head %}{% endblock %}
 </head>

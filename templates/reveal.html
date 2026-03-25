@@ -2,19 +2,7 @@
 {% block title %}Résultat — GLANCE{% endblock %}
 
 {% block head %}
-{% set score_pct_og = (glance_score * 100) | round(0) | int if s10_hit != false else 0 %}
-{% set og_image_url = request.url.scheme ~ "://" ~ request.url.netloc ~ "/card/" ~ test.id ~ ".png" %}
-<meta property="og:title" content="GLANCE — Mon score : {{ score_pct_og }}%">
-<meta property="og:description" content="J'ai testé ma compréhension des Graphical Abstracts scientifiques en conditions réelles.">
-<meta property="og:image" content="{{ og_image_url }}">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-<meta property="og:url" content="{{ request.url }}">
-<meta property="og:type" content="website">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="GLANCE — Mon score : {{ score_pct_og }}%">
-<meta name="twitter:description" content="J'ai testé ma compréhension des Graphical Abstracts scientifiques en conditions réelles.">
-<meta name="twitter:image" content="{{ og_image_url }}">
+{# OG meta tags are now handled via base.html + backend variables (og_title, og_description, og_image) #}
 {% endblock %}
 
 {% block content %}

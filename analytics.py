@@ -1300,3 +1300,48 @@ def get_domain_rank(ga_image_id: int, domain: str) -> dict:
         "percentile": round(percentile, 0),
         "domain_label": domain,
     }
+
+
+def get_participant_percentile(participant_id: int) -> int:
+    """Compute the percentile rank of a participant among all participants.
+
+    Percentile = percentage of participants whose average GLANCE score is
+    lower than this participant's average GLANCE score.
+
+    Returns:
+        int: percentile (0-100). 95 means "better than 95% of testers".
+             Returns 0 if the participant has no test data or there are
+             fewer than 2 participants with data.
+    """
+    from db import get_db
+
+    db = get_db()
+
+    # Get average GLANCE score per participant (only participants with tests)
+    rows = db.execute(
+        """SELECT participant_id, AVG(glance_score) as avg_glance
+           FROM tests
+           GROUP BY participant_id
+           HAVING COUNT(*) > 0"""
+    ).fetchall()
+    db.close()
+
+    if not rows:
+        return 0
+
+    scores_by_pid = {r["participant_id"]: r["avg_glance"] or 0.0 for r in rows}
+
+    if participant_id not in scores_by_pid:
+        return 0
+
+    my_score = scores_by_pid[participant_id]
+    total = len(scores_by_pid)
+
+    if total <= 1:
+        return 100
+
+    # Count how many participants have a strictly lower average score
+    n_below = sum(1 for s in scores_by_pid.values() if s < my_score)
+    percentile = (n_below / (total - 1)) * 100.0
+
+    return round(percentile)

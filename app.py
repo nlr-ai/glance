@@ -8,7 +8,7 @@ import random
 
 import yaml
 from fastapi import FastAPI, Request, Form, HTTPException
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
@@ -33,8 +33,10 @@ from analytics import (
     get_domain_rank,
     get_admin_analytics,
     compute_kpi_evolution,
+    get_participant_percentile,
 )
 from config_loader import get_constant
+from cards import generate_test_card, generate_dashboard_card, generate_default_card, generate_ga_og_card
 
 BASE = os.path.dirname(__file__)
 
@@ -95,12 +97,21 @@ def _get_participant(request: Request):
 
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+    return templates.TemplateResponse("index.html", {
+        "request": request,
+        "og_title": "GLANCE — Testez votre oeil scientifique en 2 minutes",
+        "og_description": "47 GAs, 15 domaines. Le premier benchmark de compréhension des Graphical Abstracts. Gratuit.",
+    })
 
 
 @app.get("/onboard", response_class=HTMLResponse)
 def onboard(request: Request):
-    return templates.TemplateResponse("onboard.html", {"request": request, "config": CONFIG})
+    return templates.TemplateResponse("onboard.html", {
+        "request": request,
+        "config": CONFIG,
+        "og_title": "GLANCE — Inscription rapide",
+        "og_description": "Rejoignez GLANCE : le benchmark de compréhension des Graphical Abstracts scientifiques. 2 minutes, gratuit.",
+    })
 
 
 @app.post("/onboard")
@@ -454,6 +465,16 @@ def reveal(request: Request, test_id: int):
     # Compute fluency score for display
     fluency = compute_fluency_score(bool(test.get("s9b_pass")), test.get("q2_time_ms", 0))
 
+    # Compute participant percentile among all testers
+    participant_percentile = get_participant_percentile(participant["id"])
+
+    # OG meta for sharing (includes percentile rank)
+    score_pct = round(glance_score * 100)
+    og_title = f"Mon score GLANCE : {score_pct}% — meilleur que {participant_percentile}% des testeurs"
+    og_desc = (f"Mon score GLANCE : {score_pct}% — meilleur que {participant_percentile}% "
+               f"des testeurs ! Teste ton oeil sur glance.scisense.fr")
+    og_image = f"https://glance.scisense.fr/card/{test_id}.png"
+
     return templates.TemplateResponse("reveal.html", {
         "request": request,
         "test": test,
@@ -465,6 +486,10 @@ def reveal(request: Request, test_id: int):
         "s9a_score": round(float(s9a_score), 3),
         "s10_hit": s10_hit,
         "fluency_score": round(fluency, 4),
+        "participant_percentile": participant_percentile,
+        "og_title": og_title,
+        "og_description": og_desc,
+        "og_image": og_image,
     })
 
 
@@ -558,6 +583,12 @@ def dashboard(request: Request):
     # Week-over-week KPI evolution indicators
     kpi_evo = compute_kpi_evolution(tests)
 
+    # OG meta for sharing
+    n_tests = len(tests)
+    glance_avg = round(agg.get("mean_glance", 0) * 100) if agg.get("mean_glance") else 0
+    og_title = f"Dashboard GLANCE — {glance_avg}% score moyen"
+    og_desc = f"{n_tests} GAs testés. Score moyen {glance_avg}%."
+
     return templates.TemplateResponse("dashboard.html", {
         "request": request,
         "stats": stats,
@@ -573,6 +604,8 @@ def dashboard(request: Request):
         "s10_stats": s10_stats,
         "ab_fluency": ab_fluency,
         "kpi_evo": kpi_evo,
+        "og_title": og_title,
+        "og_description": og_desc,
     })
 
 
@@ -591,6 +624,8 @@ def leaderboard(request: Request):
     return templates.TemplateResponse("leaderboard.html", {
         "request": request,
         "domains": domains,
+        "og_title": "GLANCE Leaderboard — Classement des Graphical Abstracts",
+        "og_description": "Découvrez quels GAs scientifiques communiquent le mieux, classés par domaine.",
     })
 
 
@@ -600,10 +635,21 @@ def leaderboard_domain(request: Request, domain: str):
     data = get_domain_leaderboard(domain, domain_config)
     if not data:
         raise HTTPException(status_code=404, detail=f"Domain '{domain}' not found")
+
+    # OG meta for sharing
+    domain_label = data.get("label", domain)
+    n_gas = data.get("n_gas", 0)
+    avg_score = data.get("avg_score")
+    avg_pct = round(avg_score * 100) if avg_score is not None else 0
+    og_title = f"GLANCE — Classement {domain_label}"
+    og_desc = f"{n_gas} Graphical Abstracts classés en {domain_label}. Score moyen : {avg_pct}%."
+
     return templates.TemplateResponse("leaderboard_domain.html", {
         "request": request,
         "domain": domain,
         "data": data,
+        "og_title": og_title,
+        "og_description": og_desc,
     })
 
 
@@ -884,6 +930,18 @@ def ga_detail(request: Request, ga_id: int):
     ga_abstract = _generate_ga_abstract(sidecar, image)
     executive_summary = _generate_executive_summary(sidecar, image, detail, recommendations)
 
+    # OG meta for sharing
+    ga_title = image.get("title", image.get("filename", "GA"))
+    n_tests = detail.get("n_tests", 0)
+    avg_glance = detail.get("avg_glance", 0)
+    avg_s9b = detail.get("avg_s9b", 0)
+    score_pct = round(avg_glance * 100) if avg_glance else 0
+    s9b_pct = round(avg_s9b * 100) if avg_s9b else 0
+    verdict = "Décodage réussi" if avg_glance and avg_glance >= glance_threshold else "Design à améliorer"
+    og_title = f"{ga_title} — Score GLANCE {score_pct}%"
+    og_desc = f"Analyse détaillée : S9b {s9b_pct}%, {n_tests} tests. {verdict}."
+    og_image = f"https://glance.scisense.fr/og/ga/{ga_id}.png"
+
     return templates.TemplateResponse("ga_detail.html", {
         "request": request,
         "image": image,
@@ -899,6 +957,9 @@ def ga_detail(request: Request, ga_id: int):
         "executive_summary": executive_summary,
         "study_ref": study_ref,
         "ga_abstract": ga_abstract,
+        "og_title": og_title,
+        "og_description": og_desc,
+        "og_image": og_image,
     })
 
 
@@ -911,3 +972,110 @@ def admin_dashboard(request: Request):
         "analytics": analytics,
         "analytics_json": json.dumps(analytics, ensure_ascii=False),
     })
+
+
+# ── OG Image Card routes ────────────────────────────────────────────
+
+# Simple in-memory cache: test_id -> (png_bytes, glance_score)
+_card_cache: dict[int, tuple[bytes, float]] = {}
+_dashboard_card_cache: dict[str, bytes] = {}
+
+
+@app.get("/card/default.png")
+def card_default():
+    """Return the default GLANCE branding card."""
+    png_bytes = generate_default_card()
+    return Response(content=png_bytes, media_type="image/png",
+                    headers={"Cache-Control": "public, max-age=86400"})
+
+
+@app.get("/card/{test_id}.png")
+def card_test(test_id: int):
+    """Generate a 1200x630 OG image card for a single test result.
+
+    Includes the participant's percentile rank. Short cache TTL
+    because percentile shifts as more participants join.
+    """
+    test = get_test(test_id)
+    if not test:
+        png_bytes = generate_default_card()
+        return Response(content=png_bytes, media_type="image/png",
+                        headers={"Cache-Control": "public, max-age=3600"})
+
+    percentile = get_participant_percentile(test["participant_id"])
+    png_bytes = generate_test_card(test, participant_percentile=percentile)
+    return Response(content=png_bytes, media_type="image/png",
+                    headers={"Cache-Control": "public, max-age=600"})
+
+
+@app.get("/card/dashboard/{participant_token}.png")
+def card_dashboard(participant_token: str):
+    """Generate a 1200x630 OG image card for a participant's dashboard.
+
+    Includes percentile rank. No in-memory cache — percentile is dynamic.
+    """
+    participant = get_participant_by_token(participant_token)
+    if not participant:
+        png_bytes = generate_default_card()
+        return Response(content=png_bytes, media_type="image/png",
+                        headers={"Cache-Control": "public, max-age=3600"})
+
+    # Get all tests for this participant
+    db = get_db()
+    rows = db.execute(
+        """SELECT t.*, g.filename, g.domain, g.title
+           FROM tests t JOIN ga_images g ON t.ga_image_id = g.id
+           WHERE t.participant_id = ?
+           ORDER BY t.created_at DESC""",
+        (participant["id"],),
+    ).fetchall()
+    db.close()
+    tests = [dict(r) for r in rows]
+
+    percentile = get_participant_percentile(participant["id"])
+    png_bytes = generate_dashboard_card(participant, tests,
+                                         participant_percentile=percentile)
+    return Response(content=png_bytes, media_type="image/png",
+                    headers={"Cache-Control": "public, max-age=600"})
+
+
+# ── GA OG Image route ────────────────────────────────────────────────
+
+# In-memory cache: ga_id -> (png_bytes, n_tests)
+# Invalidated when n_tests changes (new test submitted)
+_ga_og_cache: dict[int, tuple[bytes, int]] = {}
+
+
+@app.get("/og/ga/{ga_id}.png")
+def og_ga_image(ga_id: int):
+    """Generate a 1200x630 OG card for a GA detail page.
+
+    Shows the GA image itself with a GLANCE score badge overlay.
+    Cached in memory; invalidated when test count changes.
+    """
+    image = get_image_by_id(ga_id)
+    if not image:
+        png_bytes = generate_default_card()
+        return Response(content=png_bytes, media_type="image/png",
+                        headers={"Cache-Control": "public, max-age=3600"})
+
+    # Compute current stats
+    detail = get_ga_detail_stats(ga_id)
+    n_tests = detail.get("n_tests", 0)
+    avg_glance = detail.get("avg_glance", 0.0) if n_tests > 0 else None
+
+    # Check cache (invalidate if test count changed)
+    if ga_id in _ga_og_cache:
+        cached_bytes, cached_n = _ga_og_cache[ga_id]
+        if cached_n == n_tests:
+            return Response(content=cached_bytes, media_type="image/png",
+                            headers={"Cache-Control": "public, max-age=3600"})
+
+    # Resolve domain label
+    domain = image.get("domain", "")
+    domain_label = CONFIG["domains"].get(domain, {}).get("label", domain)
+
+    png_bytes = generate_ga_og_card(image, avg_glance, n_tests, domain_label)
+    _ga_og_cache[ga_id] = (png_bytes, n_tests)
+    return Response(content=png_bytes, media_type="image/png",
+                    headers={"Cache-Control": "public, max-age=3600"})
