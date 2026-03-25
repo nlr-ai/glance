@@ -675,7 +675,7 @@
             <div class="sc-header">
                 <span class="sc-name">S9a — Sujet</span>
                 <span class="sc-info" tabindex="0">i
-                    <span class="sc-tooltip">Pourcentage de tests ou le lecteur a identifie le sujet de l'image</span>
+                    <span class="sc-tooltip">Pourcentage de tests où le lecteur a identifié le sujet de l'image</span>
                 </span>
             </div>
             <div class="sc-score-hero">
@@ -691,9 +691,9 @@
         {# S9b #}
         <div class="score-card">
             <div class="sc-header">
-                <span class="sc-name">S9b — Hierarchie</span>
+                <span class="sc-name">S9b — Hiérarchie</span>
                 <span class="sc-info" tabindex="0">i
-                    <span class="sc-tooltip">Pourcentage de tests ou le lecteur a identifie le resultat le plus important (chance = 25%)</span>
+                    <span class="sc-tooltip">Pourcentage de tests où le lecteur a identifié le résultat le plus important (chance = 25%)</span>
                 </span>
             </div>
             <div class="sc-score-hero">
@@ -704,7 +704,7 @@
                 <div class="sc-bar-fill bar-{{ score_color(pct_s9b) }}" style="width: {{ pct_s9b }}%;"></div>
             </div>
             <div class="sc-interp">
-                {% if pct_s9b <= 25 %}Comprehension au niveau du hasard{% elif pct_s9b < 50 %}Hierarchie partiellement percue{% elif pct_s9b < 80 %}Bonne identification de la hierarchie{% else %}Hierarchie tres bien comprise{% endif %}
+                {% if pct_s9b <= 25 %}Compréhension au niveau du hasard{% elif pct_s9b < 50 %}Hiérarchie partiellement perçue{% elif pct_s9b < 80 %}Bonne identification de la hiérarchie{% else %}Hiérarchie très bien comprise{% endif %}
             </div>
         </div>
 
@@ -713,7 +713,7 @@
             <div class="sc-header">
                 <span class="sc-name">S9c — Impact</span>
                 <span class="sc-info" tabindex="0">i
-                    <span class="sc-tooltip">Pourcentage de tests ou le lecteur a percu un impact pratique</span>
+                    <span class="sc-tooltip">Pourcentage de tests où le lecteur a perçu un impact pratique</span>
                 </span>
             </div>
             <div class="sc-score-hero">
@@ -723,7 +723,7 @@
             <div class="sc-bar">
                 <div class="sc-bar-fill bar-{{ score_color(pct_s9c) }}" style="width: {{ pct_s9c }}%;"></div>
             </div>
-            <div class="sc-interp">{{ pct_s9c }}% des lecteurs percoivent un impact concret</div>
+            <div class="sc-interp">{{ pct_s9c }}% des lecteurs perçoivent un impact concret</div>
         </div>
 
         {# GLANCE composite #}
@@ -743,7 +743,7 @@
                 <div class="sc-bar-fill bar-{{ score_color(pct_glance) }}" style="width: {{ pct_glance }}%;"></div>
             </div>
             <div class="sc-interp">
-                {% if pct_glance >= 80 %}Excellent — le GA communique tres efficacement{% elif pct_glance >= 60 %}Bon — le message passe{% elif pct_glance >= 40 %}Moyen — des ameliorations necessaires{% else %}Faible — le message ne passe pas{% endif %}
+                {% if pct_glance >= 80 %}Excellent — le GA communique très efficacement{% elif pct_glance >= 60 %}Bon — le message passe{% elif pct_glance >= 40 %}Moyen — des améliorations nécessaires{% else %}Faible — le message ne passe pas{% endif %}
             </div>
         </div>
 
@@ -752,7 +752,7 @@
             <div class="sc-header">
                 <span class="sc-name">Fluency</span>
                 <span class="sc-info" tabindex="0">i
-                    <span class="sc-tooltip">Rapidite x precision — un score eleve = compris vite et bien</span>
+                    <span class="sc-tooltip">Rapidité x précision — un score élevé = compris vite et bien</span>
                 </span>
             </div>
             {% set fluency_val = (agg.Avg_Fluency * 1000) | round(1) %}
@@ -764,13 +764,13 @@
                 {% set fluency_pct = [fluency_val / 5 * 100, 100] | min | round(0) | int %}
                 <div class="sc-bar-fill bar-blue" style="width: {{ fluency_pct }}%;"></div>
             </div>
-            <div class="sc-interp">S9b / log(RT2) — mediane RT2 : {{ (agg.Mediane_RT2 / 1000) | round(1) }}s ({{ agg.RT2_class }})</div>
+            <div class="sc-interp">S9b / log(RT2) — médiane RT2 : {{ (agg.Mediane_RT2 / 1000) | round(1) }}s ({{ agg.RT2_class }})</div>
         </div>
 
         {# Total tests #}
         <div class="count-card">
             <div class="count-number">{{ stats.total or 0 }}</div>
-            <div class="count-label">tests realises</div>
+            <div class="count-label">tests réalisés</div>
             {{ evo_badge(kpi_evo.tests_completed) }}
         </div>
 
@@ -785,7 +785,7 @@
         <div class="count-card">
             {% set comp_pct = ((kpi_evo.completion_rate.current or 0) * 100) | round(0) | int if kpi_evo and kpi_evo.completion_rate else 0 %}
             <div class="count-number">{{ comp_pct }}<span style="font-size: var(--text-sm); font-weight: 400;">%</span></div>
-            <div class="count-label">taux de completion (7j)</div>
+            <div class="count-label">taux de complétion (7j)</div>
             {{ evo_badge(kpi_evo.completion_rate) }}
         </div>
     </div>
@@ -804,7 +804,7 @@
             <div class="sc-header">
                 <span class="sc-name">S10 — Saillance</span>
                 <span class="sc-info" tabindex="0">i
-                    <span class="sc-tooltip">Pourcentage de GAs qui ont capte l'attention dans le flux</span>
+                    <span class="sc-tooltip">Pourcentage de GAs qui ont capté l'attention dans le flux</span>
                 </span>
             </div>
             <div class="sc-score-hero">
@@ -822,7 +822,7 @@
         {% set chain_pct = (s10_stats.s10_x_s9b * 100) | round(0) | int %}
         <div class="score-card">
             <div class="sc-header">
-                <span class="sc-name">S10 x S9b — Chaine complete</span>
+                <span class="sc-name">S10 x S9b — Chaîne complète</span>
             </div>
             <div class="sc-score-hero">
                 <span class="sc-number score-{{ score_color(chain_pct) }}">{{ chain_pct }}</span>
@@ -831,7 +831,7 @@
             <div class="sc-bar">
                 <div class="sc-bar-fill bar-{{ score_color(chain_pct) }}" style="width: {{ chain_pct }}%;"></div>
             </div>
-            <div class="sc-interp">Capte l'attention ET compris correctement</div>
+            <div class="sc-interp">Capté l'attention ET compris correctement</div>
         </div>
         {% endif %}
     </div>
@@ -849,7 +849,7 @@
             <div class="warn-body">
                 <div class="warn-title">Effort cognitif moyen</div>
                 <div class="warn-detail">
-                    {% if effort_pct > 60 %}Effort eleve — le GA demande trop de travail mental{% elif effort_pct > 40 %}Effort modere{% else %}Effort faible — bonne lisibilite{% endif %}
+                    {% if effort_pct > 60 %}Effort élevé — le GA demande trop de travail mental{% elif effort_pct > 40 %}Effort modéré{% else %}Effort faible — bonne lisibilité{% endif %}
                 </div>
             </div>
             <div class="warn-pct">{{ effort_pct }}%</div>
@@ -861,7 +861,7 @@
             <div class="warn-body">
                 <div class="warn-title">Invalidation (tab switch)</div>
                 <div class="warn-detail">
-                    {% if invalidation_rate > 20 %}Taux eleve — beaucoup de tests invalides{% elif invalidation_rate > 5 %}Quelques changements d'onglet detectes{% else %}Tres peu d'invalidations{% endif %}
+                    {% if invalidation_rate > 20 %}Taux élevé — beaucoup de tests invalidés{% elif invalidation_rate > 5 %}Quelques changements d'onglet détectés{% else %}Très peu d'invalidations{% endif %}
                 </div>
             </div>
             <div class="warn-pct">{{ invalidation_rate | round(0) | int }}%</div>
@@ -1049,7 +1049,6 @@
                 <th>Titre</th>
                 <th>Domaine</th>
                 <th>Version</th>
-                <th>Reponse correcte</th>
             </tr>
         </thead>
         <tbody>
@@ -1059,11 +1058,10 @@
                 <td>{{ img.title or img.filename }}</td>
                 <td>{{ img.domain }}</td>
                 <td>{{ img.version or '-' }}</td>
-                <td>{{ img.correct_product or '-' }}</td>
             </tr>
             {% endfor %}
             {% if not images %}
-            <tr><td colspan="5" style="color: var(--text-dim); text-align: center; padding: var(--sp-6);">Aucune image. Ajoutez des PNG dans ga_library/ avec un .json de metadata.</td></tr>
+            <tr><td colspan="4" style="color: var(--text-dim); text-align: center; padding: var(--sp-6);">Aucune image. Ajoutez des PNG dans ga_library/ avec un .json de métadonnées.</td></tr>
             {% endif %}
         </tbody>
     </table>
@@ -1072,7 +1070,7 @@
        SECTION 7 — Recent Tests
        ════════════════════════════════════════════════ #}
 
-    <h2 class="db-section-title">Tests recents</h2>
+    <h2 class="db-section-title">Tests récents</h2>
 
     <div style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
     <table class="tests-table">

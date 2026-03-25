@@ -235,7 +235,7 @@
         </div>
         <div class="kpi-card">
             <div class="kpi-value">{{ kpis.n_tests }}</div>
-            <div class="kpi-label">Tests completes</div>
+            <div class="kpi-label">Tests complétés</div>
         </div>
         <div class="kpi-card">
             <div class="kpi-value">{{ kpis.tests_today }} / {{ kpis.tests_this_week }}</div>
@@ -247,23 +247,23 @@
         </div>
         <div class="kpi-card">
             <div class="kpi-value">{{ kpis.avg_session_s }}s</div>
-            <div class="kpi-label">Duree moy. session</div>
+            <div class="kpi-label">Durée moy. session</div>
         </div>
         <div class="kpi-card">
             <div class="kpi-value">{{ kpis.completion_rate }}%</div>
-            <div class="kpi-label">Taux de completion</div>
+            <div class="kpi-label">Taux de complétion</div>
         </div>
     </div>
 
     {% if not has_data %}
     <div class="empty-state">
-        <p>Pas encore de donnees. Les graphiques apparaitront apres le premier test.</p>
+        <p>Pas encore de données. Les graphiques apparaîtront après le premier test.</p>
     </div>
     {% endif %}
 
     {% if has_data %}
     <!-- ── Section 2: Activity over time ── -->
-    <h2 class="section-title">Activite (30 derniers jours)</h2>
+    <h2 class="section-title">Activité (30 derniers jours)</h2>
     <div class="chart-row">
         <div class="chart-box chart-full">
             <canvas id="activityChart"></canvas>
@@ -302,7 +302,7 @@
             <canvas id="clinicalPieChart"></canvas>
         </div>
         <div class="chart-box">
-            <h3>Litteracie donnees</h3>
+            <h3>Littéracie données</h3>
             <canvas id="literacyPieChart"></canvas>
         </div>
     </div>

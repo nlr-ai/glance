@@ -75,7 +75,7 @@
         <div id="voice-panel">
             <div id="voice-unsupported" class="voice-unsupported hidden">
                 <p>Votre navigateur ne supporte pas la reconnaissance vocale. Utilisez Chrome ou Edge.</p>
-                <textarea id="q1-input" rows="3" placeholder="Decrivez ce que vous avez vu..." autofocus></textarea>
+                <textarea id="q1-input" rows="3" placeholder="Décrivez ce que vous avez vu..." autofocus></textarea>
                 <button class="btn btn-primary" id="btn-q1">Suivant</button>
             </div>
             <div id="voice-supported">
@@ -85,11 +85,11 @@
                 </div>
                 <div id="voice-status" class="voice-status hidden">
                     <div class="voice-pulse"></div>
-                    <span>Ecoute en cours...</span>
+                    <span>Écoute en cours...</span>
                 </div>
                 <div id="voice-transcript" class="voice-transcript hidden">
                     <p id="transcript-text" class="transcript-text"></p>
-                    <textarea id="q1-input-voice" rows="3" placeholder="Transcript — corrigez si necessaire"></textarea>
+                    <textarea id="q1-input-voice" rows="3" placeholder="Transcript — corrigez si nécessaire"></textarea>
                     <div class="voice-actions">
                         <button class="btn btn-secondary" id="btn-re-record">Recommencer</button>
                         <button class="btn btn-primary" id="btn-q1">Valider</button>
@@ -350,7 +350,7 @@
                 isRecording = false;
                 voiceStatus.classList.add('hidden');
                 if (event.error === 'not-allowed') {
-                    transcriptText.textContent = 'Acces au microphone refuse. Tapez votre reponse.';
+                    transcriptText.textContent = 'Accès au microphone refusé. Tapez votre réponse.';
                 }
                 voiceTranscript.classList.remove('hidden');
             };

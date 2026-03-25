@@ -227,7 +227,7 @@
     <div id="s2-voice-panel">
         <div id="s2-voice-unsupported" class="hidden">
             <textarea class="s2-fallback-textarea" id="s2-fallback-input"
-                      placeholder="Decrivez tout ce que vous comprenez de cette image..."></textarea>
+                      placeholder="Décrivez tout ce que vous comprenez de cette image..."></textarea>
         </div>
         <div class="s2-transcript" id="s2-transcript"></div>
     </div>
@@ -315,7 +315,7 @@
         document.getElementById('s2-voice-unsupported').classList.remove('hidden');
         transcriptDiv.classList.add('hidden');
         micPulse.classList.add('hidden');
-        micLabel.textContent = 'Tapez votre reponse ci-dessous';
+        micLabel.textContent = 'Tapez votre réponse ci-dessous';
     }
 
     function formatTime(ms) {
@@ -409,7 +409,7 @@
                 }
                 console.warn('Speech recognition error:', event.error);
                 if (event.error === 'not-allowed') {
-                    micLabel.textContent = 'Micro refuse — tapez votre reponse';
+                    micLabel.textContent = 'Micro refusé — tapez votre réponse';
                     // Show fallback
                     document.getElementById('s2-voice-unsupported').classList.remove('hidden');
                     transcriptDiv.classList.add('hidden');

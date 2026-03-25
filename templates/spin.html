@@ -187,7 +187,7 @@
     <div class="spin-panel spin-active" id="panel-hook">
         <div class="spin-hook">
             <h1>Cette image scientifique va vous mentir.</h1>
-            <p>Vous avez 5 secondes pour la voir.<br>Une seule question apres.</p>
+            <p>Vous avez 5 secondes pour la voir.<br>Une seule question après.</p>
             <button class="btn btn-primary btn-large" id="btn-voir">Voir l'image</button>
         </div>
     </div>
@@ -294,14 +294,14 @@
         if (!isCorrect) {
             html = `
                 <div class="spin-reveal">
-                    <h1 class="spin-wrong">Votre cerveau a ete piege.</h1>
-                    <p class="spin-big">Vous avez repondu <strong>${escHtml(answer)}</strong>.</p>
-                    <p class="spin-big">La bonne reponse est <strong>${escHtml(CORRECT)}</strong>.</p>
+                    <h1 class="spin-wrong">Votre cerveau a été piégé.</h1>
+                    <p class="spin-big">Vous avez répondu <strong>${escHtml(answer)}</strong>.</p>
+                    <p class="spin-big">La bonne réponse est <strong>${escHtml(CORRECT)}</strong>.</p>
 
                     <div class="spin-explanation">
-                        <p>Cette image encode les donnees par la <strong>surface</strong> (cercles, secteurs).</p>
-                        <p>Votre cerveau compresse les surfaces : une donnee 10x plus forte
-                           parait seulement 5x plus grande (loi de Stevens, &beta; &asymp; 0.7).</p>
+                        <p>Cette image encode les données par la <strong>surface</strong> (cercles, secteurs).</p>
+                        <p>Votre cerveau compresse les surfaces : une donnée 10x plus forte
+                           paraît seulement 5x plus grande (loi de Stevens, &beta; &asymp; 0.7).</p>
                         <p>C'est du <strong>spin visuel</strong> — pas intentionnel, mais mesurable.</p>
                     </div>
 
@@ -309,7 +309,7 @@
 
                     <div class="spin-cta">
                         <a href="/onboard" class="btn btn-primary">
-                            Faites le test complet — decouvrez votre score
+                            Faites le test complet — découvrez votre score
                         </a>
                         <p class="spin-cta-sub">Gratuit · 2 minutes · Aucune inscription</p>
                     </div>
@@ -318,9 +318,9 @@
         } else {
             html = `
                 <div class="spin-reveal">
-                    <h1 class="spin-right">Bien joue — vous avez resiste au spin.</h1>
-                    <p class="spin-big">La plupart des gens se font pieger par cette image.</p>
-                    <p class="spin-big">Decouvrez si vous pouvez faire pareil sur 10 images d'affilee.</p>
+                    <h1 class="spin-right">Bien joué — vous avez résisté au spin.</h1>
+                    <p class="spin-big">La plupart des gens se font piéger par cette image.</p>
+                    <p class="spin-big">Découvrez si vous pouvez faire pareil sur 10 images d'affilée.</p>
 
                     ${buildComparison()}
 

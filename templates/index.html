@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}GLANCE — Testez votre oeil scientifique{% endblock %}
+{% block title %}GLANCE — Testez votre œil scientifique{% endblock %}
 
 {% block head %}
 <style>
@@ -926,6 +926,7 @@
         </p>
 
         <a href="/onboard" class="lp-hero-cta">{{ t('cta_start', lang) }}</a>
+        <a href="/spin" class="lp-hero-cta" style="background:transparent;border:2px solid rgba(255,255,255,0.3);margin-left:0.75rem;">Défi rapide &rarr;</a>
         <a href="/analyze" class="lp-hero-cta" style="background:transparent;border:2px solid rgba(255,255,255,0.3);margin-left:0.75rem;">Note mon GA</a>
 
         <div class="lp-stats-bar">
@@ -1098,9 +1099,9 @@
 
                     <!-- S9a -->
                     {% set s9a_pct = (example.s9a * 100) | round(0) | int %}
-                    {% if s9a_pct >= 70 %}{% set s9a_verdict = "Sujet identifie" %}{% set s9a_color = "#10b981" %}
+                    {% if s9a_pct >= 70 %}{% set s9a_verdict = "Sujet identifié" %}{% set s9a_color = "#10b981" %}
                     {% elif s9a_pct >= 40 %}{% set s9a_verdict = "Partiellement" %}{% set s9a_color = "#eab308" %}
-                    {% else %}{% set s9a_verdict = "Non identifie" %}{% set s9a_color = "#ef4444" %}{% endif %}
+                    {% else %}{% set s9a_verdict = "Non identifié" %}{% set s9a_color = "#ef4444" %}{% endif %}
                     <div class="lp-ex-score-card">
                         <div class="lp-ex-score-label">S9a Recall</div>
                         <div class="lp-ex-score-value">{{ s9a_pct }}%</div>
@@ -1109,9 +1110,9 @@
 
                     <!-- S9b -->
                     {% set s9b_pct = (example.s9b * 100) | round(0) | int %}
-                    {% if s9b_pct >= 70 %}{% set s9b_verdict = "Produit identifie" %}{% set s9b_color = "#10b981" %}
+                    {% if s9b_pct >= 70 %}{% set s9b_verdict = "Produit identifié" %}{% set s9b_color = "#10b981" %}
                     {% elif s9b_pct >= 40 %}{% set s9b_verdict = "Confus" %}{% set s9b_color = "#eab308" %}
-                    {% else %}{% set s9b_verdict = "Non identifie" %}{% set s9b_color = "#ef4444" %}{% endif %}
+                    {% else %}{% set s9b_verdict = "Non identifié" %}{% set s9b_color = "#ef4444" %}{% endif %}
                     <div class="lp-ex-score-card">
                         <div class="lp-ex-score-label">S9b Precision</div>
                         <div class="lp-ex-score-value">{{ s9b_pct }}%</div>
@@ -1218,10 +1219,11 @@
             <p>{% if landing.total_tests > 0 %}{{ t('live_subtitle_active', lang) }}{% else %}{{ t('live_subtitle_empty', lang) }}{% endif %}</p>
         </div>
 
+        {% if landing.total_tests > 0 %}
         <div class="lp-counters">
             <div class="lp-counter-card">
-                <div class="lp-counter-value counter-animate" data-target="{{ landing.total_tests if landing.total_tests > 0 else landing.total_gas }}">0</div>
-                <div class="lp-counter-label">{% if landing.total_tests > 0 %}{{ t('tests_completed_label', lang) }}{% else %}{{ t('gas_in_library', lang) }}{% endif %}</div>
+                <div class="lp-counter-value counter-animate" data-target="{{ landing.total_tests }}">0</div>
+                <div class="lp-counter-label">{{ t('tests_completed_label', lang) }}</div>
             </div>
 
             <div class="lp-counter-card">
@@ -1249,6 +1251,26 @@
                 <div class="lp-counter-label">{{ t('domains_label', lang) }}</div>
             </div>
         </div>
+        {% else %}
+        <div class="lp-counters">
+            <div class="lp-counter-card">
+                <div class="lp-counter-value counter-animate" data-target="{{ landing.total_gas }}">0</div>
+                <div class="lp-counter-label">GAs analysés</div>
+            </div>
+            <div class="lp-counter-card">
+                <div class="lp-counter-value teal counter-animate" data-target="{{ landing.total_domains }}">0</div>
+                <div class="lp-counter-label">{{ t('domains_label', lang) }}</div>
+            </div>
+            <div class="lp-counter-card">
+                <div class="lp-counter-value amber">23</div>
+                <div class="lp-counter-label">Paires VEC/contrôle</div>
+            </div>
+            <div class="lp-counter-card">
+                <div class="lp-counter-value">75</div>
+                <div class="lp-counter-label">Canaux visuels</div>
+            </div>
+        </div>
+        {% endif %}
     </div>
 </div>
 
