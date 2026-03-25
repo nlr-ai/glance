@@ -29,6 +29,65 @@ services:
       mountPath: /var/data
       sizeGB: 1
 
+  # Cron: Self-analysis — screenshot each page, run GLANCE on itself
+  - type: cron
+    name: glance-self-analysis
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    schedule: "0 */4 * * *"
+    startCommand: >
+      python -c "
+      import sys, os, time, hashlib, requests;
+      sys.path.insert(0, '/app');
+      PAGES = ['/', '/analyze', '/leaderboard', '/blog', '/pricing'];
+      BASE = 'https://glance.scisense.fr';
+      for page in PAGES:
+          try:
+              # Screenshot via Playwright
+              from playwright.sync_api import sync_playwright;
+              with sync_playwright() as p:
+                  browser = p.chromium.launch();
+                  pg = browser.new_page(viewport={'width': 1280, 'height': 800});
+                  pg.goto(BASE + page, wait_until='networkidle');
+                  img_bytes = pg.screenshot(full_page=False);
+                  browser.close();
+              # Dedup
+              h = hashlib.sha256(img_bytes).hexdigest();
+              from db import get_db, init_db; init_db();
+              db = get_db();
+              existing = db.execute('SELECT id FROM ga_images WHERE image_hash = ?', (h,)).fetchone();
+              if existing:
+                  print(f'No change: {page}'); db.close(); continue;
+              # Save + analyze
+              slug = 'self-' + page.strip('/').replace('/', '-') or 'homepage';
+              fname = f'self_analysis/{slug}_{int(time.time())}.png';
+              os.makedirs('/app/ga_library/self_analysis', exist_ok=True);
+              with open(f'/app/ga_library/{fname}', 'wb') as f: f.write(img_bytes);
+              from vision_scorer import analyze_ga_image;
+              result = analyze_ga_image(img_bytes, filename=fname);
+              from db import save_graph, _generate_unique_slug;
+              db2 = get_db();
+              db_slug = _generate_unique_slug(db2, fname);
+              db2.execute('INSERT INTO ga_images (filename,domain,title,slug,image_hash,public) VALUES (?,?,?,?,?,?)',
+                  (fname, 'self_analysis', f'GLANCE {page}', db_slug, h, 0));
+              db2.commit();
+              ga_id = db2.execute('SELECT last_insert_rowid()').fetchone()[0]; db2.close();
+              save_graph(result['graph'], ga_image_id=ga_id, graph_type='vision', source='self_analysis');
+              print(f'Analyzed: {page} -> GA {ga_id}');
+              time.sleep(6);
+          except Exception as e:
+              print(f'Failed {page}: {e}');
+      "
+    envVars:
+      - key: GLANCE_DB_PATH
+        value: /var/data/glance.db
+      - key: GLANCE_DATA_DIR
+        value: /var/data
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: "gemini-2.5-pro"
+
   # Cron: Reddit ingest every 6 hours
   - type: cron
     name: glance-reddit-ingest

@@ -4,7 +4,9 @@ WORKDIR /app
 
 # Dependencies layer (cached unless requirements.txt changes)
 COPY deploy/requirements.txt deploy/requirements.txt
-RUN pip install --no-cache-dir -r deploy/requirements.txt
+RUN pip install --no-cache-dir -r deploy/requirements.txt && \
+    pip install --no-cache-dir playwright && \
+    playwright install chromium --with-deps
 
 # Pre-download sentence-transformers model (cached in image)
 RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2')"
