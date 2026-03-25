@@ -428,6 +428,13 @@ def render_overlay_svg(graph, sim_result, width, height):
     parts.append('      <feComposite in="color" in2="blur" operator="in" result="glow"/>')
     parts.append('      <feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge>')
     parts.append('    </filter>')
+    # Dark halo behind nodes for contrast on any background
+    parts.append('    <filter id="dark-halo" x="-100%" y="-100%" width="300%" height="300%">')
+    parts.append('      <feGaussianBlur in="SourceAlpha" stdDeviation="4" result="shadow"/>')
+    parts.append('      <feFlood flood-color="#000000" flood-opacity="0.6" result="dark"/>')
+    parts.append('      <feComposite in="dark" in2="shadow" operator="in" result="halo"/>')
+    parts.append('      <feMerge><feMergeNode in="halo"/><feMergeNode in="SourceGraphic"/></feMerge>')
+    parts.append('    </filter>')
     # Marble texture: turbulence + specular highlight
     parts.append('    <filter id="marble" x="-20%" y="-20%" width="140%" height="140%">')
     parts.append('      <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="4" seed="42" result="noise"/>')
@@ -451,7 +458,7 @@ def render_overlay_svg(graph, sim_result, width, height):
     parts.append('  </defs>')
 
     # Layer 1: Dim overlay
-    parts.append(f'  <rect width="{width}" height="{height}" fill="rgba(10,14,26,0.35)"/>')
+    # No dim overlay — nodes have their own dark halo for contrast
 
     # ── Layer group: Attention (default ON) ──
     parts.append('  <g class="layer-attention">')
@@ -459,9 +466,9 @@ def render_overlay_svg(graph, sim_result, width, height):
     # Space outlines
     for space in data["spaces"]:
         dash = ' stroke-dasharray="6 3"' if space["is_dead"] else ' stroke-dasharray="8 4"'
-        fill_alpha = 0.08 if space["is_dead"] else 0.05
+        fill_alpha = 0.04 if space["is_dead"] else 0.025
         fill_rgb = (239, 68, 68) if space["is_dead"] else (45, 212, 191)
-        sw = 1.5 if space["is_dead"] else 1
+        sw = 1 if space["is_dead"] else 0.5
         glow_color = "#ef4444" if space["is_dead"] else "#2dd4bf"
         # Textured zone field with glow
         parts.append(
@@ -504,8 +511,8 @@ def render_overlay_svg(graph, sim_result, width, height):
             f'      <circle cx="{cx:.1f}" cy="{cy:.1f}" r="{r:.1f}" '
             f'fill="{node["color"]}" opacity="{node["opacity"]:.2f}" '
             f'stroke="{border["color"]}" stroke-width="{border["width"]}"{dash_attr} '
-            f'filter="url(#marble)" '
-            f'style="filter:drop-shadow(0 0 {glow_px:.0f}px {node["color"]});"/>'
+            f'filter="url(#dark-halo)" '
+            f'style="filter:url(#dark-halo);"/>'
         )
         # 3D shine highlight
         parts.append(
@@ -541,39 +548,7 @@ def render_overlay_svg(graph, sim_result, width, height):
 
     parts.append('  </g>')
 
-    # ── Layer group: Scanpath (default OFF) ──
-    parts.append('  <g class="layer-scanpath">')
-
-    if data["scanpath"]:
-        # Polyline connecting visited nodes
-        points_str = " ".join(
-            f'{sp["x"]:.1f},{sp["y"]:.1f}' for sp in data["scanpath"]
-        )
-        parts.append(
-            f'    <polyline points="{points_str}" '
-            f'stroke="#f59e0b" stroke-width="2" stroke-dasharray="6 4" '
-            f'fill="none" opacity="0.8"/>'
-        )
-
-        # Timestamp labels at each node
-        for sp in data["scanpath"]:
-            parts.append(
-                f'    <text x="{sp["x"] + 8:.1f}" y="{sp["y"] - 8:.1f}" '
-                f'font-size="8" fill="#fbbf24" font-family="monospace">'
-                f'{sp["time_ms"]}ms</text>'
-            )
-
-        # Entry point pulse
-        if data["entry_point"]:
-            ep = data["entry_point"]
-            parts.append(
-                f'    <circle cx="{ep["x"]:.1f}" cy="{ep["y"]:.1f}" r="8" '
-                f'fill="none" stroke="#10b981" stroke-width="2">'
-                f'<animate attributeName="r" values="8;12;8" dur="2s" repeatCount="indefinite"/>'
-                f'</circle>'
-            )
-
-    parts.append('  </g>')
+    # ── Scanpath: no static layer — animation JS handles everything ──
 
     # ── Layer group: Problems (default OFF) ──
     parts.append('  <g class="layer-problems" style="display:none;">')
