@@ -227,8 +227,9 @@
         }
 
         const rec = new SpeechRecognition();
-        rec.lang = 'fr-FR';
+        rec.lang = 'fr';
         rec.interimResults = true;
+        rec.maxAlternatives = 3;
 
         document.getElementById('btn-mic-test').classList.add('hidden');
         document.getElementById('mic-test-status').classList.remove('hidden');

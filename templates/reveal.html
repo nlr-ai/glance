@@ -2,6 +2,418 @@
 {% block title %}Résultat — GLANCE{% endblock %}
 
 {% block content %}
+<style>
+/* ── Reveal redesign: all styles inline ── */
+
+/* Scroll fix for mobile */
+.reveal-card {
+    -webkit-overflow-scrolling: touch;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+/* Blur gate redesign — gradient fade */
+.reveal-blur-gate {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 1rem;
+    background: linear-gradient(
+        180deg,
+        rgba(15,23,42,0.85) 0%,
+        rgba(30,41,59,0.92) 40%,
+        rgba(15,23,42,0.98) 100%
+    );
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: inherit;
+    cursor: pointer;
+    transition: opacity 0.5s ease;
+}
+
+/* Pulse animation for reveal button */
+@keyframes reveal-pulse {
+    0%, 100% { box-shadow: 0 4px 20px rgba(13,148,136,0.4), 0 0 0 0 rgba(13,148,136,0.3); }
+    50% { box-shadow: 0 4px 20px rgba(13,148,136,0.4), 0 0 0 10px rgba(13,148,136,0); }
+}
+
+.reveal-unblur-btn {
+    background: linear-gradient(135deg, #0d9488, #0ea5e9);
+    color: #fff;
+    border: none;
+    padding: 1rem 2.5rem;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    animation: reveal-pulse 2s ease-in-out infinite;
+    transition: transform 0.2s ease;
+}
+.reveal-unblur-btn:hover {
+    transform: scale(1.05);
+}
+
+.reveal-blur-hint {
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.4);
+    letter-spacing: 0.05em;
+}
+
+/* ── Score donut gauge ── */
+.reveal-donut-wrap {
+    display: flex;
+    justify-content: center;
+    margin: 0.5rem 0 1rem;
+}
+
+.reveal-donut {
+    position: relative;
+    width: 140px;
+    height: 140px;
+}
+
+.reveal-donut svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+
+.reveal-donut-track {
+    fill: none;
+    stroke: rgba(255,255,255,0.06);
+    stroke-width: 10;
+}
+
+.reveal-donut-fill {
+    fill: none;
+    stroke-width: 10;
+    stroke-linecap: round;
+    stroke-dasharray: 0, 339.292;
+    transition: stroke-dasharray 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.reveal-donut-fill.color-green { stroke: #22c55e; filter: drop-shadow(0 0 6px rgba(34,197,94,0.4)); }
+.reveal-donut-fill.color-amber { stroke: #f59e0b; filter: drop-shadow(0 0 6px rgba(245,158,11,0.4)); }
+.reveal-donut-fill.color-red   { stroke: #ef4444; filter: drop-shadow(0 0 6px rgba(239,68,68,0.4)); }
+
+.reveal-donut-label {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.reveal-donut-pct {
+    font-family: var(--font-mono, monospace);
+    font-size: 2rem;
+    font-weight: 800;
+    line-height: 1;
+}
+.reveal-donut-pct.color-green { color: #22c55e; }
+.reveal-donut-pct.color-amber { color: #f59e0b; }
+.reveal-donut-pct.color-red   { color: #ef4444; }
+
+.reveal-donut-sub {
+    font-size: 0.7rem;
+    color: var(--text-dim, #64748b);
+    margin-top: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+/* ── Sub-score cards ── */
+.reveal-subscores {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 1rem;
+}
+
+.reveal-subscore-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 10px;
+    padding: 10px 6px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.reveal-subscore-icon {
+    font-size: 1.3rem;
+    line-height: 1;
+}
+
+.reveal-subscore-label {
+    font-size: 0.65rem;
+    color: var(--text-dim, #64748b);
+    line-height: 1.2;
+}
+
+.reveal-subscore-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.reveal-subscore-badge.pass {
+    background: rgba(34,197,94,0.15);
+    color: #22c55e;
+}
+.reveal-subscore-badge.fail {
+    background: rgba(239,68,68,0.15);
+    color: #ef4444;
+}
+
+/* ── Fluency line ── */
+.reveal-fluency-line {
+    font-size: 0.75rem;
+    color: var(--text-dim, #64748b);
+    text-align: center;
+    padding: 4px 0 8px;
+    border-top: 1px solid rgba(255,255,255,0.05);
+    margin-bottom: 0.75rem;
+}
+.reveal-fluency-val {
+    font-family: var(--font-mono, monospace);
+    font-weight: 600;
+    color: var(--text-muted, #94a3b8);
+}
+
+/* ── GA thumbnail compact ── */
+.reveal-ga-compact {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 1rem;
+}
+
+.reveal-ga-compact img {
+    width: 64px;
+    height: 64px;
+    object-fit: cover;
+    border-radius: 8px;
+    flex-shrink: 0;
+}
+
+.reveal-ga-info {
+    flex: 1;
+    min-width: 0;
+}
+.reveal-ga-info-label {
+    font-size: 0.7rem;
+    color: var(--text-dim, #64748b);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.reveal-ga-info-answer {
+    font-size: 0.85rem;
+    color: var(--text, #e2e8f0);
+    font-weight: 500;
+    margin-top: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ── System 2 section ── */
+.reveal-s2-wrap {
+    border-top: 1px solid rgba(255,255,255,0.08);
+    padding-top: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.reveal-s2-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.reveal-s2-title {
+    font-size: 0.75rem;
+    color: var(--text-muted, #94a3b8);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.reveal-s2-score-tag {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+.reveal-s2-score-tag.pass {
+    background: rgba(34,197,94,0.15);
+    color: #22c55e;
+}
+.reveal-s2-score-tag.fail {
+    background: rgba(239,68,68,0.15);
+    color: #ef4444;
+}
+
+/* S2 progress bar */
+.reveal-s2-progress {
+    width: 100%;
+    height: 6px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 10px;
+}
+.reveal-s2-progress-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 1s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.reveal-s2-progress-fill.pass { background: #22c55e; }
+.reveal-s2-progress-fill.fail { background: #ef4444; }
+
+/* Node pills */
+.reveal-s2-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.reveal-s2-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 20px;
+    font-size: 0.68rem;
+    line-height: 1.2;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.reveal-s2-pill.pass {
+    background: rgba(34,197,94,0.12);
+    color: #86efac;
+    border: 1px solid rgba(34,197,94,0.2);
+}
+.reveal-s2-pill.fail {
+    background: rgba(239,68,68,0.08);
+    color: #fca5a5;
+    border: 1px solid rgba(239,68,68,0.15);
+}
+.reveal-s2-pill-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.reveal-s2-pill.pass .reveal-s2-pill-dot { background: #22c55e; }
+.reveal-s2-pill.fail .reveal-s2-pill-dot { background: #ef4444; }
+
+/* ── Miss mode redesign ── */
+.reveal-miss-hero {
+    margin: 0.5rem 0 1rem;
+    text-align: center;
+}
+.reveal-miss-hero img {
+    width: 100%;
+    max-width: 280px;
+    border-radius: 12px;
+    border: 2px solid rgba(239,68,68,0.25);
+    box-shadow: 0 4px 20px rgba(239,68,68,0.15);
+}
+
+.reveal-miss-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(239,68,68,0.1);
+    border: 1px solid rgba(239,68,68,0.2);
+    color: #fca5a5;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    margin: 0.75rem 0;
+}
+
+.reveal-miss-why-text {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text, #e2e8f0);
+    margin-bottom: 0.75rem;
+}
+
+/* Rejection grid polish */
+.reveal-rejection-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-bottom: 0.75rem;
+}
+
+.reveal-rejection-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    padding: 8px 10px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px;
+    color: var(--text, #e2e8f0);
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s, transform 0.1s;
+    text-align: left;
+    line-height: 1.3;
+}
+.reveal-rejection-btn:hover {
+    border-color: var(--primary, #3b82f6);
+    background: rgba(59,130,246,0.08);
+    transform: translateY(-1px);
+}
+.reveal-rejection-btn:active {
+    transform: translateY(0);
+}
+
+@media (max-width: 360px) {
+    .reveal-rejection-grid { grid-template-columns: 1fr; }
+    .reveal-subscores { grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+    .reveal-donut { width: 120px; height: 120px; }
+    .reveal-donut-pct { font-size: 1.6rem; }
+}
+
+/* CTA redesign */
+.reveal-cta-section {
+    margin-top: 1rem;
+    text-align: center;
+}
+
+/* Animate-in for content after unblur */
+.reveal-body {
+    opacity: 0;
+    transition: opacity 0.4s ease 0.2s;
+}
+.reveal-body.revealed {
+    opacity: 1;
+}
+</style>
+
 {# Dark overlay #}
 <div class="reveal-overlay" id="revealOverlay">
     <div class="reveal-card" id="revealCard">
@@ -9,162 +421,181 @@
         {# Auto-dismiss countdown in top-right corner #}
         <div class="reveal-countdown" id="revealCountdown">5</div>
 
-        {# ── Blur overlay — click to reveal ── #}
-        <div class="reveal-blur-gate" id="revealBlurGate" style="
-            position:absolute; top:0; left:0; right:0; bottom:0; z-index:10;
-            display:flex; align-items:center; justify-content:center;
-            background:rgba(15,23,42,0.6); backdrop-filter:blur(8px);
-            border-radius:inherit; cursor:pointer;
-            transition: opacity 0.4s ease;
-        ">
-            <button id="revealUnblurBtn" style="
-                background:linear-gradient(135deg,#0d9488,#0ea5e9); color:#fff;
-                border:none; padding:1rem 2.5rem; border-radius:12px;
-                font-size:1.1rem; font-weight:700; cursor:pointer;
-                box-shadow:0 4px 20px rgba(13,148,136,0.4);
-                transition: transform 0.2s ease, box-shadow 0.2s ease;
-            " onmouseover="this.style.transform='scale(1.05)';this.style.boxShadow='0 6px 28px rgba(13,148,136,0.5)'"
-               onmouseout="this.style.transform='scale(1)';this.style.boxShadow='0 4px 20px rgba(13,148,136,0.4)'"
-            >Découvrir mes résultats</button>
+        {# ── Blur gate — gradient fade, pulsing button ── #}
+        <div class="reveal-blur-gate" id="revealBlurGate">
+            <button class="reveal-unblur-btn" id="revealUnblurBtn">
+                Découvrir mes résultats
+            </button>
+            <span class="reveal-blur-hint">Appuyez pour révéler</span>
         </div>
 
         {% if s10_hit == false %}
         {# ── MODE A: S10 Miss — Rejection Autopsy ── #}
-        <div class="reveal-body reveal-miss">
-            <p class="reveal-headline">Cette image etait dans le feed.</p>
+        <div class="reveal-body reveal-miss" id="revealBody">
 
-            <div class="reveal-thumb-wrap">
-                <img src="/ga/{{ test.filename }}" alt="GA" class="reveal-thumb" style="width:300px">
+            {# GA image prominent #}
+            <div class="reveal-miss-hero">
+                <img src="/ga/{{ test.filename }}" alt="GA">
             </div>
 
-            <p class="reveal-miss-text">Vous ne l'avez pas remarquee.</p>
+            {# Soft label #}
+            <div style="text-align:center;">
+                <span class="reveal-miss-label">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
+                    </svg>
+                    Vous ne l'avez pas remarquée
+                </span>
+            </div>
 
-            <p class="reveal-miss-why">Pourquoi, a votre avis ?</p>
-            <div class="rejection-choices rejection-grid" id="rejection-choices">
-                <button class="btn rejection-btn" data-reason="didnt_see">
-                    👻 Pas vue du tout
+            <p class="reveal-miss-why-text">Pourquoi, à votre avis ?</p>
+
+            <div class="reveal-rejection-grid" id="rejection-choices">
+                <button class="reveal-rejection-btn rejection-btn" data-reason="didnt_see">
+                    <span>👻</span> Pas vue du tout
                 </button>
-                <button class="btn rejection-btn" data-reason="scrolled_too_fast">
-                    💨 Trop rapide
+                <button class="reveal-rejection-btn rejection-btn" data-reason="scrolled_too_fast">
+                    <span>💨</span> Trop rapide
                 </button>
-                <button class="btn rejection-btn" data-reason="too_dense">
-                    🤯 Trop chargee
+                <button class="reveal-rejection-btn rejection-btn" data-reason="too_dense">
+                    <span>🤯</span> Trop chargée
                 </button>
-                <button class="btn rejection-btn" data-reason="too_small">
-                    🔍 Trop petit
+                <button class="reveal-rejection-btn rejection-btn" data-reason="too_small">
+                    <span>🔍</span> Trop petit
                 </button>
-                <button class="btn rejection-btn" data-reason="looks_amateur">
-                    🎨 Fait amateur
+                <button class="reveal-rejection-btn rejection-btn" data-reason="looks_amateur">
+                    <span>🎨</span> Fait amateur
                 </button>
-                <button class="btn rejection-btn" data-reason="text_heavy">
-                    📝 Trop de texte
+                <button class="reveal-rejection-btn rejection-btn" data-reason="text_heavy">
+                    <span>📝</span> Trop de texte
                 </button>
-                <button class="btn rejection-btn" data-reason="boring">
-                    😴 Pas interessant
+                <button class="reveal-rejection-btn rejection-btn" data-reason="boring">
+                    <span>😴</span> Pas intéressant
                 </button>
-                <button class="btn rejection-btn" data-reason="confusing">
-                    🤔 Incomprehensible
+                <button class="reveal-rejection-btn rejection-btn" data-reason="confusing">
+                    <span>🤔</span> Incompréhensible
                 </button>
-                <button class="btn rejection-btn" data-reason="no_context">
-                    ❓ Pas de contexte
+                <button class="reveal-rejection-btn rejection-btn" data-reason="no_context">
+                    <span>❓</span> Pas de contexte
                 </button>
-                <button class="btn rejection-btn" data-reason="other">
-                    ✏️ Autre raison
+                <button class="reveal-rejection-btn rejection-btn" data-reason="other">
+                    <span>✏️</span> Autre raison
                 </button>
             </div>
+
             <div class="rejection-other hidden" id="rejection-other-input">
                 <div class="comment-input-wrap">
-                    <textarea id="rejection-other-text" rows="2" placeholder="Decrivez..."></textarea>
+                    <textarea id="rejection-other-text" rows="2" placeholder="Décrivez..."></textarea>
                     <button type="button" class="btn-comment-mic" id="btn-rejection-mic" title="Dicter votre raison">&#127908;</button>
+                    <button type="button" class="btn-comment-mic" id="btn-rejection-lang" style="font-size:0.7rem;padding:2px 5px;min-width:auto;" title="Changer la langue de reconnaissance">FR</button>
                 </div>
-                <button class="btn btn-primary rejection-btn-submit" id="rejection-other-submit">Envoyer</button>
+                <button class="btn btn-primary rejection-btn-submit" id="rejection-other-submit" style="margin-top:8px; width:100%;">Envoyer</button>
             </div>
 
             <div class="rejection-thanks hidden" id="rejection-thanks">
-                <p>Merci — cette donnee aide a ameliorer le design scientifique.</p>
+                <p style="font-size:0.85rem; color:var(--pass,#22c55e); margin-bottom:0.75rem;">
+                    Merci — cette donnée aide à améliorer le design scientifique.
+                </p>
                 <a href="/test" class="btn btn-primary btn-large reveal-btn-continue">Continuer</a>
             </div>
         </div>
 
         {% else %}
-        {# ── MODE B: S10 Hit (or spotlight mode) — show compact score ── #}
-        <div class="reveal-body reveal-hit">
-            <p class="reveal-headline">Votre score</p>
+        {# ── MODE B: S10 Hit — visual score reveal ── #}
+        <div class="reveal-body reveal-hit" id="revealBody">
 
-            {# Single horizontal score bar #}
-            <div class="reveal-score-bar-wrap">
-                <div class="reveal-score-bar">
-                    <div class="reveal-score-fill {{ 'pass' if glance_score >= 0.70 else 'fail' }}"
-                         style="width: {{ (glance_score * 100) | round(0) }}%"></div>
-                </div>
-                <span class="reveal-score-pct {{ 'pass' if glance_score >= 0.70 else 'fail' }}">
-                    {{ (glance_score * 100) | round(0) }}%
-                </span>
-            </div>
-
-            {# Compact score checklist #}
-            <ul class="reveal-checklist">
-                <li class="{{ 'pass' if test.s9a_pass else 'fail' }}">
-                    <span class="reveal-check-icon">{{ '&#10003;' if test.s9a_pass else '&#10007;' }}</span>
-                    Sujet identifié
-                </li>
-                <li class="{{ 'pass' if test.s9b_pass else 'fail' }}">
-                    <span class="reveal-check-icon">{{ '&#10003;' if test.s9b_pass else '&#10007;' }}</span>
-                    Hiérarchie des preuves
-                </li>
-                <li class="{{ 'pass' if test.s9c_pass else 'fail' }}">
-                    <span class="reveal-check-icon">{{ '&#10003;' if test.s9c_pass else '&#10007;' }}</span>
-                    Impact sur la pratique
-                </li>
-            </ul>
-
-            {# Fluency score — shown only when S9b passed #}
-            {% if test.s9b_pass and fluency_score %}
-            <p class="reveal-fluency" style="font-size:0.85rem; color:#94a3b8; margin-top:0.5rem;">
-                Fluency : {{ (fluency_score * 1000) | round(1) }} <span style="font-size:0.7rem;">(S9b/log(RT2) x1000)</span>
-            </p>
-            {% endif %}
-
-            {# Small thumbnail + correct answer #}
-            <div class="reveal-thumb-wrap">
-                <img src="/ga/{{ test.filename }}" alt="GA" class="reveal-thumb">
-            </div>
-            {% if test.correct_product %}
-            <p class="reveal-correct-answer">Réponse correcte : {{ test.correct_product }}</p>
-            {% endif %}
-
-            {# ── System 2 Deep Analysis results ── #}
-            {% if s2_has_data %}
-            <div class="reveal-s2-section" style="margin-top:1.25rem; padding-top:1rem; border-top:1px solid rgba(255,255,255,0.1);">
-                <p style="font-size:0.85rem; color:#94a3b8; margin-bottom:0.5rem; font-weight:600;">
-                    Analyse approfondie (System 2)
-                </p>
-
-                {# S2 coverage bar #}
-                <div class="reveal-score-bar-wrap" style="margin-bottom:0.5rem;">
-                    <div class="reveal-score-bar">
-                        <div class="reveal-score-fill {{ 'pass' if s2_coverage_score >= 0.50 else 'fail' }}"
-                             style="width: {{ (s2_coverage_score * 100) | round(0) }}%"></div>
+            {# 1. Score donut gauge #}
+            {% set score_pct = (glance_score * 100) | round(0) | int %}
+            {% set score_color = 'green' if glance_score >= 0.70 else ('amber' if glance_score >= 0.40 else 'red') %}
+            <div class="reveal-donut-wrap">
+                <div class="reveal-donut">
+                    <svg viewBox="0 0 120 120">
+                        <circle class="reveal-donut-track" cx="60" cy="60" r="54"/>
+                        <circle class="reveal-donut-fill color-{{ score_color }}"
+                                id="donutFill"
+                                cx="60" cy="60" r="54"
+                                data-target="{{ score_pct }}"/>
+                    </svg>
+                    <div class="reveal-donut-label">
+                        <span class="reveal-donut-pct color-{{ score_color }}" id="donutPct">0%</span>
+                        <span class="reveal-donut-sub">GLANCE</span>
                     </div>
-                    <span class="reveal-score-pct {{ 'pass' if s2_coverage_score >= 0.50 else 'fail' }}" style="font-size:0.85rem;">
-                        {{ (s2_coverage_score * 100) | round(0) }}% couverture
+                </div>
+            </div>
+
+            {# 2. Sub-score cards #}
+            <div class="reveal-subscores">
+                <div class="reveal-subscore-card">
+                    <span class="reveal-subscore-icon">🎯</span>
+                    <span class="reveal-subscore-label">Sujet identifié</span>
+                    <span class="reveal-subscore-badge {{ 'pass' if test.s9a_pass else 'fail' }}">
+                        {{ 'OK' if test.s9a_pass else 'Raté' }}
+                    </span>
+                </div>
+                <div class="reveal-subscore-card">
+                    <span class="reveal-subscore-icon">📊</span>
+                    <span class="reveal-subscore-label">Hiérarchie preuves</span>
+                    <span class="reveal-subscore-badge {{ 'pass' if test.s9b_pass else 'fail' }}">
+                        {{ 'OK' if test.s9b_pass else 'Raté' }}
+                    </span>
+                </div>
+                <div class="reveal-subscore-card">
+                    <span class="reveal-subscore-icon">⚡</span>
+                    <span class="reveal-subscore-label">Impact pratique</span>
+                    <span class="reveal-subscore-badge {{ 'pass' if test.s9c_pass else 'fail' }}">
+                        {{ 'OK' if test.s9c_pass else 'Raté' }}
+                    </span>
+                </div>
+            </div>
+
+            {# 3. Fluency (subtle) #}
+            {% if test.s9b_pass and fluency_score %}
+            <div class="reveal-fluency-line">
+                Fluency : <span class="reveal-fluency-val">{{ (fluency_score * 1000) | round(1) }}</span>
+                <span style="font-size:0.65rem; opacity:0.6;"> (S9b/log(RT2) &times;1000)</span>
+            </div>
+            {% endif %}
+
+            {# 4. GA thumbnail compact #}
+            <div class="reveal-ga-compact">
+                <img src="/ga/{{ test.filename }}" alt="GA">
+                <div class="reveal-ga-info">
+                    <div class="reveal-ga-info-label">Image testée</div>
+                    {% if test.correct_product %}
+                    <div class="reveal-ga-info-answer">{{ test.correct_product }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {# 5. System 2 section #}
+            {% if s2_has_data %}
+            <div class="reveal-s2-wrap">
+                <div class="reveal-s2-header">
+                    <span class="reveal-s2-title">Analyse approfondie</span>
+                    <span class="reveal-s2-score-tag {{ 'pass' if s2_coverage_score >= 0.50 else 'fail' }}">
+                        {{ (s2_coverage_score * 100) | round(0) }}%
                     </span>
                 </div>
 
-                {# Node-by-node coverage: received vs missed #}
-                <ul class="reveal-checklist" style="font-size:0.8rem;">
+                {# Coverage progress bar #}
+                <div class="reveal-s2-progress">
+                    <div class="reveal-s2-progress-fill {{ 'pass' if s2_coverage_score >= 0.50 else 'fail' }}"
+                         id="s2ProgressFill"
+                         data-target="{{ (s2_coverage_score * 100) | round(0) }}"
+                         style="width: 0%;"></div>
+                </div>
+
+                {# Node pills #}
+                <div class="reveal-s2-pills">
                     {% for node_id, score in s2_node_coverage.items() %}
-                    <li class="{{ 'pass' if score >= 0.40 else 'fail' }}" style="padding:0.25rem 0;">
-                        <span class="reveal-check-icon">{{ '&#10003;' if score >= 0.40 else '&#10007;' }}</span>
-                        <span title="{{ s2_node_labels.get(node_id, node_id) }}" style="cursor:help;">
-                            {{ s2_node_labels.get(node_id, node_id)|truncate(60) }}
-                        </span>
-                        <span style="color:#64748b; font-size:0.7rem; margin-left:0.25rem;">
-                            ({{ (score * 100)|round(0) }}%)
-                        </span>
-                    </li>
+                    {% set is_pass = score >= 0.40 %}
+                    <span class="reveal-s2-pill {{ 'pass' if is_pass else 'fail' }}"
+                          title="{{ s2_node_labels.get(node_id, node_id) }} ({{ (score * 100)|round(0) }}%)">
+                        <span class="reveal-s2-pill-dot"></span>
+                        {{ s2_node_labels.get(node_id, node_id)|truncate(30) }}
+                    </span>
                     {% endfor %}
-                </ul>
+                </div>
             </div>
             {% endif %}
         </div>
@@ -172,12 +603,12 @@
 
         {# CTA — only for hits; misses have CTA inside rejection-thanks #}
         {% if s10_hit != false %}
-        <div class="reveal-cta">
+        <div class="reveal-cta-section">
             {% if has_more %}
-            <a href="/test" class="btn btn-primary reveal-btn-continue">Continuer à explorer</a>
+            <a href="/test" class="btn btn-primary reveal-btn-continue" style="display:block; width:100%;">Continuer à explorer</a>
             {% else %}
-            <p class="reveal-all-done">Vous avez tout vu !</p>
-            <a href="/dashboard" class="btn btn-primary reveal-btn-continue">Voir le dashboard</a>
+            <p style="font-size:0.85rem; color:var(--text-muted,#94a3b8); margin-bottom:0.5rem;">Vous avez tout vu !</p>
+            <a href="/dashboard" class="btn btn-primary reveal-btn-continue" style="display:block; width:100%;">Voir le dashboard</a>
             {% endif %}
         </div>
         {% endif %}
@@ -188,19 +619,19 @@
 {% block scripts %}
 <script>
 (function() {
-    const overlay = document.getElementById('revealOverlay');
-    const card = document.getElementById('revealCard');
-    const countdownEl = document.getElementById('revealCountdown');
-    const hasMore = {{ 'true' if has_more else 'false' }};
-    const isS10Miss = {{ 'true' if s10_hit == false else 'false' }};
-    let seconds = 5;
-    let timer;
+    var overlay = document.getElementById('revealOverlay');
+    var card = document.getElementById('revealCard');
+    var countdownEl = document.getElementById('revealCountdown');
+    var revealBody = document.getElementById('revealBody');
+    var hasMore = {{ 'true' if has_more else 'false' }};
+    var isS10Miss = {{ 'true' if s10_hit == false else 'false' }};
+    var seconds = 5;
+    var timer;
 
     function autoContinue() {
         if (hasMore) {
             window.location.href = '/test';
         }
-        // If no more images, don't auto-navigate — let them click
     }
 
     // Countdown timer — disabled for S10 misses (we need their rejection answer)
@@ -229,7 +660,6 @@
 
     // Any click on card stops the countdown (user is reading)
     card.addEventListener('click', function(e) {
-        // Don't stop countdown if they clicked the CTA link
         if (e.target.closest('.reveal-btn-continue')) return;
         if (timer) {
             clearInterval(timer);
@@ -237,13 +667,101 @@
         }
     });
 
+    // ── Animate donut gauge from 0 to target ──
+    function animateDonut() {
+        var fill = document.getElementById('donutFill');
+        var pctEl = document.getElementById('donutPct');
+        if (!fill || !pctEl) return;
+
+        var target = parseInt(fill.getAttribute('data-target'), 10) || 0;
+        var circumference = 2 * Math.PI * 54; // r=54
+        var targetDash = (target / 100) * circumference;
+
+        // Animate the SVG stroke
+        requestAnimationFrame(function() {
+            fill.style.strokeDasharray = targetDash + ', ' + circumference;
+        });
+
+        // Animate the percentage counter
+        var start = 0;
+        var duration = 1200;
+        var startTime = null;
+
+        function step(ts) {
+            if (!startTime) startTime = ts;
+            var progress = Math.min((ts - startTime) / duration, 1);
+            var eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+            var current = Math.round(eased * target);
+            pctEl.textContent = current + '%';
+            if (progress < 1) {
+                requestAnimationFrame(step);
+            }
+        }
+        requestAnimationFrame(step);
+    }
+
+    // ── Animate S2 progress bar ──
+    function animateS2() {
+        var bar = document.getElementById('s2ProgressFill');
+        if (!bar) return;
+        var target = bar.getAttribute('data-target') || '0';
+        requestAnimationFrame(function() {
+            bar.style.width = target + '%';
+        });
+    }
+
+    // ── Blur gate — click to reveal ──
+    var blurGate = document.getElementById('revealBlurGate');
+    var unblurBtn = document.getElementById('revealUnblurBtn');
+    if (blurGate && unblurBtn) {
+        // Stop countdown while blurred
+        if (timer) { clearInterval(timer); countdownEl.textContent = ''; }
+
+        unblurBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            blurGate.style.opacity = '0';
+            blurGate.style.pointerEvents = 'none';
+            setTimeout(function() {
+                blurGate.style.display = 'none';
+                // Ensure scroll works after removing blur gate
+                card.style.overflowY = 'auto';
+            }, 500);
+
+            // Show content with fade-in
+            if (revealBody) {
+                revealBody.classList.add('revealed');
+            }
+
+            // Animate gauges after reveal
+            setTimeout(function() {
+                animateDonut();
+                animateS2();
+            }, 300);
+
+            // Restart countdown after reveal (hits only)
+            if (!isS10Miss && hasMore) {
+                seconds = 5;
+                countdownEl.textContent = seconds;
+                timer = setInterval(function() {
+                    seconds--;
+                    if (seconds <= 0) {
+                        clearInterval(timer);
+                        countdownEl.textContent = '';
+                        autoContinue();
+                    } else {
+                        countdownEl.textContent = seconds;
+                    }
+                }, 1000);
+            }
+        });
+    }
+
     // ── Rejection Autopsy (S10 miss) ──
     if (isS10Miss) {
         var testId = {{ test.id }};
         var choicesDiv = document.getElementById('rejection-choices');
         var thanksDiv = document.getElementById('rejection-thanks');
         var buttons = choicesDiv.querySelectorAll('.rejection-btn');
-
         var otherDiv = document.getElementById('rejection-other-input');
 
         buttons.forEach(function(btn) {
@@ -251,11 +769,9 @@
                 var reason = btn.getAttribute('data-reason');
 
                 if (reason === 'other') {
-                    // Show free-text input
                     choicesDiv.classList.add('hidden');
                     otherDiv.classList.remove('hidden');
                 } else {
-                    // POST rejection reason to server
                     fetch('/reject/' + testId + '?reason=' + encodeURIComponent(reason))
                         .catch(function() {});
                     choicesDiv.classList.add('hidden');
@@ -288,9 +804,24 @@
 
             var rejInput = document.getElementById('rejection-other-text');
             var rec = new SpeechRec();
-            rec.lang = 'fr-FR';
+            var currentLang = 'fr';
+            rec.lang = currentLang;
             rec.continuous = true;
             rec.interimResults = true;
+            rec.maxAlternatives = 3;
+
+            // Language toggle
+            var btnLangToggle = document.getElementById('btn-rejection-lang');
+            if (btnLangToggle) {
+                btnLangToggle.addEventListener('click', function() {
+                    currentLang = currentLang === 'fr' ? 'en' : 'fr';
+                    rec.lang = currentLang;
+                    btnLangToggle.textContent = currentLang.toUpperCase();
+                    btnLangToggle.title = currentLang === 'fr'
+                        ? 'Changer la langue de reconnaissance'
+                        : 'Switch recognition language';
+                });
+            }
 
             var isRecording = false;
             var silenceTimer = null;
@@ -358,37 +889,6 @@
                 }
             };
         })();
-    }
-
-    // ── Blur gate — click to reveal ──
-    var blurGate = document.getElementById('revealBlurGate');
-    var unblurBtn = document.getElementById('revealUnblurBtn');
-    if (blurGate && unblurBtn) {
-        // Stop countdown while blurred
-        if (timer) { clearInterval(timer); countdownEl.textContent = ''; }
-
-        unblurBtn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            blurGate.style.opacity = '0';
-            blurGate.style.pointerEvents = 'none';
-            setTimeout(function() { blurGate.style.display = 'none'; }, 400);
-
-            // Restart countdown after reveal
-            if (!isS10Miss && hasMore) {
-                seconds = 5;
-                countdownEl.textContent = seconds;
-                timer = setInterval(function() {
-                    seconds--;
-                    if (seconds <= 0) {
-                        clearInterval(timer);
-                        countdownEl.textContent = '';
-                        autoContinue();
-                    } else {
-                        countdownEl.textContent = seconds;
-                    }
-                }, 1000);
-            }
-        });
     }
 
     // Trigger slide-up animation
