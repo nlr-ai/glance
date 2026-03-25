@@ -12,6 +12,9 @@ Two modes:
    Output: a matrix of all possible visual encodings for that concept.
    Like a visual thesaurus — not "how should I?" but "here are ALL ways you COULD."
 
+Optional: pass `abstract` (paper abstract text) so creative suggestions are
+scientifically relevant — Gemini can ground its explorations in the actual findings.
+
 Usage:
     # Rubber duck a specific component
     python ga_rubber_duck.py duck <image> <graph> "Tissue Damage Cascade"
@@ -42,6 +45,28 @@ if os.path.exists(_ENV):
             if "=" in line and not line.startswith("#"):
                 k, v = line.strip().split("=", 1)
                 os.environ.setdefault(k, v)
+
+
+def _load_abstract(args_abstract=None, args_abstract_file=None, graph_path=None):
+    """Load abstract from args, file, or sidecar JSON.
+
+    Priority: direct text > file > sidecar JSON (semantic_references.L3[0]).
+    Returns None if no abstract is available.
+    """
+    if args_abstract:
+        return args_abstract
+    if args_abstract_file and os.path.exists(args_abstract_file):
+        with open(args_abstract_file, encoding="utf-8") as f:
+            return f.read().strip()
+    if graph_path:
+        sidecar = os.path.splitext(graph_path)[0] + '.json'
+        if os.path.exists(sidecar):
+            with open(sidecar, encoding="utf-8") as f:
+                data = json.load(f)
+            l3 = data.get('semantic_references', {}).get('L3', [])
+            if l3:
+                return l3[0]
+    return None
 
 
 # ── Channel families for rubber duck questions ──────────────────────
@@ -235,8 +260,16 @@ def _load_image(path):
     return data, mime
 
 
-def rubber_duck(image_path, graph_path, component_name, output_path=None):
-    """Ask synesthetic questions about one component across all channel families."""
+def rubber_duck(image_path, graph_path, component_name, output_path=None, abstract=None):
+    """Ask synesthetic questions about one component across all channel families.
+
+    Args:
+        image_path: Path to GA image file.
+        graph_path: Path to L3 graph YAML file.
+        component_name: Name of the component to explore.
+        output_path: Optional output path.
+        abstract: Optional paper abstract text for scientific grounding.
+    """
     model = _load_gemini()
     image_bytes, mime = _load_image(image_path)
 
@@ -267,6 +300,13 @@ def rubber_duck(image_path, graph_path, component_name, output_path=None):
         questions=questions_text,
     )
 
+    if abstract:
+        prompt += (
+            f"\n\nPAPER ABSTRACT: {abstract}\n\n"
+            "Ground your creative suggestions in the paper's actual findings. "
+            "Ensure proposed visual encodings accurately represent the science."
+        )
+
     logger.info(f"Rubber duck: '{component_name}' × {len(all_questions)} questions")
 
     response = model.generate_content(
@@ -295,8 +335,16 @@ def rubber_duck(image_path, graph_path, component_name, output_path=None):
     return parsed
 
 
-def sandbox(image_path, graph_path, concept, output_path=None):
-    """Decline a concept across ALL possible visual encodings."""
+def sandbox(image_path, graph_path, concept, output_path=None, abstract=None):
+    """Decline a concept across ALL possible visual encodings.
+
+    Args:
+        image_path: Path to GA image file.
+        graph_path: Path to L3 graph YAML file.
+        concept: The concept to explore encodings for.
+        output_path: Optional output path.
+        abstract: Optional paper abstract text for scientific grounding.
+    """
     model = _load_gemini()
     image_bytes, mime = _load_image(image_path)
 
@@ -308,6 +356,14 @@ def sandbox(image_path, graph_path, concept, output_path=None):
         graph_yaml=graph_yaml[:3000],
         concept=concept,
     )
+
+    if abstract:
+        prompt += (
+            f"\n\nPAPER ABSTRACT: {abstract}\n\n"
+            "Ground your creative proposals in the paper's actual findings. "
+            "Ensure proposed encodings accurately represent the science — "
+            "flag any proposal that would constitute Spin."
+        )
 
     logger.info(f"Sandbox: '{concept}' × 10 channel families")
 
@@ -349,8 +405,15 @@ def sandbox(image_path, graph_path, concept, output_path=None):
     return parsed
 
 
-def full_duck(image_path, graph_path, output_path=None):
-    """Rubber duck ALL nodes × all channel families. Expensive but comprehensive."""
+def full_duck(image_path, graph_path, output_path=None, abstract=None):
+    """Rubber duck ALL nodes × all channel families. Expensive but comprehensive.
+
+    Args:
+        image_path: Path to GA image file.
+        graph_path: Path to L3 graph YAML file.
+        output_path: Optional output path.
+        abstract: Optional paper abstract text for scientific grounding.
+    """
     model = _load_gemini()
     image_bytes, mime = _load_image(image_path)
 
@@ -364,7 +427,7 @@ def full_duck(image_path, graph_path, output_path=None):
     for i, node in enumerate(nodes):
         name = node["name"]
         logger.info(f"  [{i+1}/{len(nodes)}] {name}...")
-        result = rubber_duck(image_path, graph_path, name)
+        result = rubber_duck(image_path, graph_path, name, abstract=abstract)
         if result:
             results[name] = result
         if i < len(nodes) - 1:
@@ -435,13 +498,15 @@ Return ONLY the YAML. No markdown fences. No explanation.
 """
 
 
-def sandbox_compare(image_paths: list, graph_paths: list, concept: str, output_path=None) -> dict:
+def sandbox_compare(image_paths: list, graph_paths: list, concept: str, output_path=None, abstract=None) -> dict:
     """Compare how 2-3 GAs encode a specific concept across all visual channels.
 
     Args:
         image_paths: list of 2 or 3 image file paths
         graph_paths: list of 2 or 3 corresponding graph YAML paths
         concept: the concept to compare encoding of
+        output_path: Optional output path for the comparison.
+        abstract: Optional paper abstract text for scientific grounding.
 
     Returns:
         dict with per_channel comparison, winner per channel, and overall recommendation
@@ -491,6 +556,13 @@ def sandbox_compare(image_paths: list, graph_paths: list, concept: str, output_p
         per_ga_c=per_ga_c,
         clarity_c=clarity_c,
     )
+
+    if abstract:
+        prompt += (
+            f"\n\nPAPER ABSTRACT: {abstract}\n\n"
+            "Judge each GA's encoding of this concept against the paper's actual findings. "
+            "Factor scientific accuracy into effectiveness scores and winner selection."
+        )
 
     # Build content: prompt + all images
     mime_map = {".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp"}
@@ -567,12 +639,17 @@ if __name__ == "__main__":
                         help="duck=one component, sandbox=one concept all channels, full=all components, compare=compare GAs on a concept")
     parser.add_argument("--compare", nargs="+", metavar="PATH",
                         help="Compare mode paths: --compare img_a.png graph_a.yaml img_b.png graph_b.yaml \"concept\"")
+    parser.add_argument("--abstract", help="Paper abstract text for context")
+    parser.add_argument("--abstract-file", help="Path to file containing abstract")
     parser.add_argument("image", nargs="?", help="GA image path")
     parser.add_argument("graph", nargs="?", help="L3 graph YAML path")
     parser.add_argument("target", nargs="?", default=None,
                         help="Component name (duck) or concept (sandbox)")
     parser.add_argument("--output", "-o", help="Output path")
     args = parser.parse_args()
+
+    abstract = _load_abstract(args.abstract, args.abstract_file,
+                              args.graph if hasattr(args, 'graph') else None)
 
     if args.mode == "compare" or args.compare:
         if not args.compare:
@@ -594,14 +671,14 @@ if __name__ == "__main__":
         n_pairs = len(pair_paths) // 2
         img_paths = [pair_paths[i * 2] for i in range(n_pairs)]
         grp_paths = [pair_paths[i * 2 + 1] for i in range(n_pairs)]
-        sandbox_compare(img_paths, grp_paths, concept_str, args.output)
+        sandbox_compare(img_paths, grp_paths, concept_str, args.output, abstract=abstract)
     elif args.mode == "duck":
         if not args.target:
             parser.error("duck mode requires a component name")
-        rubber_duck(args.image, args.graph, args.target, args.output)
+        rubber_duck(args.image, args.graph, args.target, args.output, abstract=abstract)
     elif args.mode == "sandbox":
         if not args.target:
             parser.error("sandbox mode requires a concept")
-        sandbox(args.image, args.graph, args.target, args.output)
+        sandbox(args.image, args.graph, args.target, args.output, abstract=abstract)
     elif args.mode == "full":
-        full_duck(args.image, args.graph, args.output)
+        full_duck(args.image, args.graph, args.output, abstract=abstract)

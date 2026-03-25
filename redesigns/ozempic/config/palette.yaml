@@ -1,0 +1,57 @@
+# Palette — Ozempic STEP 1 GA — V2 (High Impact)
+# Full-canvas design: transformation circles + milestone bars + hero callout
+
+# Hero — the semaglutide result
+hero:
+  primary: "#0D9488"        # teal — semaglutide identity
+  dark: "#0F766E"           # dark teal — depth/shadow
+  light: "#CCFBF1"          # pale teal — highlights
+  glow: "#5EEAD4"           # bright teal — glow rings
+
+# Contrast — placebo / baseline
+contrast:
+  primary: "#94A3B8"        # slate gray — placebo
+  dark: "#64748B"           # darker slate
+  light: "#CBD5E1"          # light slate
+
+# Background gradient (warm left -> cool right)
+background:
+  left: "#FFF7ED"           # warm cream (orange-50)
+  right: "#F0FDFA"          # cool mint (teal-50)
+  overlay: "#FFFFFF"        # white overlay for card areas
+
+# Accent — callout badge
+accent:
+  badge_bg: "#0F766E"       # dark teal pill
+  badge_glow: "#5EEAD4"     # outer glow ring
+  badge_text: "#FFFFFF"     # white on badge
+  hot: "#F97316"            # orange for emphasis arrows/sparks
+
+# Transformation circles
+circles:
+  before: "#E2E8F0"         # light slate (the "before" mass)
+  before_stroke: "#94A3B8"  # slate border
+  after: "#0D9488"          # teal (the "after" = result)
+  after_stroke: "#0F766E"   # dark teal border
+  reduction_fill: "#CCFBF1" # the visible reduction zone
+
+# Milestone bars
+milestones:
+  bar_bg: "#E2E8F0"         # track background
+  bar_5pct: "#99F6E4"       # lightest teal — >=5% threshold
+  bar_10pct: "#5EEAD4"      # medium teal — >=10%
+  bar_15pct: "#0D9488"      # full teal — >=15%
+
+# Text
+text:
+  primary: "#0F172A"        # near-black (slate-900)
+  secondary: "#334155"      # dark slate
+  muted: "#64748B"          # mid slate
+  inverse: "#FFFFFF"        # white on dark
+  teal: "#0D9488"           # teal for drug name
+  number: "#0F172A"         # heavy numbers
+
+# Dividers / structure
+structure:
+  line: "#CBD5E1"           # subtle structural lines
+  card_shadow: "#000000"    # shadow color (use with low opacity)

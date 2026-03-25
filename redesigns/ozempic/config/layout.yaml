@@ -1,0 +1,133 @@
+# Layout — Ozempic STEP 1 GA — V2 (High Impact)
+# Full-canvas design: no left/right split
+# LinkedIn format: 1200x628 delivery (1.91:1 ratio)
+
+canvas:
+  width: 2400
+  height: 1256
+  delivery_width: 1200
+  delivery_height: 628
+
+# --- TOP BAND: Title + metadata ---
+
+title:
+  text: "STEP 1 Trial"
+  x_pct: 0.05
+  y_pct: 0.10
+  font_size: 64
+  font_weight: "900"
+
+drug_name:
+  text: "Semaglutide 2.4 mg"
+  x_pct: 0.05
+  y_pct: 0.175
+  font_size: 42
+  font_weight: "700"
+
+meta:
+  text: "68 wk  |  N = 1,961  |  P < 0.001"
+  x_pct: 0.05
+  y_pct: 0.235
+  font_size: 26
+  font_weight: "400"
+
+# --- LEFT AREA: Transformation Circles ---
+
+transformation:
+  # "Before" circle — the full body weight (100%)
+  before:
+    cx_pct: 0.22
+    cy_pct: 0.58
+    radius: 240              # large circle = starting weight
+    label: "100%"
+    label_sub: "baseline"
+    stroke_width: 3
+
+  # "After" circle — overlaid, smaller (85.1% = 100 - 14.9)
+  after:
+    cx_pct: 0.22
+    cy_pct: 0.58
+    radius: 204              # 85.1% of 240 = 204
+    label: "85.1%"
+    label_sub: "after 68 wk"
+    stroke_width: 4
+
+  # The reduction label (pointing to the gap)
+  reduction:
+    text: "-14.9%"
+    font_size: 64
+    font_weight: "900"
+    x_pct: 0.35
+    y_pct: 0.44
+    arrow_start_x_pct: 0.34
+    arrow_start_y_pct: 0.47
+    arrow_end_x_pct: 0.29
+    arrow_end_y_pct: 0.52
+
+# --- CENTER: Hero Callout (6.2x) ---
+
+hero_callout:
+  # The "6.2x" number — BIGGEST element
+  number: "6.2"
+  number_font_size: 160
+  number_font_weight: "900"
+  # The "x" suffix
+  suffix: "x"
+  suffix_font_size: 100
+  suffix_font_weight: "700"
+  # Sub-line
+  sub_text: "more weight loss"
+  sub_font_size: 36
+  sub_font_weight: "600"
+  # Comparison line
+  compare_text: "vs. placebo (-2.4%)"
+  compare_font_size: 26
+  compare_font_weight: "400"
+  # Position (center of canvas)
+  cx_pct: 0.56
+  cy_pct: 0.50
+  # Badge dimensions
+  badge_width: 440
+  badge_height: 340
+  badge_radius: 28
+
+# --- RIGHT AREA: Milestone Bars (stacked) ---
+
+milestones:
+  x_pct: 0.74
+  width_pct: 0.22
+  y_start_pct: 0.30
+  bar_height: 50
+  bar_gap: 24
+  track_radius: 10
+  label_font_size: 26
+  value_font_size: 36
+  value_font_weight: "800"
+  label_font_weight: "600"
+  # The 3 thresholds
+  items:
+    - threshold: ">=5%"
+      semaglutide_pct: 86.4
+      placebo_pct: 31.5
+      label: "lost >=5% weight"
+    - threshold: ">=10%"
+      semaglutide_pct: 69.1
+      placebo_pct: 12.0
+      label: "lost >=10% weight"
+    - threshold: ">=15%"
+      semaglutide_pct: 50.5
+      placebo_pct: 4.9
+      label: "lost >=15% weight"
+
+# --- BOTTOM: Source ---
+
+source:
+  text: "Wilding et al., NEJM 2021 — STEP 1 (semaglutide 2.4 mg vs placebo)"
+  y_pct: 0.94
+  font_size: 18
+  font_weight: "400"
+
+font:
+  family: "Helvetica, Arial, sans-serif"
+  condensed: "Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif"
+  min_size: 16

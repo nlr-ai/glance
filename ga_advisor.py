@@ -4,9 +4,13 @@ GA Advisor — Targeted Gemini queries that return graph modifications.
 Takes a GA image + its L3 graph + a user intent/question, and returns
 a modified cluster with specific changes to implement.
 
+Optional: pass `abstract` (paper abstract text) so Gemini's modifications
+are scientifically grounded — ensuring suggested changes don't introduce
+Spin or omit key findings.
+
 Usage:
     python ga_advisor.py <image> <graph> "I want more emotional impact"
-    python ga_advisor.py <image> <graph> "How to improve layout clarity?"
+    python ga_advisor.py <image> <graph> "How to improve layout clarity?" --abstract "Paper abstract..."
     python ga_advisor.py <image> <graph> "Dark theme version"
     python ga_advisor.py <image> <graph> "Make the hierarchy obvious in 3 seconds"
 
@@ -17,6 +21,7 @@ node/link changes that can be diff'd against the original.
 import os
 import sys
 import yaml
+import json
 import re
 import logging
 import time
@@ -32,6 +37,28 @@ if os.path.exists(_ENV):
             if "=" in line and not line.startswith("#"):
                 k, v = line.strip().split("=", 1)
                 os.environ.setdefault(k, v)
+
+
+def _load_abstract(args_abstract=None, args_abstract_file=None, graph_path=None):
+    """Load abstract from args, file, or sidecar JSON.
+
+    Priority: direct text > file > sidecar JSON (semantic_references.L3[0]).
+    Returns None if no abstract is available.
+    """
+    if args_abstract:
+        return args_abstract
+    if args_abstract_file and os.path.exists(args_abstract_file):
+        with open(args_abstract_file, encoding="utf-8") as f:
+            return f.read().strip()
+    if graph_path:
+        sidecar = os.path.splitext(graph_path)[0] + '.json'
+        if os.path.exists(sidecar):
+            with open(sidecar, encoding="utf-8") as f:
+                data = json.load(f)
+            l3 = data.get('semantic_references', {}).get('L3', [])
+            if l3:
+                return l3[0]
+    return None
 
 
 ADVISOR_PROMPT = """You are a visual communication expert analyzing a scientific Graphical Abstract (GA).
@@ -112,8 +139,17 @@ def _resilient_yaml_parse(raw_text):
     return None
 
 
-def advise(image_path, graph_path, intent, output_path=None):
-    """Send GA + graph + intent to Gemini, get modified graph back."""
+def advise(image_path, graph_path, intent, output_path=None, abstract=None):
+    """Send GA + graph + intent to Gemini, get modified graph back.
+
+    Args:
+        image_path: Path to GA image file.
+        graph_path: Path to L3 graph YAML file.
+        intent: What the user wants to change.
+        output_path: Optional output path for the advised graph.
+        abstract: Optional paper abstract text. When provided, Gemini ensures
+                  modifications are scientifically grounded.
+    """
     import google.generativeai as genai
 
     genai.configure(api_key=os.environ["GEMINI_API_KEY"])
@@ -133,6 +169,15 @@ def advise(image_path, graph_path, intent, output_path=None):
 
     # Build prompt
     prompt = ADVISOR_PROMPT.format(graph_yaml=graph_yaml, intent=intent)
+
+    if abstract:
+        prompt += (
+            f"\n\nPAPER ABSTRACT: {abstract}\n\n"
+            "Ensure all modifications are scientifically grounded. "
+            "Do not introduce Spin (visual claims the data doesn't support). "
+            "If the user's intent would misrepresent the findings, flag it and suggest "
+            "a scientifically accurate alternative."
+        )
 
     logger.info(f"Intent: {intent}")
     logger.info(f"Sending to Gemini ({len(graph.get('nodes',[]))} nodes)...")
@@ -274,13 +319,16 @@ Return ONLY the YAML. No markdown fences. No explanation before or after.
 """
 
 
-def advise_merge(image_paths: list, graph_paths: list, intent: str, output_path=None) -> dict:
+def advise_merge(image_paths: list, graph_paths: list, intent: str, output_path=None, abstract=None) -> dict:
     """Merge the best elements from 2-3 GA versions into a single optimal graph.
 
     Args:
         image_paths: list of 2 or 3 image file paths
         graph_paths: list of 2 or 3 corresponding graph YAML paths
         intent: what the user wants from the merge
+        output_path: Optional output path for the merged graph.
+        abstract: Optional paper abstract text. When provided, Gemini ensures
+                  merged elements are scientifically accurate.
 
     Returns:
         dict: merged graph with _source annotations on each node
@@ -323,6 +371,14 @@ def advise_merge(image_paths: list, graph_paths: list, intent: str, output_path=
         image_graph_sections="\n".join(section_texts),
         elements_from_c=elements_from_c,
     )
+
+    if abstract:
+        prompt += (
+            f"\n\nPAPER ABSTRACT: {abstract}\n\n"
+            "Ensure the merged GA accurately represents the paper's findings. "
+            "Prefer elements that faithfully communicate the science. "
+            "Flag any merged element that would constitute Spin."
+        )
 
     # Build content: prompt + all images
     parts = [prompt]
@@ -398,11 +454,16 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="GA Advisor — targeted Gemini queries")
     parser.add_argument("--compare", nargs="+", metavar="PATH",
                         help="Merge 2-3 GA versions: --compare img_a.png graph_a.yaml img_b.png graph_b.yaml [img_c.png graph_c.yaml] \"intent\"")
+    parser.add_argument("--abstract", help="Paper abstract text for context")
+    parser.add_argument("--abstract-file", help="Path to file containing abstract")
     parser.add_argument("image", nargs="?", help="Path to GA image (single mode)")
     parser.add_argument("graph", nargs="?", help="Path to L3 graph YAML (single mode)")
     parser.add_argument("intent", nargs="?", help="What you want (single mode)")
     parser.add_argument("--output", "-o", help="Output path")
     args = parser.parse_args()
+
+    abstract = _load_abstract(args.abstract, args.abstract_file,
+                              args.graph if hasattr(args, 'graph') else None)
 
     if args.compare:
         paths = args.compare
@@ -423,8 +484,8 @@ if __name__ == "__main__":
         n = len(pair_paths) // 2
         image_paths = [pair_paths[i * 2] for i in range(n)]
         graph_paths = [pair_paths[i * 2 + 1] for i in range(n)]
-        advise_merge(image_paths, graph_paths, intent_str, args.output)
+        advise_merge(image_paths, graph_paths, intent_str, args.output, abstract=abstract)
     elif args.image and args.graph and args.intent:
-        advise(args.image, args.graph, args.intent, args.output)
+        advise(args.image, args.graph, args.intent, args.output, abstract=abstract)
     else:
         parser.print_help()

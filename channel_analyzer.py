@@ -5,8 +5,12 @@ Sends the GA image + its L3 graph + batches of 25 visual channels to Gemini.
 For each channel, Gemini evaluates: is it used? how effectively? which nodes?
 The enriched graph gets channel annotations on each node and link.
 
+Optional: pass `abstract` (paper abstract text) so Gemini can judge whether
+channels encode the RIGHT information (not just whether they're used effectively).
+
 Usage:
     python channel_analyzer.py <ga_image_path> <graph_yaml_path> [--output enriched.yaml]
+    python channel_analyzer.py <ga_image_path> <graph_yaml_path> --abstract "Paper abstract text..."
 """
 
 import os
@@ -29,6 +33,28 @@ if os.path.exists(_ENV):
             if "=" in line and not line.startswith("#"):
                 k, v = line.strip().split("=", 1)
                 os.environ.setdefault(k, v)
+
+
+def _load_abstract(args_abstract=None, args_abstract_file=None, graph_path=None):
+    """Load abstract from args, file, or sidecar JSON.
+
+    Priority: direct text > file > sidecar JSON (semantic_references.L3[0]).
+    Returns None if no abstract is available.
+    """
+    if args_abstract:
+        return args_abstract
+    if args_abstract_file and os.path.exists(args_abstract_file):
+        with open(args_abstract_file, encoding="utf-8") as f:
+            return f.read().strip()
+    if graph_path:
+        sidecar = os.path.splitext(graph_path)[0] + '.json'
+        if os.path.exists(sidecar):
+            with open(sidecar, encoding="utf-8") as f:
+                data = json.load(f)
+            l3 = data.get('semantic_references', {}).get('L3', [])
+            if l3:
+                return l3[0]
+    return None
 
 
 # ── Channel catalog (parsed from markdown) ──────────────────────────
@@ -219,8 +245,13 @@ def _regex_extract_channel(block):
 
 
 def analyze_batch(image_bytes, mime_type, graph_yaml, channels, model,
-                  max_retries=2):
-    """Send one batch of channels to Gemini for analysis. Self-healing on failure."""
+                  max_retries=2, abstract=None):
+    """Send one batch of channels to Gemini for analysis. Self-healing on failure.
+
+    Args:
+        abstract: Optional paper abstract. When provided, Gemini judges whether
+                  channels encode the RIGHT information, not just effectiveness.
+    """
     channel_list = format_channel_batch(channels)
     prompt = CHANNEL_PROMPT_TEMPLATE.format(
         graph_yaml=graph_yaml,
@@ -228,6 +259,14 @@ def analyze_batch(image_bytes, mime_type, graph_yaml, channels, model,
         channel_list=channel_list,
         channel_id=channels[0]["id"],
     )
+
+    if abstract:
+        prompt += (
+            f"\n\nPAPER ABSTRACT: {abstract}\n\n"
+            "Use this abstract to judge whether each channel encodes the RIGHT information — "
+            "not just whether it's used effectively. Flag channels that visually emphasize "
+            "something the paper doesn't support (Spin) or that miss key findings."
+        )
 
     for attempt in range(max_retries + 1):
         try:
@@ -252,10 +291,10 @@ def analyze_batch(image_bytes, mime_type, graph_yaml, channels, model,
             logger.info(f"  Retrying with smaller batch ({len(channels)}→{len(channels)//2})...")
             mid = len(channels) // 2
             r1 = analyze_batch(image_bytes, mime_type, graph_yaml,
-                               channels[:mid], model, max_retries=0)
+                               channels[:mid], model, max_retries=0, abstract=abstract)
             time.sleep(3)
             r2 = analyze_batch(image_bytes, mime_type, graph_yaml,
-                               channels[mid:], model, max_retries=0)
+                               channels[mid:], model, max_retries=0, abstract=abstract)
             merged = r1.get("channels", []) + r2.get("channels", [])
             return {"channels": merged}
 
@@ -438,8 +477,16 @@ def enrich_graph(graph, all_channel_results):
 
 # ── Main ────────────────────────────────────────────────────────────
 
-def analyze_ga_channels(image_path, graph_path, output_path=None):
-    """Full pipeline: load image + graph, batch-analyze channels, enrich graph."""
+def analyze_ga_channels(image_path, graph_path, output_path=None, abstract=None):
+    """Full pipeline: load image + graph, batch-analyze channels, enrich graph.
+
+    Args:
+        image_path: Path to GA image file.
+        graph_path: Path to L3 graph YAML file.
+        output_path: Optional output path for enriched graph.
+        abstract: Optional paper abstract text. When provided, Gemini judges
+                  whether channels encode the RIGHT information.
+    """
     import google.generativeai as genai
 
     genai.configure(api_key=os.environ["GEMINI_API_KEY"])
@@ -470,7 +517,7 @@ def analyze_ga_channels(image_path, graph_path, output_path=None):
     for i, batch in enumerate(batches):
         logger.info(f"Analyzing batch {i+1}/{len(batches)} ({len(batch)} channels)...")
         try:
-            result = analyze_batch(image_bytes, mime_type, graph_yaml, batch, model)
+            result = analyze_batch(image_bytes, mime_type, graph_yaml, batch, model, abstract=abstract)
             all_results.append(result)
             n_ch = len(result.get('channels', []))
             logger.info(f"  Got {n_ch} channel results")
@@ -573,12 +620,14 @@ delta:
 """
 
 
-def compare_channels(image_paths: list, graph_paths: list, output_path=None) -> dict:
+def compare_channels(image_paths: list, graph_paths: list, output_path=None, abstract=None) -> dict:
     """Run channel analysis on each image independently, then generate a DELTA report.
 
     Args:
         image_paths: list of 2 or 3 image file paths
         graph_paths: list of 2 or 3 corresponding graph YAML paths
+        output_path: Optional output path for the comparison report.
+        abstract: Optional paper abstract text for scientific accuracy context.
 
     Returns:
         dict with keys: per_image (list of enriched graphs), delta (comparison dict)
@@ -602,7 +651,7 @@ def compare_channels(image_paths: list, graph_paths: list, output_path=None) -> 
     for i, (img_path, grp_path) in enumerate(zip(image_paths, graph_paths)):
         label = chr(65 + i)
         logger.info(f"Analyzing channels for image {label}: {img_path}")
-        enriched = analyze_ga_channels(img_path, grp_path)
+        enriched = analyze_ga_channels(img_path, grp_path, abstract=abstract)
         per_image.append(enriched)
         if i < n - 1:
             time.sleep(2)
@@ -703,10 +752,15 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Analyze GA visual channels")
     parser.add_argument("--compare", nargs="+", metavar="PATH",
                         help="Compare 2-3 GAs: --compare img_a.png graph_a.yaml img_b.png graph_b.yaml [img_c.png graph_c.yaml]")
+    parser.add_argument("--abstract", help="Paper abstract text for context")
+    parser.add_argument("--abstract-file", help="Path to file containing abstract")
     parser.add_argument("image", nargs="?", help="Path to GA image (single mode)")
     parser.add_argument("graph", nargs="?", help="Path to L3 graph YAML (single mode)")
     parser.add_argument("--output", "-o", help="Output path")
     args = parser.parse_args()
+
+    abstract = _load_abstract(args.abstract, args.abstract_file,
+                              args.graph if hasattr(args, 'graph') else None)
 
     if args.compare:
         paths = args.compare
@@ -719,12 +773,12 @@ if __name__ == "__main__":
         n = len(paths) // 2
         image_paths = [paths[i * 2] for i in range(n)]
         graph_paths = [paths[i * 2 + 1] for i in range(n)]
-        result = compare_channels(image_paths, graph_paths, args.output)
+        result = compare_channels(image_paths, graph_paths, args.output, abstract=abstract)
         delta = result.get("delta", {})
         print(f"\nOverall winner: {delta.get('overall_winner', 'N/A')}")
         print(f"Rationale: {delta.get('winner_rationale', 'N/A')}")
         print(f"Key insight: {delta.get('key_insight', 'N/A')}")
     elif args.image and args.graph:
-        analyze_ga_channels(args.image, args.graph, args.output)
+        analyze_ga_channels(args.image, args.graph, args.output, abstract=abstract)
     else:
         parser.print_help()

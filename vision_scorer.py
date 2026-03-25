@@ -6,12 +6,17 @@ validates it, and saves the resulting L3 graph.
 Model: Gemini Pro (default: gemini-2.5-pro) via GEMINI_MODEL env var.
 Pro is preferred over Flash for this use case — more accurate structured output
 and better vision analysis on complex charts.
+
+Optional: pass `abstract` (paper abstract text) to any analysis function so
+Gemini can compare what the GA communicates vs what the paper actually found,
+detecting Spin (visual embellishment) and missed key findings.
 """
 
 import os
 import re
 import yaml
 import time
+import json
 import logging
 from pathlib import Path
 
@@ -27,6 +32,29 @@ if os.path.exists(_env_path):
             if _line and not _line.startswith("#") and "=" in _line:
                 _k, _v = _line.split("=", 1)
                 os.environ.setdefault(_k.strip(), _v.strip())
+
+
+def _load_abstract(args_abstract=None, args_abstract_file=None, graph_path=None):
+    """Load abstract from args, file, or sidecar JSON.
+
+    Priority: direct text > file > sidecar JSON (semantic_references.L3[0]).
+    Returns None if no abstract is available.
+    """
+    if args_abstract:
+        return args_abstract
+    if args_abstract_file and os.path.exists(args_abstract_file):
+        with open(args_abstract_file, encoding="utf-8") as f:
+            return f.read().strip()
+    # Try sidecar JSON
+    if graph_path:
+        sidecar = os.path.splitext(graph_path)[0] + '.json'
+        if os.path.exists(sidecar):
+            with open(sidecar, encoding="utf-8") as f:
+                data = json.load(f)
+            l3 = data.get('semantic_references', {}).get('L3', [])
+            if l3:
+                return l3[0]
+    return None
 
 
 VISION_PROMPT = """You are analyzing a scientific Graphical Abstract (GA) for the GLANCE benchmark.
@@ -239,12 +267,14 @@ Return ONLY the YAML. No markdown fences. No explanation before or after.
 """
 
 
-def compare_ga_images(images: list, filenames: list) -> dict:
+def compare_ga_images(images: list, filenames: list, abstract: str = None) -> dict:
     """Compare 2 or 3 GA images side-by-side via a single Gemini call.
 
     Args:
         images: list of tuples (image_bytes, mime_type_or_ext) — 2 or 3 items
         filenames: list of filenames corresponding to each image
+        abstract: Optional paper abstract text. When provided, Gemini judges
+                  which GA most faithfully represents the paper's findings.
 
     Returns:
         dict with keys: graphs (dict of A/B/C -> graph), ranking (list),
@@ -286,6 +316,14 @@ def compare_ga_images(images: list, filenames: list) -> dict:
         ranking_c_placeholder=ranking_c_placeholder,
         extra_comparisons=extra_comparisons,
     )
+
+    if abstract:
+        prompt += (
+            f"\n\nPAPER ABSTRACT: {abstract}\n\n"
+            "Compare what each GA communicates vs what the paper actually found. "
+            "Flag any Spin (GA says something the data doesn't support) or missed key findings. "
+            "Factor scientific accuracy into the ranking."
+        )
 
     # Build content parts: prompt + all images interleaved with labels
     mime_map = {
@@ -354,12 +392,15 @@ def compare_ga_images(images: list, filenames: list) -> dict:
     }
 
 
-def analyze_ga_image(image_bytes: bytes, filename: str = "") -> dict:
+def analyze_ga_image(image_bytes: bytes, filename: str = "", abstract: str = None) -> dict:
     """Send GA image to Gemini Vision, get L3 graph + analysis.
 
     Args:
         image_bytes: Raw image bytes (PNG, JPG, etc.)
         filename: Original filename for reference
+        abstract: Optional paper abstract text. When provided, Gemini compares
+                  what the GA communicates vs what the paper actually found,
+                  detecting Spin and missed key findings.
 
     Returns:
         dict with keys: graph (validated L3), metadata, raw_response, saved_path
@@ -386,11 +427,20 @@ def analyze_ga_image(image_bytes: bytes, filename: str = "") -> dict:
     }
     mime_type = mime_map.get(ext, "image/png")
 
+    # Build prompt with optional abstract context
+    prompt = VISION_PROMPT
+    if abstract:
+        prompt += (
+            f"\n\nPAPER ABSTRACT: {abstract}\n\n"
+            "Compare what the GA communicates vs what the paper actually found. "
+            "Flag any Spin (GA says something the data doesn't support) or missed key findings."
+        )
+
     # Send to Gemini Vision
     try:
         response = model.generate_content(
             [
-                VISION_PROMPT,
+                prompt,
                 {"mime_type": mime_type, "data": image_bytes},
             ],
             generation_config={
@@ -456,8 +506,12 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="GLANCE Vision Scorer")
     parser.add_argument("--compare", nargs="+", metavar="IMAGE",
                         help="Compare 2 or 3 GA images: --compare ga1.png ga2.png [ga3.png]")
+    parser.add_argument("--abstract", help="Paper abstract text for context")
+    parser.add_argument("--abstract-file", help="Path to file containing abstract")
     parser.add_argument("image", nargs="?", help="Single GA image to analyze")
     args = parser.parse_args()
+
+    abstract = _load_abstract(args.abstract, args.abstract_file)
 
     if args.compare:
         if len(args.compare) < 2 or len(args.compare) > 3:
@@ -472,7 +526,7 @@ if __name__ == "__main__":
             ext = os.path.splitext(path)[1].lower().replace(".", "")
             images.append((data, ext))
             filenames.append(os.path.basename(path))
-        result = compare_ga_images(images, filenames)
+        result = compare_ga_images(images, filenames, abstract=abstract)
         print(f"\nRanking:")
         for r in result.get("ranking", []):
             print(f"  {r.get('label', '?')}: score={r.get('estimated_glance_score', '?')} — {r.get('rationale', '')}")
@@ -490,7 +544,7 @@ if __name__ == "__main__":
             parser.error(f"File not found: {args.image}")
         with open(args.image, "rb") as f:
             data = f.read()
-        result = analyze_ga_image(data, os.path.basename(args.image))
+        result = analyze_ga_image(data, os.path.basename(args.image), abstract=abstract)
         print(f"Graph saved: {result['saved_path']}")
     else:
         parser.print_help()
