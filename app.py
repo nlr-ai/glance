@@ -19,6 +19,7 @@ from db import get_db, init_db, create_participant, get_participant_by_token
 from db import get_next_image, save_test, get_test, get_stats
 from db import get_all_tests, get_image_count, get_all_images, add_ga_image
 from db import get_image_by_id, get_tests_for_image, get_landing_stats, get_example_ga
+from db import get_referral_count, get_top_referrers
 from scoring import score_test, classify_speed_accuracy
 from analytics import (
     compute_aggregate_stats,
@@ -43,6 +44,8 @@ from analytics import (
 from config_loader import get_constant
 from cards import generate_test_card, generate_dashboard_card, generate_default_card, generate_ga_og_card
 from i18n import t as _t, get_lang
+from archetype import classify_ga, classify_from_vision_metadata, ARCHETYPES
+from archetype_icons import ARCHETYPE_SVGS
 
 BASE = os.path.dirname(__file__)
 
@@ -53,6 +56,7 @@ app.mount("/ga", StaticFiles(directory=os.path.join(BASE, "ga_library")), name="
 
 # Make t() available in all Jinja2 templates as a global function
 templates.env.globals["t"] = _t
+templates.env.globals["archetype_svgs"] = ARCHETYPE_SVGS
 
 with open(os.path.join(BASE, "config.yaml"), encoding="utf-8") as f:
     CONFIG = yaml.safe_load(f)
@@ -69,6 +73,11 @@ class I18nMiddleware(BaseHTTPMiddleware):
         if request.query_params.get("lang") in ("fr", "en"):
             response.set_cookie("glance_lang", request.query_params["lang"],
                                 max_age=86400 * 365, httponly=True)
+        # Persist referral code via cookie so it survives through onboard flow
+        ref_param = request.query_params.get("ref", "")
+        if ref_param and len(ref_param) <= 8:
+            response.set_cookie("glance_ref", ref_param,
+                                max_age=86400 * 30, httponly=True)
         return response
 
 app.add_middleware(I18nMiddleware)
@@ -265,9 +274,12 @@ def onboard_submit(
     input_mode: str = Form("text"),
 ):
     token = str(uuid.uuid4())
+    # Capture referral code from query param or cookie
+    ref = request.query_params.get("ref", "") or request.cookies.get("glance_ref", "")
+    ref = ref.strip()[:8] if ref else None
     create_participant(token, clinical_domain, experience_years,
                        data_literacy, grade_familiar, colorblind_status,
-                       input_mode=input_mode)
+                       input_mode=input_mode, referred_by=ref)
     lang = _lang(request)
     response = RedirectResponse(url=f"/test?lang={lang}", status_code=303)
     response.set_cookie("glance_token", token, httponly=True,
@@ -772,6 +784,54 @@ def dashboard(request: Request):
     })
 
 
+# ── Invite route ────────────────────────────────────────────────────────
+
+
+@app.get("/invite", response_class=HTMLResponse)
+def invite_page(request: Request):
+    """Invite colleagues page — viral growth through email, LinkedIn, WhatsApp."""
+    participant = _get_participant(request)
+    lang = _lang(request)
+
+    # Build participant stats for personalized messages
+    referral_code = ""
+    score_pct = 0
+    n_tests = 0
+    n_referrals = 0
+
+    if participant:
+        referral_code = participant["token"][:8]
+        n_referrals = get_referral_count(referral_code)
+
+        # Get participant's average score
+        db = get_db()
+        row = db.execute(
+            """SELECT AVG(glance_score) as avg_score, COUNT(*) as n
+               FROM tests WHERE participant_id = ?""",
+            (participant["id"],),
+        ).fetchone()
+        db.close()
+        if row and row["avg_score"] is not None:
+            score_pct = round(row["avg_score"] * 100)
+            n_tests = row["n"]
+
+    # Ambassador badge threshold
+    is_ambassador = n_referrals >= 5
+
+    return templates.TemplateResponse("invite.html", {
+        "request": request,
+        "lang": lang,
+        "referral_code": referral_code,
+        "score_pct": score_pct,
+        "n_tests": n_tests,
+        "n_referrals": n_referrals,
+        "is_ambassador": is_ambassador,
+        "has_participant": participant is not None,
+        "og_title": "Invitez vos collegues sur GLANCE",
+        "og_description": "GLANCE a besoin de testeurs de tous profils. Le premier benchmark des Graphical Abstracts scientifiques.",
+    })
+
+
 # ── Leaderboard routes ────────────────────────────────────────────────
 
 
@@ -802,6 +862,42 @@ def leaderboard_domain(request: Request, domain: str):
     if not data:
         raise HTTPException(status_code=404, detail=f"Domain '{domain}' not found")
 
+    # Enrich each GA with archetype emoji for leaderboard display
+    for ga in data.get("gas", []):
+        if ga.get("avg_glance") is not None:
+            lb_scores = {
+                "s10": ga.get("avg_s9a", 0.0) or 0.0,
+                "s9b": ga.get("avg_s9b", 0.0) or 0.0,
+                "s2_coverage": ga.get("avg_s2_coverage", 0.0) or 0.0,
+                "drift": 0.0,
+                "warp": 0.0,
+                "word_count": 0,
+                "spin_detected": False,
+            }
+            # Try loading sidecar for word_count
+            sidecar_lb = _load_sidecar(ga.get("filename", ""))
+            lb_scores["word_count"] = sidecar_lb.get("word_count", 0)
+            lb_result = classify_ga(lb_scores)
+            ga["archetype_emoji"] = lb_result["archetype_info"]["emoji"]
+            ga["archetype_name"] = lb_result["archetype_info"]["name_fr"]
+        else:
+            # Try vision-based approximation
+            sidecar_lb = _load_sidecar(ga.get("filename", ""))
+            vision_meta = {}
+            if sidecar_lb.get("word_count") is not None or sidecar_lb.get("chart_type"):
+                vision_meta = {
+                    "word_count": sidecar_lb.get("word_count", 0),
+                    "hierarchy_clear": sidecar_lb.get("hierarchy_clear", False),
+                    "chart_type": sidecar_lb.get("chart_type", "other"),
+                }
+            if vision_meta:
+                lb_result = classify_from_vision_metadata(vision_meta)
+                ga["archetype_emoji"] = lb_result["archetype_info"]["emoji"]
+                ga["archetype_name"] = lb_result["archetype_info"]["name_fr"]
+            else:
+                ga["archetype_emoji"] = ""
+                ga["archetype_name"] = ""
+
     # OG meta for sharing
     domain_label = data.get("label", domain)
     n_gas = data.get("n_gas", 0)
@@ -828,6 +924,7 @@ def participants(request: Request):
     lang = _lang(request)
     comprehension = get_participant_ranking_comprehension(min_tests=3)
     contribution = get_participant_ranking_contribution()
+    top_referrers = get_top_referrers(limit=20)
 
     n_participants = len(contribution)
     n_qualified = len(comprehension)
@@ -837,6 +934,7 @@ def participants(request: Request):
         "lang": lang,
         "comprehension": comprehension,
         "contribution": contribution,
+        "top_referrers": top_referrers,
         "n_participants": n_participants,
         "n_qualified": n_qualified,
         "og_title": "GLANCE — Classement des participants",
@@ -1097,6 +1195,69 @@ def ga_detail(request: Request, ga_id: int):
                 pass
             break
 
+    # Archetype classification
+    archetype_result = None
+    if detail.get("n_tests", 0) > 0:
+        # Measured archetype from real test data
+        # Compute drift and warp from S2 node coverage
+        s2_node_means = detail.get("s2_node_means", {})
+        if s2_node_means:
+            node_scores = list(s2_node_means.values())
+            mean_cov = sum(node_scores) / len(node_scores) if node_scores else 0.0
+            # drift = average distance from system-wide mean
+            drift_val = (sum(abs(s - mean_cov) for s in node_scores) / len(node_scores)
+                         if node_scores else 0.0)
+            # warp = coefficient of variation (sigma / mu)
+            if mean_cov > 0 and len(node_scores) > 1:
+                variance = sum((s - mean_cov) ** 2 for s in node_scores) / len(node_scores)
+                warp_val = (variance ** 0.5) / mean_cov
+            else:
+                warp_val = 0.0
+        else:
+            drift_val = 0.0
+            warp_val = 0.0
+
+        archetype_scores = {
+            "s10": detail.get("avg_s9a", 0.0),
+            "s9b": detail.get("avg_s9b", 0.0),
+            "s2_coverage": detail.get("avg_s2_coverage", 0.0),
+            "drift": drift_val,
+            "warp": warp_val,
+            "word_count": sidecar.get("word_count", 0),
+            "spin_detected": False,
+        }
+        archetype_result = classify_ga(archetype_scores)
+        archetype_result["source"] = "measured"
+    else:
+        # Predicted archetype from vision metadata (if sidecar has it)
+        vision_meta = {}
+        if sidecar.get("word_count") is not None or sidecar.get("chart_type"):
+            vision_meta = {
+                "word_count": sidecar.get("word_count", 0),
+                "hierarchy_clear": sidecar.get("hierarchy_clear", False),
+                "chart_type": sidecar.get("chart_type", "other"),
+            }
+        # Also check batch_vision_results for this GA
+        if not vision_meta:
+            try:
+                vision_path = os.path.join(BASE, "exports", "batch_vision_results.json")
+                if os.path.exists(vision_path):
+                    with open(vision_path, encoding="utf-8") as vf:
+                        vision_data = json.load(vf)
+                    for vr in vision_data.get("results", []):
+                        if vr.get("filename") == image["filename"]:
+                            vision_meta = {
+                                "word_count": vr.get("word_count", 0),
+                                "hierarchy_clear": vr.get("hierarchy_clear", False),
+                                "chart_type": vr.get("chart_type", "other"),
+                            }
+                            break
+            except Exception:
+                pass
+        if vision_meta:
+            archetype_result = classify_from_vision_metadata(vision_meta)
+            archetype_result["source"] = "predicted"
+
     # A/B pair lookup (same correct_product + domain, opposite is_control)
     pair_image = None
     pair_stats = None
@@ -1159,6 +1320,7 @@ def ga_detail(request: Request, ga_id: int):
         "executive_summary": executive_summary,
         "study_ref": study_ref,
         "ga_abstract": ga_abstract,
+        "archetype": archetype_result,
         "og_title": og_title,
         "og_description": og_desc,
         "og_image": og_image,

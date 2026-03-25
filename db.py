@@ -16,7 +16,8 @@ CREATE TABLE IF NOT EXISTS participants (
     data_literacy TEXT NOT NULL,
     grade_familiar INTEGER DEFAULT 0,
     colorblind_status TEXT DEFAULT 'unknown',
-    input_mode TEXT DEFAULT 'text'
+    input_mode TEXT DEFAULT 'text',
+    referred_by TEXT
 );
 
 CREATE TABLE IF NOT EXISTS ga_images (
@@ -128,6 +129,10 @@ def init_db():
         ("s2_chunks", "TEXT"),
         ("s2_node_coverage", "TEXT"),
     ])
+    # Migrate: add referral column if missing (for existing DBs)
+    _migrate_add_columns(conn, "participants", [
+        ("referred_by", "TEXT"),
+    ])
     conn.close()
 
 
@@ -140,13 +145,13 @@ def _migrate_add_columns(conn, table: str, columns: list[tuple[str, str]]):
     conn.commit()
 
 
-def create_participant(token, clinical_domain, experience_years, data_literacy, grade_familiar, colorblind_status, input_mode="text"):
+def create_participant(token, clinical_domain, experience_years, data_literacy, grade_familiar, colorblind_status, input_mode="text", referred_by=None):
     db = get_db()
     db.execute(
         """INSERT INTO participants
-           (token, clinical_domain, experience_years, data_literacy, grade_familiar, colorblind_status, input_mode)
-           VALUES (?, ?, ?, ?, ?, ?, ?)""",
-        (token, clinical_domain, experience_years, data_literacy, grade_familiar, colorblind_status, input_mode),
+           (token, clinical_domain, experience_years, data_literacy, grade_familiar, colorblind_status, input_mode, referred_by)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+        (token, clinical_domain, experience_years, data_literacy, grade_familiar, colorblind_status, input_mode, referred_by),
     )
     db.commit()
     pid = db.execute("SELECT id FROM participants WHERE token = ?", (token,)).fetchone()["id"]
@@ -500,3 +505,37 @@ def get_example_ga() -> dict | None:
     ).fetchone()
     db.close()
     return dict(row) if row else None
+
+
+def get_referral_count(referral_code: str) -> int:
+    """Count how many participants were referred by a given referral code."""
+    db = get_db()
+    row = db.execute(
+        "SELECT COUNT(*) as c FROM participants WHERE referred_by = ?",
+        (referral_code,),
+    ).fetchone()
+    db.close()
+    return row["c"] if row else 0
+
+
+def get_top_referrers(limit: int = 20) -> list[dict]:
+    """Return top referrers ranked by number of successful referrals.
+
+    Each entry: {referral_code, n_referrals, profile}.
+    """
+    db = get_db()
+    rows = db.execute(
+        """SELECT p.referred_by AS referral_code,
+                  COUNT(*) AS n_referrals,
+                  (SELECT pp.clinical_domain FROM participants pp
+                   WHERE SUBSTR(pp.token, 1, 8) = p.referred_by
+                   LIMIT 1) AS referrer_domain
+           FROM participants p
+           WHERE p.referred_by IS NOT NULL AND p.referred_by != ''
+           GROUP BY p.referred_by
+           ORDER BY n_referrals DESC
+           LIMIT ?""",
+        (limit,),
+    ).fetchall()
+    db.close()
+    return [dict(r) for r in rows]

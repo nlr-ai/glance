@@ -7,6 +7,8 @@ for improving visual comprehension. This is the explainability layer.
 import yaml
 import os
 
+from archetype import classify_from_vision_metadata
+
 BASE = os.path.dirname(__file__)
 
 def load_pattern_registry():
@@ -320,7 +322,16 @@ def analyze_ga(ga_graph_path, channel_scoring_path=None):
     # Enrich with plain-text translations
     enrich_recommendations_with_plain_text(recommendations)
 
-    return {
+    # Archetype classification from graph metadata
+    metadata = graph.get("metadata", {})
+    archetype = None
+    if metadata:
+        try:
+            archetype = classify_from_vision_metadata(metadata)
+        except Exception:
+            pass
+
+    result = {
         "overall_score": sum(n.get("stability", 0.5) * n.get("weight", 0.5) for n in graph.get("nodes", [])) / max(len(graph.get("nodes", [])), 1),
         "node_count": len(graph.get("nodes", [])),
         "link_count": len(links),
@@ -329,6 +340,9 @@ def analyze_ga(ga_graph_path, channel_scoring_path=None):
         "accessibility_warnings": warnings,
         "upgrade_paths": UPGRADE_PATHS,
     }
+    if archetype:
+        result["archetype"] = archetype
+    return result
 
 
 def generate_report(analysis, output_path=None):
@@ -337,6 +351,16 @@ def generate_report(analysis, output_path=None):
     lines.append("# GLANCE GA Analysis Report\n")
     lines.append(f"**Overall Score:** {analysis['overall_score']:.2f}")
     lines.append(f"**Nodes:** {analysis['node_count']} | **Links:** {analysis['link_count']}\n")
+
+    # Archetype section
+    arch = analysis.get("archetype")
+    if arch:
+        info = arch.get("archetype_info", {})
+        lines.append(f"## Diagnostic: {info.get('emoji', '')} {info.get('name_fr', '')} ({info.get('name_en', '')})\n")
+        lines.append(f"**{info.get('description_fr', '')}**\n")
+        lines.append(f"*Signature:* `{info.get('signature', '')}`")
+        lines.append(f"*Confiance:* {round(arch.get('confidence', 0) * 100)}% ({arch.get('method', '')})\n")
+        lines.append(f"> {info.get('recommendation_fr', '')}\n")
 
     lines.append("## Recommendations (prioritized)\n")
     for i, rec in enumerate(analysis["recommendations"], 1):

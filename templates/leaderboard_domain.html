@@ -348,7 +348,7 @@
             <div class="lb-rank-content">
                 <div class="lb-rank-top">
                     <div class="lb-rank-title">
-                        <a href="/ga-detail/{{ ga.ga_image_id }}">{{ ga.title }}</a>
+                        {% if ga.archetype_emoji %}<span title="{{ ga.archetype_name }}">{{ ga.archetype_emoji }}</span> {% endif %}<a href="/ga-detail/{{ ga.ga_image_id }}">{{ ga.title }}</a>
                     </div>
                     {% if has_data %}
                         <span class="lb-rank-pct score-{{ sc }}">{{ pct }}%</span>
