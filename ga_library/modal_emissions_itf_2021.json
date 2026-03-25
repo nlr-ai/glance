@@ -31,7 +31,7 @@
         ]
     },
     "description": "CO₂ emissions (g/passenger-km) by transport mode. Bicycle produces zero direct emissions, while cars emit 170g/pkm — 12x more than trains (14g).",
-    "ocr_text": "CO₂ Emissions per Passenger-km by Transport Mode (ITF, 2021)\nCar 170\nBus 65\nTrain 14\nBicycle 0\n0 20 40 60 80 100 120 140 160\ng CO₂/pkm\nInternational Transport Forum (2021). Transport CO₂ and the Paris Agreement.",
+    "ocr_text": "CO2 Emissions per Passenger-km by Transport Mode (ITF, 2021)\nCar\n170\nBus\n65\nTrain\n14\nBicycle\n20\n40\n60\n80\n100\n120\n140\n160\ng COzlpkm\nInternational Transport Forum (2021). Transport COz and the Paris Agreement.",
     "ocr_words": [
         "CO₂",
         "Emissions",

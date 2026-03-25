@@ -31,7 +31,7 @@
         ]
     },
     "description": "Levelized cost of energy ($/MWh) by source. Utility-scale solar is now the cheapest at $24/MWh, significantly undercutting nuclear ($141/MWh).",
-    "ocr_text": "Renewable Energy LCOE Comparison (Lazard, 2023)\nNuclear 141\nGas combined 45\nWind onshore 29\nSolar utility 24\n0 20 40 60 80 100 120 140\n$/MWh\nLazard's Levelized Cost of Energy Analysis, v16.0 (2023).",
+    "ocr_text": "Renewable Energy LCOE Comparison (Lazard, 2023)\nNuclear\n141\nGas combined\n45\nWind onshore\n29\nSolar utility\n24\n20\n40\n80\n100\n120\n140\n$IMWh\nLazard's Levelized Cost of Energy Analysis; v16.0 (2023).",
     "ocr_words": [
         "Renewable",
         "Energy",

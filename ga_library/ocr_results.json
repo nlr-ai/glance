@@ -1,0 +1,1176 @@
+{
+  "attention_transformer_2017.png": {
+    "raw_text": "Machine Translation\nWMT 2014 EN  DE\nVaswani et al.,\nAttention Is All You Need\" (2017)\n30\n29\n28.4\n28\n27.3\n27\n26\n25.2\n25\n24.6\n24\n23\n22\nGNMT+RL\nConvS2S\nTransformer\nTransformer\n(Google)\n(Gehring)\n(Base)\nSource:\nVaswa(Big)\nal, Neurips 2017",
+    "lines": [
+      "Machine Translation",
+      "WMT 2014 EN  DE",
+      "Vaswani et al.,",
+      "Attention Is All You Need\" (2017)",
+      "30",
+      "29",
+      "28.4",
+      "28",
+      "27.3",
+      "27",
+      "26",
+      "25.2",
+      "25",
+      "24.6",
+      "24",
+      "23",
+      "22",
+      "GNMT+RL",
+      "ConvS2S",
+      "Transformer",
+      "Transformer",
+      "(Google)",
+      "(Gehring)",
+      "(Base)",
+      "Source:",
+      "Vaswa(Big)",
+      "al, Neurips 2017"
+    ],
+    "word_count": 40,
+    "languages_detected": [
+      "en"
+    ],
+    "image_width": 1100,
+    "image_height": 560
+  },
+  "attention_transformer_2017_pie_control.png": {
+    "raw_text": "Machine Translation\nBLEU Score Distribution (WMT 2014 EN-DE)\nPie chart encoding\narea-based\nperceptually misleading for close values\n23.3%\n26.9%\nTransformer (Big): 28.4 BLEU\nTransformer (Base): 27.3 BLEU\nConvS2S: 25.2 BLEU\nGNMT+RL: 24.6 BLEU\n23.9%\n25.9%\nSource: Vaswani etal, MeurIPs 2017",
+    "lines": [
+      "Machine Translation",
+      "BLEU Score Distribution (WMT 2014 EN-DE)",
+      "Pie chart encoding",
+      "area-based",
+      "perceptually misleading for close values",
+      "23.3%",
+      "26.9%",
+      "Transformer (Big): 28.4 BLEU",
+      "Transformer (Base): 27.3 BLEU",
+      "ConvS2S: 25.2 BLEU",
+      "GNMT+RL: 24.6 BLEU",
+      "23.9%",
+      "25.9%",
+      "Source: Vaswani etal, MeurIPs 2017"
+    ],
+    "word_count": 40,
+    "languages_detected": [
+      "en"
+    ],
+    "image_width": 913,
+    "image_height": 542
+  },
+  "battery_energy_density_2023.png": {
+    "raw_text": "Battery Technologies\nEnergy Density Comparison (2023)\nSolid-state\n400\nLithium-ion\n250\nSodium-ion\n160\nLead-acid\n40\n50\n100\n150\n200\n250\n300\n350\n400\nWh/kg\nCompiled from DOE & industry benchmarks (2023).",
+    "lines": [
+      "Battery Technologies",
+      "Energy Density Comparison (2023)",
+      "Solid-state",
+      "400",
+      "Lithium-ion",
+      "250",
+      "Sodium-ion",
+      "160",
+      "Lead-acid",
+      "40",
+      "50",
+      "100",
+      "150",
+      "200",
+      "250",
+      "300",
+      "350",
+      "400",
+      "Wh/kg",
+      "Compiled from DOE & industry benchmarks (2023)."
+    ],
+    "word_count": 30,
+    "languages_detected": [
+      "en"
+    ],
+    "image_width": 1630,
+    "image_height": 791
+  },
+  "battery_energy_density_2023_control.png": {
+    "raw_text": "Battery Technologies\nPie chart (control)\nSolid-state (400)\nLithium-ion (250)\nSodium-ion (160)\nLead-acid (40)\nCompiled from DOE & industry benchmarks (2023).",
+    "lines": [
+      "Battery Technologies",
+      "Pie chart (control)",
+      "Solid-state (400)",
+      "Lithium-ion (250)",
+      "Sodium-ion (160)",
+      "Lead-acid (40)",
+      "Compiled from DOE & industry benchmarks (2023)."
+    ],
+    "word_count": 20,
+    "languages_detected": [
+      "en"
+    ],
+    "image_width": 995,
+    "image_height": 791
+  },
+  "cbt_depression_cuijpers_2020.png": {
+    "raw_text": "CBT vs Medications for Depression\nMeta-analysis (Cuijpers et al., 2020)\nCombined therapy\n0.82\nCBT\n0.71\nSSRIs\n0.53\nPlacebo\n0.16\n0.1\n0.2\n0.3\n0.4\n0.5\n0.6\n0.7\n0.8\nHedges' g\nCuijpers, P et al. (2020). Meta-analysis of CBT for depression.",
+    "lines": [
+      "CBT vs Medications for Depression",
+      "Meta-analysis (Cuijpers et al., 2020)",
+      "Combined therapy",
+      "0.82",
+      "CBT",
+      "0.71",
+      "SSRIs",
+      "0.53",
+      "Placebo",
+      "0.16",
+      "0.1",
+      "0.2",
+      "0.3",
+      "0.4",
+      "0.5",
+      "0.6",
+      "0.7",
+      "0.8",
+      "Hedges' g",
+      "Cuijpers, P et al. (2020). Meta-analysis of CBT for depression."
+    ],
+    "word_count": 39,
+    "languages_detected": [
+      "en"
+    ],
+    "image_width": 1632,
+    "image_height": 791
+  },
+  "cbt_depression_cuijpers_2020_control.png": {
+    "raw_text": "CBT vs Medications for Depression\nPie chart (control)\nCombined therapy (0.82)\nCBT (0.71)\nSSRIs (0.53)\nPlacebo (0.16)\nCuijpers, P et al. (2020). Meta-analysis of CBT for depression.",
+    "lines": [
+      "CBT vs Medications for Depression",
+      "Pie chart (control)",
+      "Combined therapy (0.82)",
+      "CBT (0.71)",
+      "SSRIs (0.53)",
+      "Placebo (0.16)",
+      "Cuijpers, P et al. (2020). Meta-analysis of CBT for depression."
+    ],
+    "word_count": 27,
+    "languages_detected": [
+      "en"
+    ],
+    "image_width": 1172,
+    "image_height": 791
+  },
+  "concrete_co2_alternatives_2023.png": {
+    "raw_text": "Concrete Alternatives\nCO2 Reduction vs Portland Cement (2023)\nGeopolymer\n80\nLC3\n40\nFly ash blend\n25\nStandard Portland\n10\n20\n30\n40\n50\n70\n80\n% CO2 reduction\nCompiled from IEA Cement Technology Roadmap & materials science literature.",
+    "lines": [
+      "Concrete Alternatives",
+      "CO2 Reduction vs Portland Cement (2023)",
+      "Geopolymer",
+      "80",
+      "LC3",
+      "40",
+      "Fly ash blend",
+      "25",
+      "Standard Portland",
+      "10",
+      "20",
+      "30",
+      "40",
+      "50",
+      "70",
+      "80",
+      "% CO2 reduction",
+      "Compiled from IEA Cement Technology Roadmap & materials science literature."
+    ],
+    "word_count": 38,
+    "languages_detected": [
+      "en"
+    ],
+    "image_width": 1635,
+    "image_height": 791
+  },
+  "concrete_co2_alternatives_2023_control.png": {
+    "raw_text": "Concrete Alternatives\nPie chart (control)\nGeopolymer (80)\nLC3 (40)\nFly ash blend (25)\nStandard Portland (0)\nCompiled from IEA Cement Technology Roadmap & materials science literature.",
+    "lines": [
+      "Concrete Alternatives",
+      "Pie chart (control)",
+      "Geopolymer (80)",
+      "LC3 (40)",
+      "Fly ash blend (25)",
+      "Standard Portland (0)",
+      "Compiled from IEA Cement Technology Roadmap & materials science literature."
+    ],
+    "word_count": 26,
+    "languages_detected": [
+      "en"
+    ],
+    "image_width": 1038,
+    "image_height": 791
+  },
+  "coral_recovery_interventions_2020.png": {
+    "raw_text": "Coral Reef Recovery Interventions\nCover Increase (%)\nCoral gardening\n25\nMarine protected areas\n15\nPollution control\nNo intervention\n~5\n~5\n10\n15\n20\n25\n% cover change\nCompiled from Bostrëm-Einarsson et al. (2020) & UNEP Coral Reef Reports.",
+    "lines": [
+      "Coral Reef Recovery Interventions",
+      "Cover Increase (%)",
+      "Coral gardening",
+      "25",
+      "Marine protected areas",
+      "15",
+      "Pollution control",
+      "No intervention",
+      "~5",
+      "~5",
+      "10",
+      "15",
+      "20",
+      "25",
+      "% cover change",
+      "Compiled from Bostrëm-Einarsson et al. (2020) & UNEP Coral Reef Reports."
+    ],
+    "word_count": 38,
+    "languages_detected": [
+      "fr",
+      "en"
+    ],
+    "image_width": 1635,
+    "image_height": 791
+  },
+  "coral_recovery_interventions_2020_control.png": {
+    "raw_text": "Coral Reef Recovery Interventions\nPie chart (control)\nCoral gardening (+25)\nMarine protected areas (+15)\nPollution control (+8)\nNo intervention (-5)\nCompiled from Bostrëm-Einarsson et al. (2020) & UNEP Coral Reef Reports.",
+    "lines": [
+      "Coral Reef Recovery Interventions",
+      "Pie chart (control)",
+      "Coral gardening (+25)",
+      "Marine protected areas (+15)",
+      "Pollution control (+8)",
+      "No intervention (-5)",
+      "Compiled from Bostrëm-Einarsson et al. (2020) & UNEP Coral Reef Reports."
+    ],
+    "word_count": 31,
+    "languages_detected": [
+      "fr",
+      "en"
+    ],
+    "image_width": 1216,
+    "image_height": 791
+  },
+  "covid_vaccine_polack_2020.png": {
+    "raw_text": "COVID-19 Vaccine Efficacy by Subgroup (Polack et al., 2020)\n16-55 years\n95.6\n>55 years\n93.7\nSevere disease\n88.9\nAsymptomatic\n75\n20\n40\n80\n100\n% efficacy\nPolack, F. P et al. (2020). Safety and Efficacy of BNT162b2. NEJM.",
+    "lines": [
+      "COVID-19 Vaccine Efficacy by Subgroup (Polack et al., 2020)",
+      "16-55 years",
+      "95.6",
+      ">55 years",
+      "93.7",
+      "Severe disease",
+      "88.9",
+      "Asymptomatic",
+      "75",
+      "20",
+      "40",
+      "80",
+      "100",
+      "% efficacy",
+      "Polack, F. P et al. (2020). Safety and Efficacy of BNT162b2. NEJM."
+    ],
+    "word_count": 38,
+    "languages_detected": [
+      "en"
+    ],
+    "image_width": 1631,
+    "image_height": 791
+  },
+  "covid_vaccine_polack_2020_control.png": {
+    "raw_text": "COVID-19 Vaccine Efficacy by Subgroup\nPie chart (control)\n16-55 years (95.6)\n>55 years (93.7)\nSevere disease (88.9)\nAsymptomatic (75)\nPolack, F. P et al. (2020). Safety and Efficacy of BNTI62b2. NEJM.",
+    "lines": [
+      "COVID-19 Vaccine Efficacy by Subgroup",
+      "Pie chart (control)",
+      "16-55 years (95.6)",
+      ">55 years (93.7)",
+      "Severe disease (88.9)",
+      "Asymptomatic (75)",
+      "Polack, F. P et al. (2020). Safety and Efficacy of BNTI62b2. NEJM."
+    ],
+    "word_count": 31,
+    "languages_detected": [
+      "en"
+    ],
+    "image_width": 1174,
+    "image_height": 791
+  },
+  "crop_yield_ponisio_2015.png": {
+    "raw_text": "Crop Yield by Farming Method\nMeta-analysis (Ponisio et al., 2015)\nPrecision farming\nConservation\nIntegrated\n~8\nOrganic\n19\n=20\n~15\n10\n% yield gap vs conventional\nPonisio; L. C. et al. (2015). Diversification practices reduce the yield gap. Proc. R. Soc. B.",
+    "lines": [
+      "Crop Yield by Farming Method",
+      "Meta-analysis (Ponisio et al., 2015)",
+      "Precision farming",
+      "Conservation",
+      "Integrated",
+      "~8",
+      "Organic",
+      "19",
+      "=20",
+      "~15",
+      "10",
+      "% yield gap vs conventional",
+      "Ponisio; L. C. et al. (2015). Diversification practices reduce the yield gap. Proc. R. Soc. B."
+    ],
+    "word_count": 41,
+    "languages_detected": [
+      "en"
+    ],
+    "image_width": 1635,
+    "image_height": 791
+  },
+  "crop_yield_ponisio_2015_control.png": {
+    "raw_text": "Crop Yield by Farming Method\nPie chart (control)\nPrecision farming (+3)\nConservation (-5)\nIntegrated (-8)\nOrganic (-19)\nPonisio; L. C. et al. (2015). Diversification practices reduce the yield gap.\nProc. R. Soc.",
+    "lines": [
+      "Crop Yield by Farming Method",
+      "Pie chart (control)",
+      "Precision farming (+3)",
+      "Conservation (-5)",
+      "Integrated (-8)",
+      "Organic (-19)",
+      "Ponisio; L. C. et al. (2015). Diversification practices reduce the yield gap.",
+      "Proc. R. Soc."
+    ],
+    "word_count": 32,
+    "languages_detected": [
+      "en"
+    ],
+    "image_width": 1110,
+    "image_height": 791
+  },
+  "drawdown_climate_2017.png": {
+    "raw_text": "Project Drawdown (Hawken, 2017)\nTop Climate Solutions by CO2 Reduction Potential\nReduced food waste\n70.5 GT\nPlant-rich diets\n65.0 GT\nSolar farms\n36.9 GT\nElectric vehicles\n10.8 GT\n10\n20\n30\n40\n50\n60\n70\n80\n90\nCO2 reduction (gigatons; 2020-2050)",
+    "lines": [
+      "Project Drawdown (Hawken, 2017)",
+      "Top Climate Solutions by CO2 Reduction Potential",
+      "Reduced food waste",
+      "70.5 GT",
+      "Plant-rich diets",
+      "65.0 GT",
+      "Solar farms",
+      "36.9 GT",
+      "Electric vehicles",
+      "10.8 GT",
+      "10",
+      "20",
+      "30",
+      "40",
+      "50",
+      "60",
+      "70",
+      "80",
+      "90",
+      "CO2 reduction (gigatons; 2020-2050)"
+    ],
+    "word_count": 41,
+    "languages_detected": [
+      "fr",
+      "en"
+    ],
+    "image_width": 1650,
+    "image_height": 840
+  },
+  "drawdown_climate_2017_pie_control.png": {
+    "raw_text": "Project Drawdown\nPie chart (control)\nElectric vehicles\n(10.8 GT)\nSolar farms\n6%\n(36.9 GT)\nReduced food waste\n(70.5 GT)\n20%\n38%\n35%\nPlant-rich diets\n(65.0 GT)",
+    "lines": [
+      "Project Drawdown",
+      "Pie chart (control)",
+      "Electric vehicles",
+      "(10.8 GT)",
+      "Solar farms",
+      "6%",
+      "(36.9 GT)",
+      "Reduced food waste",
+      "(70.5 GT)",
+      "20%",
+      "38%",
+      "35%",
+      "Plant-rich diets",
+      "(65.0 GT)"
+    ],
+    "word_count": 26,
+    "languages_detected": [
+      "fr"
+    ],
+    "image_width": 1650,
+    "image_height": 840
+  },
+  "exercise_neuroplasticity_erickson_2011.png": {
+    "raw_text": "Exercise and Hippocampal Volume Change (Erickson et al., 2011)\nAerobic exercise\n2.0\nWalking\n0.5\nStretching\n~1.4\nControl\n1.5\n=1.5\n=1.0\n~0.5\n0.5\n1.0\n1.5\n2.0\nvolume change\nErickson, K. I. et al. (2011). Exercise training increases hippocampal volume. PNAS.",
+    "lines": [
+      "Exercise and Hippocampal Volume Change (Erickson et al., 2011)",
+      "Aerobic exercise",
+      "2.0",
+      "Walking",
+      "0.5",
+      "Stretching",
+      "~1.4",
+      "Control",
+      "1.5",
+      "=1.5",
+      "=1.0",
+      "~0.5",
+      "0.5",
+      "1.0",
+      "1.5",
+      "2.0",
+      "volume change",
+      "Erickson, K. I. et al. (2011). Exercise training increases hippocampal volume. PNAS."
+    ],
+    "word_count": 39,
+    "languages_detected": [
+      "en"
+    ],
+    "image_width": 1635,
+    "image_height": 791
+  },
+  "exercise_neuroplasticity_erickson_2011_control.png": {
+    "raw_text": "Exercise and Hippocampal Volume Change\nPie chart (control)\nAerobic exercise (+2)\nWalking (+0.5)\nStretching (-1.4)\nControl (-1.5)\nErickson, K. I. et al. (2011). Exercise training increases hippocampal volume. PNAS.",
+    "lines": [
+      "Exercise and Hippocampal Volume Change",
+      "Pie chart (control)",
+      "Aerobic exercise (+2)",
+      "Walking (+0.5)",
+      "Stretching (-1.4)",
+      "Control (-1.5)",
+      "Erickson, K. I. et al. (2011). Exercise training increases hippocampal volume. PNAS."
+    ],
+    "word_count": 29,
+    "languages_detected": [
+      "en"
+    ],
+    "image_width": 1194,
+    "image_height": 791
+  },
+  "handwashing_aiello_2008.png": {
+    "raw_text": "Handwashing and Respiratory Infections\nMeta-analysis (Aiello et al., 2008)\nSoap and water\n24\nHand sanitizer\n21\nEducation only\n10\nControl\n10\n15\n20\n25\n% risk reduction\nAiello, A. E. et al. (2008). Effect of hand hygiene on infectious disease. AJPH.",
+    "lines": [
+      "Handwashing and Respiratory Infections",
+      "Meta-analysis (Aiello et al., 2008)",
+      "Soap and water",
+      "24",
+      "Hand sanitizer",
+      "21",
+      "Education only",
+      "10",
+      "Control",
+      "10",
+      "15",
+      "20",
+      "25",
+      "% risk reduction",
+      "Aiello, A. E. et al. (2008). Effect of hand hygiene on infectious disease. AJPH."
+    ],
+    "word_count": 41,
+    "languages_detected": [
+      "en"
+    ],
+    "image_width": 1633,
+    "image_height": 791
+  },
+  "handwashing_aiello_2008_control.png": {
+    "raw_text": "Handwashing and Respiratory Infections\nPie chart (control)\nSoap and water (24)\nHand sanitizer (21)\nEducation only (10)\nControl (0)\nAiello; A. E. et al. (2008) . Effect of hand hygiene on infectious disease. AJPH.",
+    "lines": [
+      "Handwashing and Respiratory Infections",
+      "Pie chart (control)",
+      "Soap and water (24)",
+      "Hand sanitizer (21)",
+      "Education only (10)",
+      "Control (0)",
+      "Aiello; A. E. et al. (2008) . Effect of hand hygiene on infectious disease. AJPH."
+    ],
+    "word_count": 34,
+    "languages_detected": [
+      "en"
+    ],
+    "image_width": 1168,
+    "image_height": 791
+  },
+  "hattie_visible_learning_2009.png": {
+    "raw_text": "Visible Learning Meta-Analysis (Hattie, 2009)\nEducational Interventions by Effect Size\nFeedback\nd = 0.73\nDirect instruction\n0.59\nPeer tutoring\nd = 0.55\nHomework\nd = 0.29\n0.2\n0.4\n0.6\n0.8\n1.0\nEffect size (Cohen's d)",
+    "lines": [
+      "Visible Learning Meta-Analysis (Hattie, 2009)",
+      "Educational Interventions by Effect Size",
+      "Feedback",
+      "d = 0.73",
+      "Direct instruction",
+      "0.59",
+      "Peer tutoring",
+      "d = 0.55",
+      "Homework",
+      "d = 0.29",
+      "0.2",
+      "0.4",
+      "0.6",
+      "0.8",
+      "1.0",
+      "Effect size (Cohen's d)"
+    ],
+    "word_count": 35,
+    "languages_detected": [
+      "fr",
+      "en"
+    ],
+    "image_width": 1650,
+    "image_height": 840
+  },
+  "hattie_visible_learning_2009_bubble_control.png": {
+    "raw_text": "Visible Learning\nBubble chart (control)\n1.0\n0.8\nFeedback\n=0.73\nDirect instruction\nPeer\ntutoring\n0.6\nd=0.59\nd=0.55\n0.4\nHomework\nd=0.29\n0.2\n0.0",
+    "lines": [
+      "Visible Learning",
+      "Bubble chart (control)",
+      "1.0",
+      "0.8",
+      "Feedback",
+      "=0.73",
+      "Direct instruction",
+      "Peer",
+      "tutoring",
+      "0.6",
+      "d=0.59",
+      "d=0.55",
+      "0.4",
+      "Homework",
+      "d=0.29",
+      "0.2",
+      "0.0"
+    ],
+    "word_count": 21,
+    "languages_detected": [
+      "fr"
+    ],
+    "image_width": 1650,
+    "image_height": 840
+  },
+  "immunomod_v10_area_control.png": {
+    "raw_text": "Immunomodulateurs\nNiveau de preuve clinique\nEncodage par aire (cercles proportionnels)\nMV13O\nCRL1505\nPMBL\nRCT\nPreclinical\nOM-85\n5 RCTs\n18 RCTs\nArea encoding Stevens 8-0 7\nperceptual compressturce: Inchauspe MDPI Children\n7026",
+    "lines": [
+      "Immunomodulateurs",
+      "Niveau de preuve clinique",
+      "Encodage par aire (cercles proportionnels)",
+      "MV13O",
+      "CRL1505",
+      "PMBL",
+      "RCT",
+      "Preclinical",
+      "OM-85",
+      "5 RCTs",
+      "18 RCTs",
+      "Area encoding Stevens 8-0 7",
+      "perceptual compressturce: Inchauspe MDPI Children",
+      "7026"
+    ],
+    "word_count": 31,
+    "languages_detected": [
+      "fr"
+    ],
+    "image_width": 645,
+    "image_height": 566
+  },
+  "immunomod_v10_wireframe.png": {
+    "raw_text": "Patholo gical\nProtected\nVural RTIs\nTn2 bias\nRe-suscept.\nClinical evidence\n7emo\n18 RCTs\nWhe\nezing\nAisgma\n5 RCTs\nRCI\nPreclin.\nOM-85[\nPMBL\nMV130\nCRL1505\nMvgut",
+    "lines": [
+      "Patholo gical",
+      "Protected",
+      "Vural RTIs",
+      "Tn2 bias",
+      "Re-suscept.",
+      "Clinical evidence",
+      "7emo",
+      "18 RCTs",
+      "Whe",
+      "ezing",
+      "Aisgma",
+      "5 RCTs",
+      "RCI",
+      "Preclin.",
+      "OM-85[",
+      "PMBL",
+      "MV130",
+      "CRL1505",
+      "Mvgut"
+    ],
+    "word_count": 25,
+    "languages_detected": [
+      "en"
+    ],
+    "image_width": 1100,
+    "image_height": 560
+  },
+  "immunomod_v2a4_infographic.png": {
+    "raw_text": "Briser le Cercle Vicieux des Infections Respiratoires Pédiatriques\nConvergence\nFYY\nvers la Protection\n(IgA)\nOM-85\nPMBL\nMV13O\nAn08L JANL JUM4 JuAul\nAgression\nvirale\nFracture\ndu Cycle\nPathologique\nLe Cercle\nHiérarchie de l'Évidence Scientifique\nRe-susceptibilité\nVicieux de\nInflammation\nTh2\nRéduction majeure des\nl'Asthme\nOM-85 (18 RCTs)\ninfections et du wheezing\nRéduction des exacerbations\nPMBL (5 RCTs)\nd'asthme allergique\nCRL1505\nDiminution de 40%\nMV13O (1 RCT)\ndes épisodes de sifflement\nRemodelage\ndes voies\nMécanisme prometteur\nrespiratoires\nCRL1505 (Préclinique)\nvia l'axe intestin-poumon\nNotebookLM\nu0u\nbnu e\n1ouddas\nDddD\nJAl \"",
+    "lines": [
+      "Briser le Cercle Vicieux des Infections Respiratoires Pédiatriques",
+      "Convergence",
+      "FYY",
+      "vers la Protection",
+      "(IgA)",
+      "OM-85",
+      "PMBL",
+      "MV13O",
+      "An08L JANL JUM4 JuAul",
+      "Agression",
+      "virale",
+      "Fracture",
+      "du Cycle",
+      "Pathologique",
+      "Le Cercle",
+      "Hiérarchie de l'Évidence Scientifique",
+      "Re-susceptibilité",
+      "Vicieux de",
+      "Inflammation",
+      "Th2",
+      "Réduction majeure des",
+      "l'Asthme",
+      "OM-85 (18 RCTs)",
+      "infections et du wheezing",
+      "Réduction des exacerbations",
+      "PMBL (5 RCTs)",
+      "d'asthme allergique",
+      "CRL1505",
+      "Diminution de 40%",
+      "MV13O (1 RCT)",
+      "des épisodes de sifflement",
+      "Remodelage",
+      "des voies",
+      "Mécanisme prometteur",
+      "respiratoires",
+      "CRL1505 (Préclinique)",
+      "via l'axe intestin-poumon",
+      "NotebookLM",
+      "u0u",
+      "bnu e",
+      "1ouddas",
+      "DddD",
+      "JAl \""
+    ],
+    "word_count": 87,
+    "languages_detected": [
+      "fr"
+    ],
+    "image_width": 2752,
+    "image_height": 1536
+  },
+  "marshmallow_watts_2018.png": {
+    "raw_text": "Marshmallow Test Replication\nEffect Sizes (Watts et al., 2018)\nAcademic achievement\n0.32\nBehavioral problems\n0.12\nSAT scores\n0.08\nBMI\n0.05\n00\n0.05\n0.10\n0.15\n0.20\n0.25\n0.30\nCohen's d\nWatts, T. W. et al. (2018). Revisiting the Marshmallow Test. Psych Science.",
+    "lines": [
+      "Marshmallow Test Replication",
+      "Effect Sizes (Watts et al., 2018)",
+      "Academic achievement",
+      "0.32",
+      "Behavioral problems",
+      "0.12",
+      "SAT scores",
+      "0.08",
+      "BMI",
+      "0.05",
+      "00",
+      "0.05",
+      "0.10",
+      "0.15",
+      "0.20",
+      "0.25",
+      "0.30",
+      "Cohen's d",
+      "Watts, T. W. et al. (2018). Revisiting the Marshmallow Test. Psych Science."
+    ],
+    "word_count": 41,
+    "languages_detected": [
+      "en"
+    ],
+    "image_width": 1634,
+    "image_height": 791
+  },
+  "marshmallow_watts_2018_control.png": {
+    "raw_text": "Marshmallow Test Replication\nPie chart (control)\nAcademic achievement (0.32)\nBehavioral problems (0.12)\nSAT scores (0.08)\nBMI (0.05)\nWatts, T. W. et al. (2018). Revisiting the Marshmallow Test. Psych Science.",
+    "lines": [
+      "Marshmallow Test Replication",
+      "Pie chart (control)",
+      "Academic achievement (0.32)",
+      "Behavioral problems (0.12)",
+      "SAT scores (0.08)",
+      "BMI (0.05)",
+      "Watts, T. W. et al. (2018). Revisiting the Marshmallow Test. Psych Science."
+    ],
+    "word_count": 29,
+    "languages_detected": [
+      "en"
+    ],
+    "image_width": 1186,
+    "image_height": 791
+  },
+  "microfinance_banerjee_2015.png": {
+    "raw_text": "Microfinance Impact on Business Profits\n6-Country RCT (Banerjee et al., 2015)\nIndia\n27\nMexico\n20\nMongolia\n11\nEthiopia\n10\n15\n20\n25\n% profit increase\nBanerjee; A. et al. (2015). Six Randomized Evaluations of Microcredit. AEJ:Applied.",
+    "lines": [
+      "Microfinance Impact on Business Profits",
+      "6-Country RCT (Banerjee et al., 2015)",
+      "India",
+      "27",
+      "Mexico",
+      "20",
+      "Mongolia",
+      "11",
+      "Ethiopia",
+      "10",
+      "15",
+      "20",
+      "25",
+      "% profit increase",
+      "Banerjee; A. et al. (2015). Six Randomized Evaluations of Microcredit. AEJ:Applied."
+    ],
+    "word_count": 36,
+    "languages_detected": [
+      "en"
+    ],
+    "image_width": 1635,
+    "image_height": 791
+  },
+  "microfinance_banerjee_2015_control.png": {
+    "raw_text": "Microfinance Impact on Business Profits\nPie chart (control)\nIndia (27)\nMexico (20)\nMongolia (11)\nEthiopia (5)\nBanerjee; A. et al. (2015). Six Randomized Evaluations of Microcredit. AEJ:Applied.",
+    "lines": [
+      "Microfinance Impact on Business Profits",
+      "Pie chart (control)",
+      "India (27)",
+      "Mexico (20)",
+      "Mongolia (11)",
+      "Ethiopia (5)",
+      "Banerjee; A. et al. (2015). Six Randomized Evaluations of Microcredit. AEJ:Applied."
+    ],
+    "word_count": 27,
+    "languages_detected": [
+      "en"
+    ],
+    "image_width": 1095,
+    "image_height": 791
+  },
+  "minimum_wage_card_krueger_1994.png": {
+    "raw_text": "Minimum Wage and Employment\nCard & Krueger (1994)\nNJ fast food\n13\nNJ full-service\nPA full-service\nPA fast food -2.2\n10\n12\n% employment change\nCard, D. & Krueger; A. (1994). Minimum Wages and Employment. AER",
+    "lines": [
+      "Minimum Wage and Employment",
+      "Card & Krueger (1994)",
+      "NJ fast food",
+      "13",
+      "NJ full-service",
+      "PA full-service",
+      "PA fast food -2.2",
+      "10",
+      "12",
+      "% employment change",
+      "Card, D. & Krueger; A. (1994). Minimum Wages and Employment. AER"
+    ],
+    "word_count": 36,
+    "languages_detected": [
+      "en"
+    ],
+    "image_width": 1635,
+    "image_height": 791
+  },
+  "minimum_wage_card_krueger_1994_control.png": {
+    "raw_text": "Minimum Wage and Employment\nPie chart (control)\nNJ fast food (+13)\nNJ full-service (+3)\nPA full-service (-1)\nPA fast food (-2.2)\nCard, D.\nKrueger; A. (1994).\nMinimum Wages\nEmployment. AER.\nand",
+    "lines": [
+      "Minimum Wage and Employment",
+      "Pie chart (control)",
+      "NJ fast food (+13)",
+      "NJ full-service (+3)",
+      "PA full-service (-1)",
+      "PA fast food (-2.2)",
+      "Card, D.",
+      "Krueger; A. (1994).",
+      "Minimum Wages",
+      "Employment. AER.",
+      "and"
+    ],
+    "word_count": 31,
+    "languages_detected": [
+      "en"
+    ],
+    "image_width": 1092,
+    "image_height": 791
+  },
+  "modal_emissions_itf_2021.png": {
+    "raw_text": "CO2 Emissions per Passenger-km by Transport Mode (ITF, 2021)\nCar\n170\nBus\n65\nTrain\n14\nBicycle\n20\n40\n60\n80\n100\n120\n140\n160\ng COzlpkm\nInternational Transport Forum (2021). Transport COz and the Paris Agreement.",
+    "lines": [
+      "CO2 Emissions per Passenger-km by Transport Mode (ITF, 2021)",
+      "Car",
+      "170",
+      "Bus",
+      "65",
+      "Train",
+      "14",
+      "Bicycle",
+      "20",
+      "40",
+      "60",
+      "80",
+      "100",
+      "120",
+      "140",
+      "160",
+      "g COzlpkm",
+      "International Transport Forum (2021). Transport COz and the Paris Agreement."
+    ],
+    "word_count": 36,
+    "languages_detected": [
+      "fr",
+      "en"
+    ],
+    "image_width": 1628,
+    "image_height": 791
+  },
+  "modal_emissions_itf_2021_control.png": {
+    "raw_text": "CO2 Emissions per Passenger-km by Transport Mode\nPie chart (control)\nCar (170)\nBus (65)\nTrain (14)\nBicycle (0)\nInternational Transport Forum (2021). Transport COz\nthe Paris Agreement.\nand",
+    "lines": [
+      "CO2 Emissions per Passenger-km by Transport Mode",
+      "Pie chart (control)",
+      "Car (170)",
+      "Bus (65)",
+      "Train (14)",
+      "Bicycle (0)",
+      "International Transport Forum (2021). Transport COz",
+      "the Paris Agreement.",
+      "and"
+    ],
+    "word_count": 28,
+    "languages_detected": [
+      "fr",
+      "en"
+    ],
+    "image_width": 1154,
+    "image_height": 791
+  },
+  "obedience_milgram_1963.png": {
+    "raw_text": "Obedience to Authority\nMilgram Experiment (1963)\nBaseline\n65\nRemote feedback\n40\nTouch proximity\n30\nExperimenter absent\n20\n10\n20\n30\n40\n50\n% obedience\nMilgram; S. (1963). Behavioral Study of Obedience. JASP",
+    "lines": [
+      "Obedience to Authority",
+      "Milgram Experiment (1963)",
+      "Baseline",
+      "65",
+      "Remote feedback",
+      "40",
+      "Touch proximity",
+      "30",
+      "Experimenter absent",
+      "20",
+      "10",
+      "20",
+      "30",
+      "40",
+      "50",
+      "% obedience",
+      "Milgram; S. (1963). Behavioral Study of Obedience. JASP"
+    ],
+    "word_count": 32,
+    "languages_detected": [
+      "en"
+    ],
+    "image_width": 1635,
+    "image_height": 791
+  },
+  "obedience_milgram_1963_control.png": {
+    "raw_text": "Obedience to Authority\nPie chart (control)\nBaseline (65)\nRemote feedback (40)\nTouch proximity (30)\nExperimenter absent (20)\nMilgram; S. (1963). Behavioral Study of Obedience. JASP",
+    "lines": [
+      "Obedience to Authority",
+      "Pie chart (control)",
+      "Baseline (65)",
+      "Remote feedback (40)",
+      "Touch proximity (30)",
+      "Experimenter absent (20)",
+      "Milgram; S. (1963). Behavioral Study of Obedience. JASP"
+    ],
+    "word_count": 25,
+    "languages_detected": [
+      "en"
+    ],
+    "image_width": 1091,
+    "image_height": 791
+  },
+  "oregon_health_experiment_2012.png": {
+    "raw_text": "Oregon Health Insurance Experiment\nMedicaid Coverage vs No Coverage\n4 Health Outcomes\nPhysical health\n0%\nFinancial strain\n25%\nDepression screening\n+30%\nEmergency visits\n+40%\n~40\n~20\n20\n40\nEffect size (% change)",
+    "lines": [
+      "Oregon Health Insurance Experiment",
+      "Medicaid Coverage vs No Coverage",
+      "4 Health Outcomes",
+      "Physical health",
+      "0%",
+      "Financial strain",
+      "25%",
+      "Depression screening",
+      "+30%",
+      "Emergency visits",
+      "+40%",
+      "~40",
+      "~20",
+      "20",
+      "40",
+      "Effect size (% change)"
+    ],
+    "word_count": 32,
+    "languages_detected": [
+      "en"
+    ],
+    "image_width": 1650,
+    "image_height": 840
+  },
+  "oregon_health_experiment_2012_pie_control.png": {
+    "raw_text": "Oregon Health Insurance Experiment\nPie (control)\nPhysical health\n(0%)\n5%\nFinancial strain\n(-25%)\nEmergency visits\n+40%)\n25%\n40%\n30%\nDepression screening\n(+30%)",
+    "lines": [
+      "Oregon Health Insurance Experiment",
+      "Pie (control)",
+      "Physical health",
+      "(0%)",
+      "5%",
+      "Financial strain",
+      "(-25%)",
+      "Emergency visits",
+      "+40%)",
+      "25%",
+      "40%",
+      "30%",
+      "Depression screening",
+      "(+30%)"
+    ],
+    "word_count": 22,
+    "languages_detected": [
+      "en"
+    ],
+    "image_width": 1650,
+    "image_height": 840
+  },
+  "pollinator_decline_potts_2010.png": {
+    "raw_text": "Pollinator Decline Drivers\nRelative Impact (Potts et al., 2010)\nHabitat loss\n45\nPesticides\n25\nClimate change\n15\nInvasive species\n10\n10\n20\n30\n40\n% relative impact\nPotts, S. G. et al. (2010). Global pollinator declines. Trends in Ecology & Evolution.",
+    "lines": [
+      "Pollinator Decline Drivers",
+      "Relative Impact (Potts et al., 2010)",
+      "Habitat loss",
+      "45",
+      "Pesticides",
+      "25",
+      "Climate change",
+      "15",
+      "Invasive species",
+      "10",
+      "10",
+      "20",
+      "30",
+      "40",
+      "% relative impact",
+      "Potts, S. G. et al. (2010). Global pollinator declines. Trends in Ecology & Evolution."
+    ],
+    "word_count": 41,
+    "languages_detected": [
+      "fr",
+      "en"
+    ],
+    "image_width": 1635,
+    "image_height": 791
+  },
+  "pollinator_decline_potts_2010_control.png": {
+    "raw_text": "Pollinator Decline Drivers\nPie chart (control)\nHabitat loss (45)\nPesticides (25)\nClimate change (15)\nInvasive species (10)\nPotts, S. G. et al. (2010). Global pollinator declines. Trends in Ecology & Evolution.",
+    "lines": [
+      "Pollinator Decline Drivers",
+      "Pie chart (control)",
+      "Habitat loss (45)",
+      "Pesticides (25)",
+      "Climate change (15)",
+      "Invasive species (10)",
+      "Potts, S. G. et al. (2010). Global pollinator declines. Trends in Ecology & Evolution."
+    ],
+    "word_count": 31,
+    "languages_detected": [
+      "fr",
+      "en"
+    ],
+    "image_width": 1060,
+    "image_height": 791
+  },
+  "predimed_estruch_2018.png": {
+    "raw_text": "Mediterranean Diet and Cardiovascular Risk\nPREDIMED (Estruch et al., 2018)\nMed + EVOO\n31\nMed\n+ Nuts\n28\nLow-fat diet\nControl diet\n10\n15\n20\n25\n30\n% CV risk reduction\nEstruch, R. et al. (2018). Primary Prevention of CVD with Mediterranean Diet. NEJM.",
+    "lines": [
+      "Mediterranean Diet and Cardiovascular Risk",
+      "PREDIMED (Estruch et al., 2018)",
+      "Med + EVOO",
+      "31",
+      "Med",
+      "+ Nuts",
+      "28",
+      "Low-fat diet",
+      "Control diet",
+      "10",
+      "15",
+      "20",
+      "25",
+      "30",
+      "% CV risk reduction",
+      "Estruch, R. et al. (2018). Primary Prevention of CVD with Mediterranean Diet. NEJM."
+    ],
+    "word_count": 44,
+    "languages_detected": [
+      "en"
+    ],
+    "image_width": 1635,
+    "image_height": 791
+  },
+  "predimed_estruch_2018_control.png": {
+    "raw_text": "Mediterranean Diet and Cardiovascular Risk\nPie chart (control)\nMed\nEVOO (31)\nMed\n+ Nuts (28)\nLow-fat diet (6)\nControl diet (0)\nEstruch; R. et al. (2018) . Primary Prevention of CVD with Mediterranean Diet. NEJM.",
+    "lines": [
+      "Mediterranean Diet and Cardiovascular Risk",
+      "Pie chart (control)",
+      "Med",
+      "EVOO (31)",
+      "Med",
+      "+ Nuts (28)",
+      "Low-fat diet (6)",
+      "Control diet (0)",
+      "Estruch; R. et al. (2018) . Primary Prevention of CVD with Mediterranean Diet. NEJM."
+    ],
+    "word_count": 35,
+    "languages_detected": [
+      "en"
+    ],
+    "image_width": 1166,
+    "image_height": 791
+  },
+  "renewable_lcoe_lazard_2023.png": {
+    "raw_text": "Renewable Energy LCOE Comparison (Lazard, 2023)\nNuclear\n141\nGas combined\n45\nWind onshore\n29\nSolar utility\n24\n20\n40\n80\n100\n120\n140\n$IMWh\nLazard's Levelized Cost of Energy Analysis; v16.0 (2023).",
+    "lines": [
+      "Renewable Energy LCOE Comparison (Lazard, 2023)",
+      "Nuclear",
+      "141",
+      "Gas combined",
+      "45",
+      "Wind onshore",
+      "29",
+      "Solar utility",
+      "24",
+      "20",
+      "40",
+      "80",
+      "100",
+      "120",
+      "140",
+      "$IMWh",
+      "Lazard's Levelized Cost of Energy Analysis; v16.0 (2023)."
+    ],
+    "word_count": 32,
+    "languages_detected": [
+      "fr",
+      "en"
+    ],
+    "image_width": 1631,
+    "image_height": 791
+  },
+  "renewable_lcoe_lazard_2023_control.png": {
+    "raw_text": "Renewable Energy LCOE Comparison\nPie chart (control)\nSolar utility (24)\nWind onshore (29)\nGas combined (45)\nNuclear (141)\nLazard's Levelized Cost of Energy Analysis, v16.0 (2023).",
+    "lines": [
+      "Renewable Energy LCOE Comparison",
+      "Pie chart (control)",
+      "Solar utility (24)",
+      "Wind onshore (29)",
+      "Gas combined (45)",
+      "Nuclear (141)",
+      "Lazard's Levelized Cost of Energy Analysis, v16.0 (2023)."
+    ],
+    "word_count": 26,
+    "languages_detected": [
+      "fr",
+      "en"
+    ],
+    "image_width": 1124,
+    "image_height": 791
+  },
+  "sleep_memory_walker_2009.png": {
+    "raw_text": "Sleep Stages and Memory Consolidation (Walker; 2009)\nFull night sleep\n94\nNap\n85\nFragmented sleep\n72\nSleep deprived\n60\n20\n40\n80\n% retention\nWalker; M. P (2009). The Role of Sleep in Cognition and Emotion. ANYAS.",
+    "lines": [
+      "Sleep Stages and Memory Consolidation (Walker; 2009)",
+      "Full night sleep",
+      "94",
+      "Nap",
+      "85",
+      "Fragmented sleep",
+      "72",
+      "Sleep deprived",
+      "60",
+      "20",
+      "40",
+      "80",
+      "% retention",
+      "Walker; M. P (2009). The Role of Sleep in Cognition and Emotion. ANYAS."
+    ],
+    "word_count": 37,
+    "languages_detected": [
+      "fr",
+      "en"
+    ],
+    "image_width": 1635,
+    "image_height": 791
+  },
+  "sleep_memory_walker_2009_control.png": {
+    "raw_text": "Sleep Stages and Memory Consolidation\nPie chart (control)\nFull night sleep (94)\nNap (85)\nFragmented sleep (72)\nSleep deprived (60)\nWalker; M. P (2009). The Role of Sleep in Cognition and Emotion. ANYAS.",
+    "lines": [
+      "Sleep Stages and Memory Consolidation",
+      "Pie chart (control)",
+      "Full night sleep (94)",
+      "Nap (85)",
+      "Fragmented sleep (72)",
+      "Sleep deprived (60)",
+      "Walker; M. P (2009). The Role of Sleep in Cognition and Emotion. ANYAS."
+    ],
+    "word_count": 33,
+    "languages_detected": [
+      "fr",
+      "en"
+    ],
+    "image_width": 1190,
+    "image_height": 791
+  },
+  "sugar_tax_teng_2019.png": {
+    "raw_text": "Sugar Tax Effects on Consumption\nMeta-analysis (Teng et al., 2019)\nPhiladelphia\n38\nBerkeley\n21\nUK\n10\nMexico\n7.6\n10\n15\n20\n25\n30\n35\n% consumption reduction\nTeng; A. M. et al. (2019). Impact of sugar-sweetened beverage taxes. BMJ.",
+    "lines": [
+      "Sugar Tax Effects on Consumption",
+      "Meta-analysis (Teng et al., 2019)",
+      "Philadelphia",
+      "38",
+      "Berkeley",
+      "21",
+      "UK",
+      "10",
+      "Mexico",
+      "7.6",
+      "10",
+      "15",
+      "20",
+      "25",
+      "30",
+      "35",
+      "% consumption reduction",
+      "Teng; A. M. et al. (2019). Impact of sugar-sweetened beverage taxes. BMJ."
+    ],
+    "word_count": 39,
+    "languages_detected": [
+      "en"
+    ],
+    "image_width": 1635,
+    "image_height": 791
+  },
+  "sugar_tax_teng_2019_control.png": {
+    "raw_text": "Sugar Tax Effects on Consumption\nPie chart (control)\nPhiladelphia (38)\nBerkeley (21)\nUK (10)\nMexico (7.6)\nTeng, A. M. et al. (2019). Impact of sugar-sweetened beverage taxes. BMJ .",
+    "lines": [
+      "Sugar Tax Effects on Consumption",
+      "Pie chart (control)",
+      "Philadelphia (38)",
+      "Berkeley (21)",
+      "UK (10)",
+      "Mexico (7.6)",
+      "Teng, A. M. et al. (2019). Impact of sugar-sweetened beverage taxes. BMJ ."
+    ],
+    "word_count": 29,
+    "languages_detected": [
+      "en"
+    ],
+    "image_width": 1082,
+    "image_height": 791
+  }
+}
