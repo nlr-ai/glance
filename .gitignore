@@ -1,9 +1,16 @@
 __pycache__/
 *.pyc
-data/glance.db
+data/
+exports/
+imports/
 *.egg-info/
 .env
 exports/*.pdf
 exports/*.png
 exports/post_screenshots/
 exports/batch/
+SciSense_Business_Plan.md
+SciSense_Visual_Truth.pdf
+SciSense_Visual_Validation.pdf
+*.m4a
+data/*.m4a
