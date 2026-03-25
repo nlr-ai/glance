@@ -1430,6 +1430,9 @@ def ga_detail(request: Request, ga_id: str):
     og_desc = f"Analyse détaillée : S9b {s9b_pct}%, {n_tests} tests. {verdict}."
     og_image = f"https://glance.scisense.fr/og/ga/{ga_id}.png"
 
+    # Canonical share slug (prefer slug, fallback to numeric id)
+    share_slug = image.get("slug") or str(ga_id)
+
     # Expose drift / warp / spin for the perceptual profile report card
     if detail.get("n_tests", 0) > 0:
         perceptual_drift = drift_val
@@ -1466,6 +1469,8 @@ def ga_detail(request: Request, ga_id: str):
         "perceptual_drift": perceptual_drift,
         "perceptual_warp": perceptual_warp,
         "perceptual_spin": perceptual_spin,
+        "share_slug": share_slug,
+        "ga_id": ga_id,
     })
 
 
