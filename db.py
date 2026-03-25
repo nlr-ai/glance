@@ -34,7 +34,8 @@ CREATE TABLE IF NOT EXISTS participants (
     colorblind_status TEXT DEFAULT 'unknown',
     input_mode TEXT DEFAULT 'text',
     referred_by TEXT,
-    handle TEXT
+    handle TEXT,
+    is_admin INTEGER DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS ga_images (
@@ -297,6 +298,10 @@ def init_db():
     # Migrate: add designer column to ga_images (first person to /analyze)
     _migrate_add_columns(conn, "ga_images", [
         ("designer", "TEXT"),
+    ])
+    # Migrate: add is_admin column to participants
+    _migrate_add_columns(conn, "participants", [
+        ("is_admin", "INTEGER DEFAULT 0"),
     ])
     # Generate slugs for any images that don't have one yet
     _backfill_slugs(conn)
