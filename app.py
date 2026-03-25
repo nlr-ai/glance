@@ -2696,6 +2696,39 @@ BLOG_VERSIONS = [
 ]
 
 
+@app.get("/search", response_class=HTMLResponse)
+def search_page(request: Request, q: str = ""):
+    """Search GAs by title, domain, or description."""
+    lang = _lang(request)
+    results = []
+    if q and len(q) >= 2:
+        db = get_db()
+        rows = db.execute(
+            """SELECT id, filename, slug, title, domain, description
+               FROM ga_images
+               WHERE domain != 'user_upload'
+                 AND (title LIKE ? OR domain LIKE ? OR description LIKE ? OR filename LIKE ?)
+               ORDER BY id DESC LIMIT 30""",
+            (f"%{q}%", f"%{q}%", f"%{q}%", f"%{q}%")
+        ).fetchall()
+        db.close()
+        results = [dict(r) for r in rows]
+    return JSONResponse({
+        "query": q,
+        "count": len(results),
+        "results": [
+            {
+                "id": r["id"],
+                "slug": r.get("slug", str(r["id"])),
+                "title": r.get("title", r.get("filename", "")),
+                "domain": r.get("domain", ""),
+                "url": f"/ga-detail/{r.get('slug', r['id'])}",
+            }
+            for r in results
+        ],
+    })
+
+
 @app.get("/blog", response_class=HTMLResponse)
 def blog(request: Request):
     lang = _lang(request)
