@@ -422,3 +422,25 @@ images:
     correct: "Geopolymer"
     notes: "Pie chart control — area encoding β≈0.7"
     added: "2026-03-25"
+
+  # ── User-uploaded real-world GAs (complex multi-panel figures) ────
+
+  nature_cellbio_lung_atlas_2023:
+    paper: "A topographic atlas defines developmental origins of cell heterogeneity in the human embryonic lung (Sountoulidis et al., Nature Cell Biology 2023)"
+    doi: "10.1038/s41556-022-01064-x"
+    domain: biology
+    type: chart
+    hypotheses: [H1, H2]
+    correct: null
+    notes: "Multi-panel: UMAP 83 cell states, spatial transcriptomics, co-occurrence network, WNT7B validation. Archetype: encyclopedie."
+    added: "2026-03-25"
+
+  pnas_planet_size_2019:
+    paper: "Growth model interpretation of planet size distribution (Zeng et al., PNAS 2019)"
+    doi: "10.1073/pnas.1812905116"
+    domain: astrophysics
+    type: chart
+    hypotheses: [H1, H2]
+    correct: null
+    notes: "Mass-radius scatter with composition lines, temperature color, classification regions, radius histogram. Archetype: desequilibre."
+    added: "2026-03-25"

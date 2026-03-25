@@ -1,0 +1,156 @@
+# GLANCE Vision Analysis — pnas_planet_size_fig01.jpg
+# Analyzed: 2026-03-25 08:42:13
+# Model: gemini-2.5-pro
+
+nodes:
+- id: thing:scatter_plot
+  name: Exoplanet Scatter Plot
+  node_type: thing
+  synthesis: A scatter plot showing the relationship between mass (m) and radius (r)
+    for a large sample of exoplanets. Each point represents a planet, with its color
+    indicating its temperature.
+  weight: 1.0
+  stability: 0.9
+  energy: 1.0
+- id: thing:x_axis
+  name: Mass Axis (m)
+  node_type: thing
+  synthesis: The horizontal axis represents the mass of the planets in Earth masses
+    (M⊕), plotted on a logarithmic scale.
+  weight: 0.6
+  stability: 1.0
+  energy: 0.3
+- id: thing:y_axis
+  name: Radius Axis (r)
+  node_type: thing
+  synthesis: The vertical axis represents the radius of the planets in Earth radii
+    (R⊕), plotted on a logarithmic scale.
+  weight: 0.6
+  stability: 1.0
+  energy: 0.3
+- id: thing:color_legend
+  name: Flux/Temperature Color Legend
+  node_type: thing
+  synthesis: A color scale legend that maps the color of each data point to the incident
+    stellar flux (relative to Earth) and the planet's equilibrium temperature (T in
+    Kelvin). Hot planets are red/orange, and cold planets are blue.
+  weight: 0.8
+  stability: 1.0
+  energy: 0.8
+- id: thing:planet_regions
+  name: Planet Classification Regions
+  node_type: thing
+  synthesis: 'The plot is divided into labeled regions based on likely composition:
+    ''Rocky worlds'', ''Water worlds'', ''Transitional planets'', and ''Gas giants''.'
+  weight: 0.9
+  stability: 0.8
+  energy: 0.6
+- id: thing:composition_lines
+  name: Theoretical Composition/Density Lines
+  node_type: thing
+  synthesis: A series of lines indicating theoretical mass-radius relationships for
+    planets of different constant densities (e.g., ρ=10, 3, 1 g/cc) or compositions
+    (e.g., 'Earth-like rocky', '100% H2O').
+  weight: 0.7
+  stability: 0.9
+  energy: 0.4
+- id: thing:atmospheric_models
+  name: Atmospheric Model Lines
+  node_type: thing
+  synthesis: Theoretical lines and boundaries representing physical processes, including
+    atmospheric escape ('Atm Escape'), orbital decay, and models for planets with
+    cosmic H/He mixture atmospheres at different temperatures.
+  weight: 0.7
+  stability: 0.8
+  energy: 0.5
+- id: thing:radius_histogram
+  name: Radius Distribution Histogram
+  node_type: thing
+  synthesis: A histogram on the right side of the plot showing the frequency distribution
+    (counts per bin) of planet radii, aligned with the y-axis.
+  weight: 0.5
+  stability: 1.0
+  energy: 0.4
+- id: thing:solar_system_planets
+  name: Solar System Planet Markers
+  node_type: thing
+  synthesis: Labeled points indicating the mass and radius of planets in our solar
+    system (Venus, Earth, Uranus, Neptune, Saturn, Jupiter) for reference.
+  weight: 0.3
+  stability: 1.0
+  energy: 0.2
+- id: thing:composition_arrows
+  name: Compositional Change Arrows
+  node_type: thing
+  synthesis: Two arrows in the lower right indicate the direction a planet would move
+    on the plot if water ('Add H2O') or a cold hydrogen/helium envelope ('Add cold
+    H2/He') were added to it.
+  weight: 0.4
+  stability: 1.0
+  energy: 0.5
+links:
+- source: thing:x_axis
+  target: thing:scatter_plot
+  link_type: link
+  weight: 1.0
+- source: thing:y_axis
+  target: thing:scatter_plot
+  link_type: link
+  weight: 1.0
+- source: thing:color_legend
+  target: thing:scatter_plot
+  link_type: link
+  weight: 1.0
+- source: thing:planet_regions
+  target: thing:scatter_plot
+  link_type: link
+  weight: 0.9
+- source: thing:composition_lines
+  target: thing:scatter_plot
+  link_type: link
+  weight: 0.9
+- source: thing:atmospheric_models
+  target: thing:scatter_plot
+  link_type: link
+  weight: 0.9
+- source: thing:radius_histogram
+  target: thing:y_axis
+  link_type: link
+  weight: 1.0
+- source: thing:solar_system_planets
+  target: thing:scatter_plot
+  link_type: link
+  weight: 0.8
+metadata:
+  chart_type: scatter
+  word_count: 55
+  visual_channels_used:
+  - position
+  - color_hue
+  - color_value
+  - text_label
+  - shape
+  - grouping
+  - length
+  - alignment
+  - contrast
+  - whitespace
+  dominant_encoding: position
+  hierarchy_clear: false
+  accessibility_issues:
+  - Use of a red-green-blue color scale may not be accessible to users with color
+    vision deficiencies.
+  - Small font size and overlapping labels reduce readability.
+  - High data density makes it difficult to distinguish individual points and their
+    error bars.
+  executive_summary_fr: Ce graphique représente la distribution des exoplanètes en
+    fonction de leur masse et de leur rayon, la couleur indiquant leur température.
+    Il classifie les planètes en différentes catégories (rocheuses, mondes aquatiques,
+    géantes gazeuses) et les compare à des modèles théoriques de composition et d'évolution
+    atmosphérique, révélant des populations distinctes.
+  main_finding: Exoplanets populate distinct regions in the mass-radius diagram, corresponding
+    to rocky, water-rich, and gas-rich compositions, with their temperature influencing
+    atmospheric retention and evolution.
+  color_count: 12
+  has_legend: true
+  figure_text_ratio: 0.85

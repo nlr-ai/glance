@@ -1,5 +1,7 @@
 """GLANCE Premier Regard — FastAPI server."""
 
+GLANCE_VERSION = "0.9.1"
+
 import os
 import json
 import re
@@ -18,7 +20,7 @@ from fastapi.templating import Jinja2Templates
 from db import get_db, init_db, create_participant, get_participant_by_token
 from db import get_next_image, save_test, get_test, get_stats
 from db import get_all_tests, get_image_count, get_all_images, add_ga_image
-from db import get_image_by_id, get_tests_for_image, get_landing_stats, get_example_ga
+from db import get_image_by_id, get_tests_for_image, get_tests_for_participant, get_landing_stats, get_example_ga
 from db import get_referral_count, get_top_referrers, save_analysis_lead
 from scoring import score_test, classify_speed_accuracy
 from analytics import (
@@ -57,6 +59,7 @@ app.mount("/ga", StaticFiles(directory=os.path.join(BASE, "ga_library")), name="
 # Make t() available in all Jinja2 templates as a global function
 templates.env.globals["t"] = _t
 templates.env.globals["archetype_svgs"] = ARCHETYPE_SVGS
+templates.env.globals["GLANCE_VERSION"] = GLANCE_VERSION
 
 with open(os.path.join(BASE, "config.yaml"), encoding="utf-8") as f:
     CONFIG = yaml.safe_load(f)
@@ -598,6 +601,7 @@ def submit_test(
         q1_filtered_text=scores.get("q1_filtered_text"),
         q1_filter_ratio=scores.get("q1_filter_ratio"),
         stream_show_title=stream_show_title,
+        code_version=GLANCE_VERSION,
     )
     return RedirectResponse(url=f"/reveal/{test_id}", status_code=303)
 
@@ -740,6 +744,14 @@ def dashboard(request: Request):
     tests = get_all_tests()
     images = get_all_images()
 
+    # Enrich tests with pseudonymous handles
+    from handles import get_handle_map
+    test_pids = list({t["participant_id"] for t in tests if t.get("participant_id")})
+    if test_pids:
+        hmap = get_handle_map(test_pids)
+        for t in tests:
+            t["handle"] = hmap.get(t.get("participant_id"), "Anonymous")
+
     # Rich analytics from S2b_Mathematics.md
     agg = compute_aggregate_stats(tests)
     quadrant_stats = compute_stats_by_quadrant(tests)
@@ -768,6 +780,12 @@ def dashboard(request: Request):
     # Week-over-week KPI evolution indicators
     kpi_evo = compute_kpi_evolution(tests)
 
+    # Current participant's test history (if logged in via cookie)
+    participant = _get_participant(request)
+    my_tests = []
+    if participant:
+        my_tests = get_tests_for_participant(participant["id"])
+
     # OG meta for sharing
     n_tests = len(tests)
     glance_avg = round(agg.get("mean_glance", 0) * 100) if agg.get("mean_glance") else 0
@@ -790,6 +808,8 @@ def dashboard(request: Request):
         "s10_stats": s10_stats,
         "ab_fluency": ab_fluency,
         "kpi_evo": kpi_evo,
+        "participant": participant,
+        "my_tests": my_tests,
         "og_title": og_title,
         "og_description": og_desc,
     })
@@ -949,7 +969,8 @@ def participants(request: Request):
         "n_participants": n_participants,
         "n_qualified": n_qualified,
         "og_title": "GLANCE — Classement des participants",
-        "og_description": f"{n_participants} participants, {n_qualified} qualifies. Classement par comprehension et contribution.",
+        # TODO: unhide when N >= 10 — hidden because ~2 participants looks bad
+        "og_description": "Classement par comprehension et contribution.",
     })
 
 
@@ -1303,10 +1324,12 @@ def ga_detail(request: Request, ga_id: int):
     ga_abstract = _generate_ga_abstract(sidecar, image)
     executive_summary = _generate_executive_summary(sidecar, image, detail, recommendations)
 
-    # Email gate: lock user_upload GAs unless unlock cookie is present
+    # Email gate: lock user_upload GAs unless unlock cookie or admin pwd
     is_user_upload = (image.get("domain") == "user_upload")
     is_locked = False
-    if is_user_upload:
+    admin_pwd = os.environ.get("GLANCE_ADMIN_PWD", "gL4NC3")
+    is_admin = (request.query_params.get("pwd", "") == admin_pwd)
+    if is_user_upload and not is_admin:
         unlock_cookie = request.cookies.get(f"glance_unlock_{ga_id}")
         is_locked = not bool(unlock_cookie)
 
@@ -1364,8 +1387,8 @@ def analyze_page(request: Request):
     return templates.TemplateResponse("analyze.html", {
         "request": request,
         "lang": lang,
-        "og_title": "Note mon GA — GLANCE",
-        "og_description": "Uploadez votre Graphical Abstract et recevez une analyse IA : score, forces, faiblesses, recommandations.",
+        "og_title": "Analyse ton Graphical Abstract — GLANCE",
+        "og_description": "Depose ton Graphical Abstract et recois une analyse IA en 30 secondes : score, archetype, forces, faiblesses, recommandations.",
     })
 
 

@@ -194,10 +194,17 @@
     margin-bottom: var(--sp-2);
     flex-wrap: wrap;
 }
+.pl-handle {
+    font-size: var(--text-base);
+    color: var(--primary);
+    font-weight: 700;
+    white-space: nowrap;
+    letter-spacing: -0.01em;
+}
 .pl-profile {
-    font-size: var(--text-sm);
-    color: var(--text);
-    font-weight: 500;
+    font-size: var(--text-xs);
+    color: var(--text-dim);
+    font-weight: 400;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -368,6 +375,9 @@
         flex: 1;
         margin-top: 0;
     }
+    .pl-handle {
+        font-size: var(--text-sm);
+    }
     .pl-profile {
         max-width: 200px;
     }
@@ -397,14 +407,15 @@
 
     {# ── Global stats ── #}
     <div class="pl-stats">
-        <div class="pl-stat">
+        {# TODO: unhide when N >= 10 — hidden because ~2 participants looks bad #}
+        {# <div class="pl-stat">
             <div class="pl-stat-value">{{ n_participants }}</div>
             <div class="pl-stat-label">participants</div>
         </div>
         <div class="pl-stat">
             <div class="pl-stat-value">{{ n_qualified }}</div>
             <div class="pl-stat-label">qualifi&eacute;s (3+ tests)</div>
-        </div>
+        </div> #}
         <div class="pl-stat">
             <div class="pl-stat-value">
                 {% if comprehension %}{{ (comprehension[0].avg_glance * 100) | round(0) | int }}%{% else %}&mdash;{% endif %}
@@ -470,7 +481,7 @@
 
                     <div class="pl-info">
                         <div class="pl-info-top">
-                            <span class="pl-profile" title="{{ p.profile }}">{{ p.profile }}</span>
+                            <span class="pl-handle">@{{ p.handle }}</span>
                             {% if p.top_pct <= 10 %}
                                 <span class="pl-badge pl-badge-top">Top {{ p.top_pct }}%</span>
                             {% endif %}
@@ -478,6 +489,7 @@
                                 <span class="pl-badge pl-badge-streak">{{ p.streak }} cons&eacute;cutifs</span>
                             {% endif %}
                         </div>
+                        <span class="pl-profile" title="{{ p.profile }}">{{ p.profile }}</span>
                         <div class="pl-meta">
                             <div class="pl-meta-item">
                                 <span class="pl-meta-val">{{ p.n_tests }}</span> tests
@@ -564,11 +576,12 @@
 
                     <div class="pl-info">
                         <div class="pl-info-top">
-                            <span class="pl-profile" title="{{ p.profile }}">{{ p.profile }}</span>
+                            <span class="pl-handle">@{{ p.handle }}</span>
                             {% if p.top_pct <= 10 %}
                                 <span class="pl-badge pl-badge-top">Top {{ p.top_pct }}%</span>
                             {% endif %}
                         </div>
+                        <span class="pl-profile" title="{{ p.profile }}">{{ p.profile }}</span>
                         <div class="pl-meta">
                             <div class="pl-meta-item">
                                 score <span class="pl-meta-val sc-{{ sc }}">{{ pct }}%</span>
@@ -633,11 +646,12 @@
 
                     <div class="pl-info">
                         <div class="pl-info-top">
-                            <span class="pl-profile" title="{{ r.referrer_domain or 'Anonyme' }}">{{ r.referrer_domain or 'Anonyme' }}</span>
+                            <span class="pl-handle">@{{ r.referrer_handle or 'Anonyme' }}</span>
                             {% if r.n_referrals >= 5 %}
                                 <span class="pl-badge pl-badge-top">&#x1F3C6; Ambassadeur</span>
                             {% endif %}
                         </div>
+                        <span class="pl-profile" title="{{ r.referrer_domain or 'Anonyme' }}">{{ r.referrer_domain or 'Anonyme' }}</span>
                         <div class="pl-meta">
                             <div class="pl-meta-item">
                                 code <span class="pl-meta-val" style="font-family: var(--font-mono); font-size: 0.7rem;">{{ r.referral_code }}</span>

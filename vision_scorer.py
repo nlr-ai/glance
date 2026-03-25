@@ -91,19 +91,22 @@ def _parse_gemini_yaml(raw_text: str) -> dict:
         parsed = yaml.safe_load(text)
     except yaml.YAMLError as e:
         logger.error(f"YAML parse error: {e}")
-        # Try line-by-line cleanup: remove lines that break YAML
+        # Strategy: truncate at last complete top-level key block
+        # Find the last successfully parseable prefix
         lines = text.split("\n")
-        cleaned = []
-        for line in lines:
-            # Skip lines with unbalanced quotes that break parsing
+        parsed = None
+        # Try removing lines from the end until YAML parses
+        for trim in range(1, min(len(lines), 40)):
+            candidate = "\n".join(lines[:-trim])
             try:
-                yaml.safe_load(line)
-                cleaned.append(line)
+                result = yaml.safe_load(candidate)
+                if isinstance(result, dict):
+                    parsed = result
+                    logger.info(f"YAML recovered by trimming {trim} lines")
+                    break
             except yaml.YAMLError:
-                cleaned.append(line)
-        try:
-            parsed = yaml.safe_load("\n".join(cleaned))
-        except yaml.YAMLError:
+                continue
+        if parsed is None:
             raise ValueError(f"Cannot parse Gemini response as YAML: {e}")
 
     if not isinstance(parsed, dict):
@@ -224,7 +227,7 @@ def analyze_ga_image(image_bytes: bytes, filename: str = "") -> dict:
             ],
             generation_config={
                 "temperature": 0.2,
-                "max_output_tokens": 4096,
+                "max_output_tokens": 8192,
             },
         )
         raw_text = response.text

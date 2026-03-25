@@ -1,0 +1,33 @@
+{
+  "domain": "biology",
+  "version": "nature_cellbio_lung_atlas_2023",
+  "title": "A topographic atlas defines developmental origins of cell heterogeneity in the human embryonic lung",
+  "description": "Figure 1 from Sountoulidis et al., Nature Cell Biology 2023. Multi-panel figure combining UMAP clustering of 163,000 cells into 83 states, spatial transcriptomics mapping, cell-cell co-occurrence network, and WNT7B signaling validation.",
+  "source": "Sountoulidis et al., Nature Cell Biology, 2023",
+  "doi": "10.1038/s41556-022-01064-x",
+  "figure": "Figure 1",
+  "is_control": false,
+  "correct_product": null,
+  "products": null,
+  "glance_archetype": "encyclopedie",
+  "predicted_score": 17,
+  "semantic_references": {
+    "L1_broad": [
+      "cell heterogeneity",
+      "embryonic lung",
+      "developmental origins",
+      "single-cell RNA sequencing",
+      "spatial transcriptomics"
+    ],
+    "L2_specific": [
+      "UMAP clustering shows 83 distinct cell types in human embryonic lung",
+      "spatial distribution of cell niches across lung tissue",
+      "network graph reveals cell-cell co-occurrence interactions",
+      "WNT7B signaling drives airway smooth muscle progenitor proliferation"
+    ],
+    "L3_detailed": [
+      "topographic atlas maps developmental trajectories of cell populations in human embryonic lung using single-cell RNA sequencing combined with spatial transcriptomics",
+      "multi-panel figure integrates UMAP, spatial maps, co-occurrence networks, and fluorescence validation to characterize 83 cell states across mesenchyme, endothelium, epithelium, and immune compartments"
+    ]
+  }
+}

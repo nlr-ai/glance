@@ -27,55 +27,136 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        height: 56px;
-        padding: 0 1.25rem;
-        background: rgba(15, 23, 42, 0.85);
-        border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+        height: 60px;
+        padding: 0 1.5rem;
+        background: #1D3557;
+        border-bottom: none;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25), 0 1px 0 rgba(42, 157, 143, 0.15);
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
-        transition: background 0.3s ease;
+        transition: background 0.3s ease, box-shadow 0.3s ease;
     }
     .glance-nav.scrolled {
-        background: rgba(15, 23, 42, 0.97);
+        background: rgba(29, 53, 87, 0.98);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35), 0 1px 0 rgba(42, 157, 143, 0.2);
     }
+    /* ── Brand (left) ── */
     .glance-nav-brand {
-        font-size: 1.15rem;
-        font-weight: 800;
-        letter-spacing: 0.06em;
-        color: #14b8a6;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1.35rem;
+        font-weight: 900;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: #ffffff;
         text-decoration: none;
         flex-shrink: 0;
     }
-    .glance-nav-brand:hover {
-        color: #2dd4bf;
+    .glance-nav-brand .brand-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        background: linear-gradient(135deg, #2A9D8F, #21867a);
+        border-radius: 8px;
+        flex-shrink: 0;
+    }
+    .glance-nav-brand .brand-icon svg {
+        width: 18px;
+        height: 18px;
+        color: #ffffff;
+    }
+    .glance-nav-brand .brand-text {
+        background: linear-gradient(135deg, #ffffff 0%, #b8d4e3 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    .glance-nav-brand:hover .brand-text {
+        background: linear-gradient(135deg, #2A9D8F 0%, #5ec4b6 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    .glance-nav-brand:hover .brand-icon {
+        background: linear-gradient(135deg, #34b8a8, #2A9D8F);
+    }
+    /* ── Center links ── */
+    .glance-nav-center {
+        display: flex;
+        align-items: center;
+        gap: 0.15rem;
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
     }
     .glance-nav-links {
         display: flex;
         align-items: center;
-        gap: 0.25rem;
+        gap: 0.15rem;
         list-style: none;
         margin: 0;
         padding: 0;
     }
     .glance-nav-links a {
         display: inline-block;
-        padding: 0.4rem 0.75rem;
-        color: #94a3b8;
+        padding: 0.4rem 0.65rem;
+        color: rgba(255, 255, 255, 0.6);
         text-decoration: none;
-        font-size: 0.8125rem;
+        font-size: 0.8rem;
         font-weight: 500;
         border-radius: 6px;
-        transition: color 0.15s, background 0.15s;
+        transition: color 0.2s, background 0.2s;
         white-space: nowrap;
     }
     .glance-nav-links a:hover {
-        color: #e2e8f0;
-        background: rgba(255, 255, 255, 0.06);
+        color: #ffffff;
+        background: rgba(255, 255, 255, 0.08);
     }
     .glance-nav-links a.nav-active {
-        color: #14b8a6;
-        border-bottom: 2px solid #14b8a6;
+        color: #2A9D8F;
+        background: rgba(42, 157, 143, 0.12);
+        border-bottom: 2px solid #2A9D8F;
         border-radius: 6px 6px 0 0;
+    }
+    /* ── Right section (CTA + lang + externals) ── */
+    .glance-nav-right {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        flex-shrink: 0;
+    }
+    /* CTA button */
+    .nav-cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.5rem 1.1rem;
+        background: linear-gradient(135deg, #2A9D8F, #21867a);
+        color: #ffffff !important;
+        font-size: 0.8125rem;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        border-radius: 100px;
+        text-decoration: none !important;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 8px rgba(42, 157, 143, 0.35);
+        white-space: nowrap;
+    }
+    .nav-cta:hover {
+        background: linear-gradient(135deg, #34b8a8, #2A9D8F);
+        box-shadow: 0 4px 14px rgba(42, 157, 143, 0.5);
+        transform: translateY(-1px);
+        color: #ffffff !important;
+    }
+    .nav-cta svg {
+        width: 14px;
+        height: 14px;
+        flex-shrink: 0;
     }
     /* Language switcher inside nav */
     .nav-lang {
@@ -83,8 +164,7 @@
         gap: 0;
         border-radius: 5px;
         overflow: hidden;
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        margin-left: 0.75rem;
+        border: 1px solid rgba(255, 255, 255, 0.15);
         font-size: 0.7rem;
         font-weight: 600;
         letter-spacing: 0.04em;
@@ -96,32 +176,41 @@
         border-radius: 0 !important;
         border-bottom: none !important;
         font-size: 0.7rem !important;
+        color: rgba(255, 255, 255, 0.5) !important;
+    }
+    .nav-lang a:hover {
+        color: #ffffff !important;
+        background: rgba(255, 255, 255, 0.08) !important;
     }
     .nav-lang a.active {
-        background: rgba(13, 148, 136, 0.25) !important;
-        color: #14b8a6 !important;
+        background: rgba(42, 157, 143, 0.3) !important;
+        color: #2A9D8F !important;
     }
     /* Nav divider */
     .nav-divider {
         width: 1px;
         height: 20px;
-        background: rgba(148, 163, 184, 0.25);
-        margin: 0 0.35rem;
+        background: rgba(255, 255, 255, 0.15);
         flex-shrink: 0;
     }
     /* External nav links */
-    .glance-nav-links a.nav-external {
+    .glance-nav-right a.nav-external {
         display: inline-flex;
         align-items: center;
         gap: 0.35rem;
-        color: #64748b;
+        padding: 0.4rem 0.65rem;
+        color: rgba(255, 255, 255, 0.4);
+        text-decoration: none;
         font-size: 0.75rem;
+        border-radius: 6px;
+        transition: color 0.2s, background 0.2s;
+        white-space: nowrap;
     }
-    .glance-nav-links a.nav-external:hover {
-        color: #e2e8f0;
-        background: rgba(255, 255, 255, 0.06);
+    .glance-nav-right a.nav-external:hover {
+        color: #ffffff;
+        background: rgba(255, 255, 255, 0.08);
     }
-    .glance-nav-links a.nav-external svg {
+    .glance-nav-right a.nav-external svg {
         width: 14px;
         height: 14px;
         flex-shrink: 0;
@@ -129,18 +218,18 @@
     /* Mobile external links */
     .glance-nav-mobile .nav-mobile-divider {
         height: 1px;
-        background: rgba(148, 163, 184, 0.15);
+        background: rgba(255, 255, 255, 0.08);
         margin: 0.4rem 1.25rem;
     }
     .glance-nav-mobile a.nav-external-mobile {
         display: flex;
         align-items: center;
         gap: 0.5rem;
-        color: #64748b;
+        color: rgba(255, 255, 255, 0.4);
         font-size: 0.8rem;
     }
     .glance-nav-mobile a.nav-external-mobile:hover {
-        color: #e2e8f0;
+        color: #ffffff;
     }
     .glance-nav-mobile a.nav-external-mobile svg {
         width: 16px;
@@ -151,12 +240,18 @@
     .glance-nav-hamburger {
         display: none;
         background: none;
-        border: none;
-        color: #e2e8f0;
-        font-size: 1.5rem;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 6px;
+        color: #ffffff;
+        font-size: 1.25rem;
         cursor: pointer;
-        padding: 0.25rem;
+        padding: 0.3rem 0.5rem;
         line-height: 1;
+        transition: background 0.15s, border-color 0.15s;
+    }
+    .glance-nav-hamburger:hover {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(255, 255, 255, 0.25);
     }
     /* Nav wrapper (sticky container for nav + mobile dropdown) */
     .glance-nav-wrap {
@@ -167,8 +262,9 @@
     /* Mobile menu */
     .glance-nav-mobile {
         display: none;
-        background: rgba(15, 23, 42, 0.97);
-        border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+        background: #1D3557;
+        border-bottom: 1px solid rgba(42, 157, 143, 0.2);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
         padding: 0.5rem 0;
@@ -179,20 +275,37 @@
     .glance-nav-mobile a {
         display: block;
         padding: 0.75rem 1.25rem;
-        color: #94a3b8;
+        color: rgba(255, 255, 255, 0.6);
         text-decoration: none;
         font-size: 0.9rem;
         font-weight: 500;
         transition: color 0.15s, background 0.15s;
     }
     .glance-nav-mobile a:hover {
-        color: #e2e8f0;
+        color: #ffffff;
         background: rgba(255, 255, 255, 0.06);
     }
     .glance-nav-mobile a.nav-active {
-        color: #14b8a6;
-        border-left: 3px solid #14b8a6;
+        color: #2A9D8F;
+        border-left: 3px solid #2A9D8F;
         padding-left: calc(1.25rem - 3px);
+        background: rgba(42, 157, 143, 0.08);
+    }
+    .glance-nav-mobile .nav-mobile-cta {
+        display: block;
+        margin: 0.75rem 1.25rem;
+        padding: 0.7rem 1.25rem;
+        background: linear-gradient(135deg, #2A9D8F, #21867a);
+        color: #ffffff !important;
+        font-size: 0.9rem;
+        font-weight: 700;
+        text-align: center;
+        border-radius: 100px;
+        text-decoration: none;
+        box-shadow: 0 2px 8px rgba(42, 157, 143, 0.35);
+    }
+    .glance-nav-mobile .nav-mobile-cta:hover {
+        background: linear-gradient(135deg, #34b8a8, #2A9D8F);
     }
     .glance-nav-mobile .nav-lang-mobile {
         display: flex;
@@ -200,7 +313,7 @@
         margin: 0.5rem 1.25rem;
         border-radius: 5px;
         overflow: hidden;
-        border: 1px solid rgba(255, 255, 255, 0.12);
+        border: 1px solid rgba(255, 255, 255, 0.15);
         width: fit-content;
     }
     .glance-nav-mobile .nav-lang-mobile a {
@@ -211,15 +324,23 @@
         border-left: none;
     }
     .glance-nav-mobile .nav-lang-mobile a.active {
-        background: rgba(13, 148, 136, 0.25);
-        color: #14b8a6;
+        background: rgba(42, 157, 143, 0.3);
+        color: #2A9D8F;
     }
-    @media (max-width: 768px) {
-        .glance-nav-links {
+    @media (max-width: 900px) {
+        .glance-nav-center {
             display: none;
         }
         .glance-nav-hamburger {
             display: block;
+        }
+    }
+    @media (max-width: 480px) {
+        .nav-cta .cta-label {
+            display: none;
+        }
+        .nav-cta {
+            padding: 0.45rem 0.7rem;
         }
     }
     /* Legacy standalone lang-switcher (kept for pages that hide nav) */
@@ -233,7 +354,7 @@
         border-radius: 6px;
         overflow: hidden;
         border: 1px solid rgba(255,255,255,0.15);
-        background: rgba(15,23,42,0.7);
+        background: rgba(29,53,87,0.85);
         backdrop-filter: blur(8px);
         -webkit-backdrop-filter: blur(8px);
         font-size: 0.7rem;
@@ -242,17 +363,17 @@
     }
     .lang-switcher a {
         padding: 5px 10px;
-        color: #94a3b8;
+        color: rgba(255,255,255,0.5);
         text-decoration: none;
         transition: background 0.15s, color 0.15s;
     }
     .lang-switcher a:hover {
-        color: #e2e8f0;
+        color: #ffffff;
         background: rgba(255,255,255,0.08);
     }
     .lang-switcher a.active {
-        background: rgba(13,148,136,0.25);
-        color: #14b8a6;
+        background: rgba(42,157,143,0.3);
+        color: #2A9D8F;
     }
     </style>
     {% block head %}{% endblock %}
@@ -264,28 +385,38 @@
     {% set path = request.url.path %}
     <div class="glance-nav-wrap">
     <nav class="glance-nav" id="glanceNav">
-        <a href="/" class="glance-nav-brand">GLANCE</a>
-        <div class="glance-nav-links">
-            <a href="/onboard" class="{{ 'nav-active' if path == '/onboard' else '' }}">Commencer</a>
-            <a href="/leaderboard" class="{{ 'nav-active' if path.startswith('/leaderboard') else '' }}">Leaderboard</a>
-            <a href="/analyze" class="{{ 'nav-active' if path == '/analyze' else '' }}">Analysez votre GA</a>
-            <a href="/pricing" class="{{ 'nav-active' if path == '/pricing' else '' }}">{{ t('pricing_nav', lang) }}</a>
-            <a href="/participants" class="{{ 'nav-active' if path == '/participants' else '' }}">Participants</a>
-            <a href="/dashboard" class="{{ 'nav-active' if path == '/dashboard' else '' }}">Dashboard</a>
+        {# ── Left: Brand ── #}
+        <a href="/" class="glance-nav-brand">
+            <span class="brand-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/></svg></span>
+            <span class="brand-text">GLANCE</span>
+        </a>
+        {# ── Center: Nav links ── #}
+        <div class="glance-nav-center">
+            <div class="glance-nav-links">
+                <a href="/leaderboard" class="{{ 'nav-active' if path.startswith('/leaderboard') else '' }}">Leaderboard</a>
+                <a href="/analyze" class="{{ 'nav-active' if path == '/analyze' else '' }}">Analyse mon GA</a>
+                <a href="/pricing" class="{{ 'nav-active' if path == '/pricing' else '' }}">{{ t('pricing_nav', lang) }}</a>
+                <a href="/participants" class="{{ 'nav-active' if path == '/participants' else '' }}">Participants</a>
+                <a href="/dashboard" class="{{ 'nav-active' if path == '/dashboard' else '' }}">Dashboard</a>
+            </div>
+        </div>
+        {# ── Right: CTA + externals + lang ── #}
+        <div class="glance-nav-right">
+            <a href="/static/GLANCE_Paper_Draft.pdf" target="_blank" rel="noopener" class="nav-external" title="Paper"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>Paper</a>
+            <a href="https://github.com/nlr-ai/glance" target="_blank" rel="noopener" class="nav-external" title="GitHub"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>GitHub</a>
+            <span class="nav-divider"></span>
             <div class="nav-lang">
                 <a href="?lang=fr" class="{{ 'active' if lang != 'en' else '' }}">FR</a>
                 <a href="?lang=en" class="{{ 'active' if lang == 'en' else '' }}">EN</a>
             </div>
-            <span class="nav-divider"></span>
-            <a href="/static/GLANCE_Paper_Draft.pdf" target="_blank" rel="noopener" class="nav-external" title="Paper"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>Paper</a>
-            <a href="https://github.com/nlr-ai/glance" target="_blank" rel="noopener" class="nav-external" title="GitHub"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>GitHub</a>
+            <a href="/onboard" class="nav-cta"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg><span class="cta-label">Commencer</span></a>
         </div>
         <button class="glance-nav-hamburger" id="navHamburger" aria-label="Menu">&#9776;</button>
     </nav>
     <div class="glance-nav-mobile" id="navMobile">
-        <a href="/onboard" class="{{ 'nav-active' if path == '/onboard' else '' }}">Commencer</a>
+        <a href="/onboard" class="nav-mobile-cta">Commencer</a>
         <a href="/leaderboard" class="{{ 'nav-active' if path.startswith('/leaderboard') else '' }}">Leaderboard</a>
-        <a href="/analyze" class="{{ 'nav-active' if path == '/analyze' else '' }}">Analysez votre GA</a>
+        <a href="/analyze" class="{{ 'nav-active' if path == '/analyze' else '' }}">Analyse mon GA</a>
         <a href="/pricing" class="{{ 'nav-active' if path == '/pricing' else '' }}">{{ t('pricing_nav', lang) }}</a>
         <a href="/participants" class="{{ 'nav-active' if path == '/participants' else '' }}">Participants</a>
         <a href="/dashboard" class="{{ 'nav-active' if path == '/dashboard' else '' }}">Dashboard</a>
@@ -316,6 +447,8 @@
         <a href="/privacy" style="color: #64748b; text-decoration: none;">Confidentialité</a>
         <span style="margin: 0 0.5rem;">|</span>
         <a href="/terms" style="color: #64748b; text-decoration: none;">Conditions d'utilisation</a>
+        <span style="margin: 0 0.5rem;">|</span>
+        <span style="color: #475569;">v{{ GLANCE_VERSION }}</span>
     </div>
     {% endblock %}
     {% block scripts %}{% endblock %}

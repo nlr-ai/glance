@@ -1,0 +1,33 @@
+{
+  "domain": "astrophysics",
+  "version": "pnas_planet_size_2019",
+  "title": "Growth model interpretation of planet size distribution",
+  "description": "Figure 1 from Zeng et al., PNAS 2019. Mass-radius scatter plot of exoplanets with theoretical composition lines, temperature color encoding, planet classification regions, and radius distribution histogram.",
+  "source": "Zeng et al., PNAS, 2019",
+  "doi": "10.1073/pnas.1812905116",
+  "figure": "Figure 1",
+  "is_control": false,
+  "correct_product": null,
+  "products": null,
+  "glance_archetype": "desequilibre",
+  "predicted_score": 15,
+  "semantic_references": {
+    "L1_broad": [
+      "exoplanets",
+      "planet size distribution",
+      "mass-radius relationship",
+      "planetary composition",
+      "astrophysics"
+    ],
+    "L2_specific": [
+      "mass-radius scatter plot classifies exoplanets into rocky, water, transitional, and gas giant regions",
+      "theoretical composition lines show density and material boundaries",
+      "temperature color gradient encodes stellar flux and equilibrium temperature",
+      "radius histogram reveals bimodal distribution in planet sizes"
+    ],
+    "L3_detailed": [
+      "growth model framework interprets the observed bimodal planet size distribution by mapping exoplanet mass and radius against theoretical composition curves for Earth-like rocky, water-rich, and H2/He-envelope planets",
+      "multi-layer visualization integrates scatter data, composition models, atmospheric escape boundaries, and solar system reference points to classify the exoplanet population"
+    ]
+  }
+}

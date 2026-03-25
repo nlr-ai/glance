@@ -1377,6 +1377,7 @@ def get_participant_ranking_comprehension(min_tests: int = 3) -> list[dict]:
                   t.q1_time_ms, t.q2_time_ms, t.q3_time_ms,
                   t.exposure_actual_ms,
                   p.clinical_domain, p.data_literacy, p.experience_years,
+                  p.token,
                   g.domain as ga_domain
            FROM tests t
            JOIN participants p ON t.participant_id = p.id
@@ -1398,6 +1399,7 @@ def get_participant_ranking_comprehension(min_tests: int = 3) -> list[dict]:
                 "clinical_domain": r["clinical_domain"],
                 "data_literacy": r["data_literacy"],
                 "experience_years": r["experience_years"],
+                "token": r["token"],
                 "scores": [],
                 "domains": set(),
                 "total_time_ms": 0,
@@ -1413,12 +1415,19 @@ def get_participant_ranking_comprehension(min_tests: int = 3) -> list[dict]:
 
     # Filter by min_tests and compute metrics
     glance_threshold = get_constant("glance_pass_threshold", 0.70)
-    result = []
+    qualifying = []
     for pid, p in participants.items():
         n = len(p["scores"])
         if n < min_tests:
             continue
+        qualifying.append((pid, p, n))
 
+    # Bulk-generate handles for qualifying participants
+    from handles import get_handle_map
+    handle_map = get_handle_map([pid for pid, _, _ in qualifying])
+
+    result = []
+    for pid, p, n in qualifying:
         avg_glance = sum(p["scores"]) / n
         best_score = max(p["scores"])
 
@@ -1437,6 +1446,7 @@ def get_participant_ranking_comprehension(min_tests: int = 3) -> list[dict]:
 
         result.append({
             "participant_id": pid,
+            "handle": handle_map.get(pid, "Anonymous"),
             "profile": profile,
             "avg_glance": round(avg_glance, 4),
             "n_tests": n,
@@ -1482,6 +1492,7 @@ def get_participant_ranking_contribution() -> list[dict]:
                   t.q1_time_ms, t.q2_time_ms, t.q3_time_ms,
                   t.exposure_actual_ms,
                   p.clinical_domain, p.data_literacy, p.experience_years,
+                  p.token,
                   g.domain as ga_domain
            FROM tests t
            JOIN participants p ON t.participant_id = p.id
@@ -1503,6 +1514,7 @@ def get_participant_ranking_contribution() -> list[dict]:
                 "clinical_domain": r["clinical_domain"],
                 "data_literacy": r["data_literacy"],
                 "experience_years": r["experience_years"],
+                "token": r["token"],
                 "scores": [],
                 "domains": set(),
                 "total_time_ms": 0,
@@ -1514,6 +1526,10 @@ def get_participant_ranking_contribution() -> list[dict]:
             rt += r["exposure_actual_ms"]
         participants[pid]["total_time_ms"] += rt
 
+    # Bulk-generate handles
+    from handles import get_handle_map
+    handle_map = get_handle_map(list(participants.keys()))
+
     result = []
     for pid, p in participants.items():
         n = len(p["scores"])
@@ -1523,6 +1539,7 @@ def get_participant_ranking_contribution() -> list[dict]:
         )
         result.append({
             "participant_id": pid,
+            "handle": handle_map.get(pid, "Anonymous"),
             "profile": profile,
             "n_tests": n,
             "avg_glance": round(avg_glance, 4),

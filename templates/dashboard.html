@@ -545,6 +545,128 @@
         gap: var(--sp-3);
     }
 }
+
+/* --- My Test History Section --- */
+.my-history-grid {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3);
+}
+.my-history-card {
+    background: var(--surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: var(--sp-4) var(--sp-5);
+    display: grid;
+    grid-template-columns: 64px 1fr auto;
+    gap: var(--sp-4);
+    align-items: center;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.my-history-card:hover {
+    border-color: var(--border);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+}
+.my-history-thumb {
+    width: 64px;
+    height: 64px;
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--bg-subtle);
+    flex-shrink: 0;
+}
+.my-history-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+.my-history-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-1);
+    min-width: 0;
+}
+.my-history-title {
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.my-history-meta {
+    font-size: var(--text-xs);
+    color: var(--text-dim);
+}
+.my-history-answer {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    font-size: var(--text-xs);
+    flex-wrap: wrap;
+}
+.my-history-label {
+    color: var(--text-dim);
+}
+.my-history-q2 {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    color: var(--text);
+}
+.my-history-verdict {
+    font-size: var(--text-xs);
+    font-weight: 600;
+    padding: 1px 6px;
+    border-radius: var(--radius-pill);
+}
+.my-history-correct {
+    color: #22c55e;
+    background: rgba(34, 197, 94, 0.12);
+}
+.my-history-wrong {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.10);
+}
+.my-history-score {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    flex-shrink: 0;
+    min-width: 56px;
+}
+.my-history-score-num {
+    font-family: var(--font-mono);
+    font-weight: 800;
+    font-size: var(--text-xl);
+    line-height: 1;
+    letter-spacing: -0.03em;
+}
+.my-history-score-label {
+    font-size: 10px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+@media (max-width: 560px) {
+    .my-history-card {
+        grid-template-columns: 48px 1fr auto;
+        gap: var(--sp-3);
+        padding: var(--sp-3) var(--sp-4);
+    }
+    .my-history-thumb {
+        width: 48px;
+        height: 48px;
+    }
+    .my-history-title {
+        font-size: var(--text-xs);
+    }
+    .my-history-score-num {
+        font-size: var(--text-lg);
+    }
+}
 </style>
 {% endblock %}
 
@@ -581,7 +703,7 @@
         <span class="sep">&#8250;</span>
         <a href="/leaderboard">Leaderboard</a>
         <span class="sep">&#8250;</span>
-        <a href="/participants">Classement participants</a>
+        {# TODO: unhide when N >= 10 #}{# <a href="/participants">Classement participants</a> #}
     </nav>
 
     {# ── Share card ── #}
@@ -678,6 +800,44 @@
         </div>
         <span style="color: #14b8a6; font-size: var(--text-sm);">&rarr;</span>
     </a>
+
+    {# ════════════════════════════════════════════════
+       SECTION 0 — My Test History (participant only)
+       ════════════════════════════════════════════════ #}
+
+    {% if my_tests %}
+    <h2 class="db-section-title">Mon historique</h2>
+
+    <div class="my-history-grid">
+        {% for mt in my_tests %}
+        <div class="my-history-card">
+            <div class="my-history-thumb">
+                <img src="/ga/{{ mt.filename }}" alt="{{ mt.title or mt.filename }}" loading="lazy">
+            </div>
+            <div class="my-history-body">
+                <div class="my-history-title">{{ mt.title or mt.filename }}</div>
+                <div class="my-history-meta">{{ mt.created_at[:10] }} &middot; {{ mt.domain }}</div>
+                <div class="my-history-answer">
+                    <span class="my-history-label">Votre choix (Q2) :</span>
+                    <span class="my-history-q2">{{ mt.q2_choice or '—' }}</span>
+                    {% if mt.correct_product %}
+                        {% if mt.q2_choice == mt.correct_product %}
+                            <span class="my-history-verdict my-history-correct">&#10003; Correct</span>
+                        {% else %}
+                            <span class="my-history-verdict my-history-wrong">&#10007; R&eacute;ponse : {{ mt.correct_product }}</span>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+            <div class="my-history-score">
+                {% set g_pct = ((mt.glance_score or 0) * 100) | round(0) | int %}
+                <span class="my-history-score-num score-{{ score_color(g_pct) }}">{{ g_pct }}%</span>
+                <span class="my-history-score-label">GLANCE</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
 
     {# ════════════════════════════════════════════════
        SECTION 1 — Core Scores (S9a, S9b, S9c, GLANCE)
@@ -795,12 +955,12 @@
             {{ evo_badge(kpi_evo.tests_completed) }}
         </div>
 
-        {# Unique participants #}
-        <div class="count-card">
+        {# TODO: unhide when N >= 10 — hidden because ~2 participants looks bad #}
+        {# <div class="count-card">
             <div class="count-number">{{ kpi_evo.unique_participants.current if kpi_evo and kpi_evo.unique_participants else '-' }}</div>
             <div class="count-label">participants (7j)</div>
             {{ evo_badge(kpi_evo.unique_participants) }}
-        </div>
+        </div> #}
 
         {# Completion rate #}
         <div class="count-card">
@@ -1110,6 +1270,7 @@
                 <th>Q2</th>
                 <th>T(Q2)</th>
                 <th title="Changement d'onglet pendant l'exposition">Tab</th>
+                <th title="Version du code lors du test">Ver.</th>
             </tr>
         </thead>
         <tbody>
@@ -1117,7 +1278,7 @@
             <tr class="{{ 'row-inv' if t.tab_switched }}">
                 <td class="mono">{{ t.created_at[:16] }}</td>
                 <td>{% if t.exposure_mode == 'stream' %}<span title="Attention ambiante">Stream</span>{% else %}<span title="Attention dirigee">Spot</span>{% endif %}</td>
-                <td>{{ t.clinical_domain }} / {{ t.data_literacy }}</td>
+                <td title="{{ t.clinical_domain }} / {{ t.data_literacy }}"><span style="color: var(--primary); font-weight: 600;">@{{ t.handle or 'Anon' }}</span></td>
                 <td>{{ t.title or '-' }}</td>
                 <td class="mono {{ 't-check' if t.s9a_pass else 't-cross' }}">{{ '&#10003;' if t.s9a_pass else '&#10007;' }}</td>
                 <td class="mono {{ 't-check' if t.s9b_pass else 't-cross' }}">{{ '&#10003;' if t.s9b_pass else '&#10007;' }}</td>
@@ -1128,10 +1289,11 @@
                 <td class="mono">{{ t.q2_choice or '-' }}</td>
                 <td class="mono">{{ ((t.q2_time_ms or 0) / 1000) | round(1) }}s</td>
                 <td class="mono">{% if t.tab_switched %}<span class="t-warn" title="Test invalide">&#9888;</span>{% else %}-{% endif %}</td>
+                <td class="mono" style="color: #64748b; font-size: 0.75rem;">{{ t.code_version or '-' }}</td>
             </tr>
             {% endfor %}
             {% if not tests %}
-            <tr><td colspan="13" style="color: var(--text-dim); text-align: center; padding: var(--sp-6);">Aucun test enregistre.</td></tr>
+            <tr><td colspan="14" style="color: var(--text-dim); text-align: center; padding: var(--sp-6);">Aucun test enregistre.</td></tr>
             {% endif %}
         </tbody>
     </table>

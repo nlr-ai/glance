@@ -1,0 +1,146 @@
+# GLANCE Vision Analysis — nature_cellbio_lung_atlas_fig1.jpg
+# Analyzed: 2026-03-25 08:41:42
+# Model: gemini-2.5-pro
+
+nodes:
+- id: thing:1
+  name: Cell State UMAP Plot
+  node_type: thing
+  synthesis: A UMAP scatter plot visualizing 163,000 cells clustered into 83 distinct
+    states, with each color representing a different cell type or state. This demonstrates
+    the cellular heterogeneity of the tissue.
+  weight: 1.0
+  stability: 0.8
+  energy: 1.0
+- id: thing:2
+  name: Spatial Map of Cell Identities
+  node_type: thing
+  synthesis: A spatial transcriptomics plot showing the predicted physical locations
+    of different cell types on a tissue slice, linking the abstract cell states from
+    the UMAP to their anatomical context.
+  weight: 0.7
+  stability: 0.7
+  energy: 0.8
+- id: thing:3
+  name: Cell-State Co-occurrence Network
+  node_type: thing
+  synthesis: A network graph where nodes are cell states and links represent their
+    frequent co-localization, defining functional cell niches.
+  weight: 0.8
+  stability: 0.9
+  energy: 0.8
+- id: thing:4
+  name: Cell Niche Groupings
+  node_type: thing
+  synthesis: Labeled groupings within the network graph that define larger microenvironments,
+    such as 'Distal airways', 'Vessels', and 'Parenchyma', based on co-occurring cell
+    types.
+  weight: 0.6
+  stability: 1.0
+  energy: 0.6
+- id: thing:5
+  name: Cell Interaction Schematic
+  node_type: thing
+  synthesis: A diagram illustrating the mechanism of cell-cell interaction at the
+    'Distal airway tip', focusing on signaling pathways and ligand-target gene relations.
+  weight: 0.5
+  stability: 1.0
+  energy: 0.5
+- id: thing:6
+  name: Spatial Validation Image
+  node_type: thing
+  synthesis: A fluorescence microscopy image providing experimental validation of
+    the predicted cell interactions by showing the co-localization of specific signaling
+    molecules (e.g., WNT7B, FZD1) in the tissue.
+  weight: 0.5
+  stability: 0.8
+  energy: 0.6
+- id: thing:7
+  name: Cell Type Labels
+  node_type: thing
+  synthesis: Text labels pointing to and identifying the various cell clusters in
+    the UMAP plot, such as Mesenchyme, Endothelium, Epithelium, and Immune cells.
+  weight: 0.9
+  stability: 0.7
+  energy: 0.9
+- id: thing:8
+  name: WNT7B Signaling Pathway
+  node_type: thing
+  synthesis: A specific finding highlighted in the schematic, showing that the WNT7B
+    ligand leads to the localized proliferation of ASM (airway smooth muscle) progenitors.
+  weight: 0.4
+  stability: 1.0
+  energy: 0.4
+- id: thing:9
+  name: Pie Chart of Cell Proportions
+  node_type: thing
+  synthesis: An inset pie chart quantifying the relative abundance of different cell
+    types, such as 'Epi prox. secretory', within the spatially mapped tissue.
+  weight: 0.3
+  stability: 0.9
+  energy: 0.3
+links:
+- source: thing:7
+  target: thing:1
+  link_type: link
+  weight: 0.9
+- source: thing:1
+  target: thing:2
+  link_type: link
+  weight: 0.8
+- source: thing:2
+  target: thing:3
+  link_type: link
+  weight: 0.7
+- source: thing:4
+  target: thing:3
+  link_type: link
+  weight: 1.0
+- source: thing:3
+  target: thing:5
+  link_type: link
+  weight: 0.7
+- source: thing:5
+  target: thing:6
+  link_type: link
+  weight: 0.8
+- source: thing:8
+  target: thing:5
+  link_type: link
+  weight: 0.9
+- source: thing:9
+  target: thing:2
+  link_type: link
+  weight: 0.9
+metadata:
+  chart_type: mixed
+  word_count: 110
+  visual_channels_used:
+  - position
+  - color_hue
+  - text_label
+  - shape
+  - grouping
+  - spacing
+  - area
+  - angle
+  - contrast
+  - whitespace
+  dominant_encoding: position
+  hierarchy_clear: false
+  accessibility_issues:
+  - Relies heavily on color to distinguish between dozens of cell types, making it
+    difficult for colorblind individuals to interpret.
+  - Many text labels are very small and have low contrast with the background, impairing
+    readability.
+  executive_summary_fr: Cette analyse graphique montre la définition de 83 états cellulaires
+    à partir de 163 000 cellules. Elle cartographie leur emplacement spatial, identifie
+    des niches cellulaires fonctionnelles via leurs co-occurrences, et valide un mécanisme
+    d'interaction spécifique (la voie WNT7B) qui régule la prolifération cellulaire
+    dans les voies respiratoires.
+  main_finding: A comprehensive single-cell analysis defines 83 distinct cell states,
+    maps their spatial organization into functional niches, and validates that WNT7B
+    signaling drives the proliferation of airway smooth muscle progenitors.
+  color_count: 20
+  has_legend: false
+  figure_text_ratio: 0.85

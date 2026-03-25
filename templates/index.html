@@ -936,11 +936,12 @@
             <div class="lp-stat-pill">
                 <strong>{{ landing.total_domains }}</strong> domaines
             </div>
-            {% if landing.total_participants > 0 %}
+            {# TODO: unhide when N >= 10 — hidden because ~2 participants looks bad #}
+            {# {% if landing.total_participants > 0 %}
             <div class="lp-stat-pill">
                 <strong class="counter-animate" data-target="{{ landing.total_participants }}">0</strong> participants
             </div>
-            {% endif %}
+            {% endif %} #}
         </div>
     </div>
 </div>
@@ -1139,7 +1140,7 @@
 
                 <!-- CTA -->
                 <a href="/analyze" class="lp-example-cta">
-                    Analysez votre GA
+                    Analyse ton Graphical Abstract
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
                     </svg>
@@ -1351,7 +1352,7 @@
         <a href="/analyze">Note mon GA</a>
         <a href="/pricing">{{ t('pricing_nav', lang) }}</a>
         <a href="/leaderboard">{{ t('footer_leaderboard', lang) }}</a>
-        <a href="/participants">Classement participants</a>
+        {# TODO: unhide when N >= 10 #}{# <a href="/participants">Classement participants</a> #}
         <a href="/dashboard">{{ t('footer_dashboard', lang) }}</a>
         <a href="/spin">{{ t('footer_spin', lang) }}</a>
         <a href="/onboard">{{ t('footer_start', lang) }}</a>

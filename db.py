@@ -17,7 +17,8 @@ CREATE TABLE IF NOT EXISTS participants (
     grade_familiar INTEGER DEFAULT 0,
     colorblind_status TEXT DEFAULT 'unknown',
     input_mode TEXT DEFAULT 'text',
-    referred_by TEXT
+    referred_by TEXT,
+    handle TEXT
 );
 
 CREATE TABLE IF NOT EXISTS ga_images (
@@ -111,6 +112,7 @@ CREATE TABLE IF NOT EXISTS tests (
     s2_duration_ms INTEGER,
     s2_chunks TEXT,
     s2_node_coverage TEXT,
+    code_version TEXT,
     FOREIGN KEY (participant_id) REFERENCES participants(id),
     FOREIGN KEY (ga_image_id) REFERENCES ga_images(id),
     UNIQUE(participant_id, ga_image_id)
@@ -138,6 +140,10 @@ def init_db():
         ("s2_chunks", "TEXT"),
         ("s2_node_coverage", "TEXT"),
     ])
+    # Migrate: add code_version column if missing (for existing DBs)
+    _migrate_add_columns(conn, "tests", [
+        ("code_version", "TEXT"),
+    ])
     # Migrate: add referral column if missing (for existing DBs)
     _migrate_add_columns(conn, "participants", [
         ("referred_by", "TEXT"),
@@ -145,6 +151,10 @@ def init_db():
     # Migrate: add paid column to analysis_leads if missing
     _migrate_add_columns(conn, "analysis_leads", [
         ("paid", "INTEGER DEFAULT 0"),
+    ])
+    # Migrate: add handle column for pseudonymous display names
+    _migrate_add_columns(conn, "participants", [
+        ("handle", "TEXT"),
     ])
     conn.close()
 
@@ -241,7 +251,8 @@ def save_test(participant_id, ga_image_id, q1_text, q1_time_ms,
               q4_response=None, q4_rt=None,
               q5_dimension_id=None, q5_pattern=None,
               q5_response=None, q5_rt=None,
-              stream_show_title=1):
+              stream_show_title=1,
+              code_version=None):
     db = get_db()
     cursor = db.execute(
         """INSERT INTO tests
@@ -267,8 +278,8 @@ def save_test(participant_id, ga_image_id, q1_text, q1_time_ms,
             s9a_raw,
             q4_dimension_id, q4_pattern, q4_response, q4_rt,
             q5_dimension_id, q5_pattern, q5_response, q5_rt,
-            stream_show_title)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            stream_show_title, code_version)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
         (participant_id, ga_image_id, q1_text, q1_time_ms,
          q2_choice, q2_time_ms, q3_choice, q3_time_ms,
          int(s9a_pass), float(s9a_score), int(s9b_pass), int(s9c_pass),
@@ -291,7 +302,7 @@ def save_test(participant_id, ga_image_id, q1_text, q1_time_ms,
          s9a_raw,
          q4_dimension_id, q4_pattern, q4_response, q4_rt,
          q5_dimension_id, q5_pattern, q5_response, q5_rt,
-         int(stream_show_title)),
+         int(stream_show_title), code_version),
     )
     test_id = cursor.lastrowid
     db.commit()
@@ -376,6 +387,7 @@ def get_all_tests():
                   t.s9a_raw,
                   t.q4_dimension_id, t.q4_pattern, t.q4_response, t.q4_rt,
                   t.q5_dimension_id, t.q5_pattern, t.q5_response, t.q5_rt,
+                  t.code_version,
                   p.clinical_domain, p.data_literacy,
                   g.title, g.domain, g.version, g.correct_product, g.is_control
            FROM tests t
@@ -415,6 +427,27 @@ def get_tests_by_quadrant(quadrant_fn):
         q = quadrant_fn(t.get("clinical_domain", ""), t.get("data_literacy", ""))
         buckets.setdefault(q, []).append(t)
     return buckets
+
+
+def get_tests_for_participant(participant_id: int):
+    """Return all tests for a specific participant, with image data joined."""
+    db = get_db()
+    rows = db.execute(
+        """SELECT t.id, t.created_at, t.glance_score,
+                  t.q1_text, t.q2_choice, t.q3_choice,
+                  t.s9a_pass, t.s9b_pass, t.s9c_pass,
+                  t.q2_time_ms, t.speed_accuracy,
+                  t.exposure_mode, t.tab_switched,
+                  g.id AS ga_image_id, g.filename, g.title,
+                  g.domain, g.correct_product, g.is_control
+           FROM tests t
+           JOIN ga_images g ON t.ga_image_id = g.id
+           WHERE t.participant_id = ?
+           ORDER BY t.created_at DESC""",
+        (participant_id,),
+    ).fetchall()
+    db.close()
+    return [dict(r) for r in rows]
 
 
 def get_tests_for_image(ga_image_id: int):
@@ -534,7 +567,7 @@ def get_referral_count(referral_code: str) -> int:
 def get_top_referrers(limit: int = 20) -> list[dict]:
     """Return top referrers ranked by number of successful referrals.
 
-    Each entry: {referral_code, n_referrals, profile}.
+    Each entry: {referral_code, n_referrals, referrer_domain, referrer_handle}.
     """
     db = get_db()
     rows = db.execute(
@@ -542,7 +575,10 @@ def get_top_referrers(limit: int = 20) -> list[dict]:
                   COUNT(*) AS n_referrals,
                   (SELECT pp.clinical_domain FROM participants pp
                    WHERE SUBSTR(pp.token, 1, 8) = p.referred_by
-                   LIMIT 1) AS referrer_domain
+                   LIMIT 1) AS referrer_domain,
+                  (SELECT pp.id FROM participants pp
+                   WHERE SUBSTR(pp.token, 1, 8) = p.referred_by
+                   LIMIT 1) AS referrer_id
            FROM participants p
            WHERE p.referred_by IS NOT NULL AND p.referred_by != ''
            GROUP BY p.referred_by
@@ -551,7 +587,22 @@ def get_top_referrers(limit: int = 20) -> list[dict]:
         (limit,),
     ).fetchall()
     db.close()
-    return [dict(r) for r in rows]
+
+    result = [dict(r) for r in rows]
+
+    # Attach handles for referrers
+    referrer_ids = [r["referrer_id"] for r in result if r.get("referrer_id")]
+    if referrer_ids:
+        from handles import get_handle_map
+        handle_map = get_handle_map(referrer_ids)
+        for r in result:
+            rid = r.get("referrer_id")
+            r["referrer_handle"] = handle_map.get(rid, None) if rid else None
+    else:
+        for r in result:
+            r["referrer_handle"] = None
+
+    return result
 
 
 def save_analysis_lead(email: str, ga_image_id: int | None = None, source: str = "analyze", paid: int = 0) -> int:
