@@ -2305,12 +2305,13 @@ async def admin_batch_analyze(pwd: str = "", batch_size: int = 5):
 
     def _batch_worker(image_list):
         from vision_scorer import analyze_ga_image
+        _log = logging.getLogger("batch")
         for img in image_list:
             ga_id = img["id"]
             filename = img["filename"]
             image_path = os.path.join(BASE, "ga_library", filename)
             if not os.path.exists(image_path):
-                log.warning(f"Batch: {filename} not found, skipping")
+                _log.warning(f"Batch: {filename} not found, skipping")
                 continue
             try:
                 with open(image_path, "rb") as f:
@@ -2318,9 +2319,9 @@ async def admin_batch_analyze(pwd: str = "", batch_size: int = 5):
                 result = analyze_ga_image(image_bytes, filename=filename)
                 graph_id = save_graph(result["graph"], ga_image_id=ga_id,
                                      graph_type="vision", source="batch_analyze")
-                log.info(f"Batch: GA {ga_id} ({img['slug']}) → graph {graph_id}")
+                _log.info(f"Batch: GA {ga_id} ({img['slug']}) → graph {graph_id}")
             except Exception as e:
-                log.warning(f"Batch: GA {ga_id} failed: {e}")
+                _log.warning(f"Batch: GA {ga_id} failed: {e}")
             time.sleep(6)  # gentle rate limit
 
     t = threading.Thread(target=_batch_worker, args=([dict(img) for img in images],), daemon=True)
