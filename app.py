@@ -1409,8 +1409,8 @@ def ga_detail(request: Request, ga_id: str):
     # Email gate: DISABLED — user_upload GAs are never locked
     is_user_upload = (image.get("domain") == "user_upload")
     is_locked = False
-    # admin_pwd = os.environ.get("GLANCE_ADMIN_PWD", "gL4NC3")
-    admin_pwd = os.environ.get("GLANCE_ADMIN_PWD", "gL4NC3")
+    # admin_pwd = os.environ.get("GLANCE_ADMIN_PWD", "glance")
+    admin_pwd = os.environ.get("GLANCE_ADMIN_PWD", "glance")
     is_admin = (request.query_params.get("pwd", "") == admin_pwd)
     # if is_user_upload and not is_admin:
     #     unlock_cookie = request.cookies.get(f"glance_unlock_{ga_id}")
@@ -1718,7 +1718,7 @@ async def analyze_submit(request: Request, file: UploadFile = File(...)):
 @app.post("/analyze/improve/{ga_slug}")
 async def analyze_improve(ga_slug: str, pwd: str = ""):
     """Run one improvement turn on a GA. Returns JSON with turn results."""
-    # admin_pwd = os.environ.get("GLANCE_ADMIN_PWD", "gL4NC3")
+    # admin_pwd = os.environ.get("GLANCE_ADMIN_PWD", "glance")
     # if pwd != admin_pwd:
     #     raise HTTPException(status_code=403, detail="Admin password required")
 
@@ -1897,7 +1897,7 @@ async def analyze_tool(tool_name: str, ga_slug: str, request: Request, pwd: str 
         cookie_key = f"glance_calls_{ga_id}"
         calls_used = int(request.cookies.get(cookie_key, "0"))
         # Admin bypass
-        admin_pwd = os.environ.get("GLANCE_ADMIN_PWD", "gL4NC3")
+        admin_pwd = os.environ.get("GLANCE_ADMIN_PWD", "glance")
         is_admin = (pwd == admin_pwd)
         # Unlock cookie (paid users)
         is_unlocked = bool(request.cookies.get(f"glance_unlock_{ga_id}"))
@@ -2094,7 +2094,7 @@ async def admin_batch_analyze(pwd: str = "", batch_size: int = 5):
     (default 5). Returns immediately with the list of GAs queued.
     Check /admin for progress (graphs table).
     """
-    admin_pwd = os.environ.get("GLANCE_ADMIN_PWD", "gL4NC3")
+    admin_pwd = os.environ.get("GLANCE_ADMIN_PWD", "glance")
     if pwd != admin_pwd:
         raise HTTPException(status_code=403, detail="Admin password required")
 
@@ -2245,7 +2245,7 @@ async def checkout_success(request: Request, session_id: str, ga_id: int):
 @app.get("/admin", response_class=HTMLResponse)
 def admin_dashboard(request: Request, pwd: str = ""):
     """Admin analytics dashboard — password-protected."""
-    admin_pwd = os.environ.get("GLANCE_ADMIN_PWD", "gL4NC3")
+    admin_pwd = os.environ.get("GLANCE_ADMIN_PWD", "glance")
     if pwd != admin_pwd:
         return HTMLResponse(
             content='<html><body style="background:#0f172a;color:#fff;display:flex;align-items:center;'
