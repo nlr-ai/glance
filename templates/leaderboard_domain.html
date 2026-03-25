@@ -5,7 +5,7 @@
 {% block head %}
 <style>
 /* ===== GLANCE Leaderboard — Domain Detail Page =====
-   Visual card layout with GA thumbnails, sort controls,
+   Clean gallery with predicted scores, archetype badges,
    inter-domain navigation pills, and responsive grid.
    ===================================================== */
 
@@ -231,7 +231,7 @@
 .lb-ga-thumb {
     width: 200px;
     min-width: 200px;
-    height: 105px;  /* ~1.9:1 ratio — matches GA format */
+    height: 105px;
     flex-shrink: 0;
     overflow: hidden;
     background: var(--bg-subtle);
@@ -278,7 +278,7 @@
 .lb-ga-body {
     flex: 1;
     min-width: 0;
-    padding: 20px;
+    padding: var(--sp-4);
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -294,7 +294,7 @@
 }
 .lb-ga-title {
     font-weight: 600;
-    font-size: 16px;
+    font-size: 15px;
     color: var(--text);
     line-height: 1.3;
     overflow: hidden;
@@ -359,7 +359,6 @@
     letter-spacing: 0.06em;
     padding: 0.1rem 0.5rem;
     border-radius: 100px;
-    margin-left: 0.25rem;
     vertical-align: middle;
 }
 /* Score ring in GA card */
@@ -401,7 +400,7 @@
     margin-left: var(--sp-1);
 }
 
-/* --- "Non evalué" pill --- */
+/* --- "Non evalue" pill --- */
 .lb-ga-no-eval-pill {
     display: inline-flex;
     align-items: center;
@@ -505,7 +504,7 @@
     {% if all_domains %}
     <div class="lb-pills">
         {% for d in all_domains %}
-        {% if d.key != 'user_upload' %}
+        {% if d.key != 'user_upload' and d.n_gas > 0 %}
         <a href="/leaderboard/{{ d.key }}" class="lb-pill {{ 'active' if d.key == domain else '' }}">
             {% if d.emoji %}<span class="lb-pill-emoji">{{ d.emoji }}</span>{% endif %}
             {{ d.label }}
@@ -521,35 +520,41 @@
         <h1>{% if data.emoji %}{{ data.emoji }} {% endif %}{{ data.label }}</h1>
     </div>
 
+    {# --- Determine if domain has any real tests --- #}
+    {% set domain_has_tests = data.n_tests > 0 %}
+
     <div class="lb-summary">
         <div class="lb-stat">
             <div class="lb-stat-value">{{ data.n_gas }}</div>
-            <div class="lb-stat-label">GAs</div>
+            <div class="lb-stat-label">Figures</div>
         </div>
+        {% if domain_has_tests %}
         <div class="lb-stat">
             <div class="lb-stat-value">{{ data.n_tests }}</div>
             <div class="lb-stat-label">Tests</div>
         </div>
+        {% endif %}
         <div class="lb-stat">
             <div class="lb-stat-value">
                 {% if data.avg_score is not none %}
                     {{ (data.avg_score * 100) | round(0) | int }}%
+                {% elif data.avg_display_score is not none %}
+                    {{ (data.avg_display_score * 100) | round(0) | int }}%
+                    <span class="lb-predicted-tag" style="display:inline;">(pr&eacute;dit)</span>
                 {% else %}
                     &mdash;
                 {% endif %}
             </div>
             <div class="lb-stat-label">Score moyen</div>
         </div>
+        {% if domain_has_tests and data.median_score is not none %}
         <div class="lb-stat">
             <div class="lb-stat-value">
-                {% if data.median_score is not none %}
-                    {{ (data.median_score * 100) | round(0) | int }}%
-                {% else %}
-                    &mdash;
-                {% endif %}
+                {{ (data.median_score * 100) | round(0) | int }}%
             </div>
-            <div class="lb-stat-label">Mediane</div>
+            <div class="lb-stat-label">M&eacute;diane</div>
         </div>
+        {% endif %}
     </div>
 
     {# --- Sort controls --- #}
@@ -597,7 +602,7 @@
         {% endif %}
 
         <a href="/ga-detail/{{ ga.slug or ga.ga_image_id }}"
-           class="lb-ga-card {{ 'top-1' if rank == 1 and has_data else ('top-2' if rank == 2 and has_data else ('top-3' if rank == 3 and has_data else '')) }} {{ 'lb-ga-card-predicted' if is_predicted else '' }} {{ 'lb-ga-card-nodata' if not show_score else '' }}"
+           class="lb-ga-card {{ 'top-1' if rank == 1 and show_score else ('top-2' if rank == 2 and show_score else ('top-3' if rank == 3 and show_score else '')) }} {{ 'lb-ga-card-predicted' if is_predicted else '' }} {{ 'lb-ga-card-nodata' if not show_score else '' }}"
            data-score="{{ pct if show_score else -1 }}"
            data-has-data="{{ '1' if show_score else '0' }}">
 
@@ -612,7 +617,7 @@
                     <polyline points="21 15 16 10 5 21"/>
                 </svg>
                 {% endif %}
-                <div class="lb-ga-rank-badge {{ 'rank-' ~ rank if rank <= 3 and has_data else '' }}">{{ rank }}</div>
+                <div class="lb-ga-rank-badge {{ 'rank-' ~ rank if rank <= 3 and show_score else '' }}">{{ rank }}</div>
             </div>
 
             {# --- Card body --- #}
@@ -622,20 +627,11 @@
                     {% if show_score %}
                     <div class="lb-ga-score-area">
                         {% set v_color = verdict_color(score_val) | trim %}
-                        {% set circ = 2 * 3.14159 * 18 %}
-                        {% set ring_offset = circ - (circ * pct / 100) %}
-                        <svg width="48" height="48" viewBox="0 0 48 48"{% if is_predicted %} style="opacity:0.7;"{% endif %}>
-                            <circle cx="24" cy="24" r="18" fill="none" stroke="currentColor" stroke-width="4" opacity="0.1"/>
-                            <circle cx="24" cy="24" r="18" fill="none" stroke="{{ v_color }}" stroke-width="4"
-                                    stroke-linecap="round" stroke-dasharray="{{ circ | round(1) }}" stroke-dashoffset="{{ ring_offset | round(1) }}"
-                                    transform="rotate(-90 24 24)"/>
-                            <text x="24" y="28" text-anchor="middle" fill="{{ v_color }}"
-                                  font-family="var(--font-mono)" font-weight="800" font-size="13">{{ pct }}</text>
-                        </svg>
+                        <span class="lb-score-badge bg-{{ sc }}">{{ pct }}%</span>
                         <div>
                             <span class="lb-ga-verdict" style="background:{{ v_color }}20;color:{{ v_color }};">{{ verdict_label(score_val) }}</span>
                             {% if is_predicted %}
-                            <span class="lb-predicted-tag">(IA)</span>
+                            <span class="lb-predicted-tag">(pr&eacute;dit)</span>
                             {% endif %}
                         </div>
                     </div>
@@ -665,11 +661,11 @@
                     <span>S9b: {{ (ga.avg_s9b * 100) | round(0) | int }}%</span>
                     {% endif %}
                     {% elif is_predicted %}
-                    <span class="lb-ga-nodata-label">Score pr&eacute;dit</span>
+                    <span class="lb-ga-nodata-label">Score pr&eacute;dit par IA</span>
                     {% else %}
                     <span class="lb-ga-nodata-label">Pas encore de tests</span>
                     {% endif %}
-                    <span class="lb-ga-meta-link">Detail &rarr;</span>
+                    <span class="lb-ga-meta-link">D&eacute;tail &rarr;</span>
                 </div>
             </div>
         </a>
@@ -677,7 +673,7 @@
     </div>
     {% else %}
     <div class="lb-empty">
-        <p>Aucune GA dans ce domaine.</p>
+        <p>Aucune figure dans ce domaine.</p>
     </div>
     {% endif %}
 </div>

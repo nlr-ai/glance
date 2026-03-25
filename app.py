@@ -1031,22 +1031,37 @@ def leaderboard(request: Request):
     lang = _lang(request)
     domain_config = CONFIG.get("domains", {})
     data = get_leaderboard_data(domain_config)
+    # Filter out user_upload and domains with 0 GAs
     domains = sorted(
-        data.items(),
+        [(k, v) for k, v in data.items() if k != "user_upload" and v["n_gas"] > 0],
         key=lambda kv: kv[1]["n_gas"],
         reverse=True,
     )
-    # Build domain pills for inter-domain navigation
+    # Build domain pills for inter-domain navigation (also filtered)
     all_domains = [
         {"key": k, "label": v["label"], "n_gas": v["n_gas"],
          "emoji": v.get("emoji", ""), "color": v.get("color", "#71717a")}
         for k, v in domains
     ]
+    # Global stats for hero section
+    total_gas = sum(v["n_gas"] for _, v in domains)
+    total_domains = len(domains)
+    all_display_scores = []
+    for _, v in domains:
+        if v.get("avg_display_score") is not None:
+            all_display_scores.append(v["avg_display_score"])
+        elif v.get("avg_score") is not None:
+            all_display_scores.append(v["avg_score"])
+    avg_score_global = round(sum(all_display_scores) / len(all_display_scores) * 100) if all_display_scores else None
+
     return templates.TemplateResponse("leaderboard.html", {
         "request": request,
         "lang": lang,
         "domains": domains,
         "all_domains": all_domains,
+        "total_gas": total_gas,
+        "total_domains": total_domains,
+        "avg_score_global": avg_score_global,
         "og_title": "GLANCE Leaderboard — Classement des Graphical Abstracts",
         "og_description": "Découvrez quels GAs scientifiques communiquent le mieux, classés par domaine.",
     })
@@ -2450,6 +2465,24 @@ async def analyze_tool(tool_name: str, ga_slug: str, request: Request, pwd: str 
                 "recommendations": sim.get("recommendations", []),
             })
 
+        elif tool_name == "deepen":
+            if not graph:
+                raise HTTPException(status_code=400, detail="No graph yet — run vision first")
+            from deepen import deepen as run_deepen
+            max_depth = body.get("max_depth", 1)
+            stats = run_deepen(ga_image_id=ga_id, max_depth=max_depth,
+                               image_path=image_path)
+            return JSONResponse({
+                "tool": "deepen",
+                "graph_id": stats["graph_id"],
+                "depth": stats["depth"],
+                "root_nodes": stats["root_nodes"],
+                "total_nodes": stats["total_nodes"],
+                "total_links": stats["total_links"],
+                "spaces_deepened": stats["spaces_deepened"],
+                "resolution": stats["resolution"],
+            })
+
         else:
             raise HTTPException(status_code=400, detail=f"Unknown tool: {tool_name}")
 
@@ -2468,6 +2501,45 @@ async def analyze_tool(tool_name: str, ga_slug: str, request: Request, pwd: str 
     # Should not reach here — all branches return above.
     # But if we do reach here somehow, return a generic success.
     return JSONResponse({"tool": tool_name, "status": "ok"})
+
+
+@app.post("/analyze/deepen/{ga_slug}")
+async def analyze_deepen(ga_slug: str, pwd: str = "", max_depth: int = 1):
+    """Deepen the analysis of a GA by analyzing each space at higher resolution.
+
+    Each space with a bbox is cropped and re-analyzed by Gemini Vision.
+    The child nodes are merged into the parent graph with containment links.
+
+    Args:
+        ga_slug: GA slug or numeric ID
+        pwd: admin password (required — deepen uses multiple Gemini calls)
+        max_depth: how many levels to recurse (1 = analyze each space once)
+    """
+    admin_pwd = os.environ.get("GLANCE_ADMIN_PWD", "glance")
+    if pwd != admin_pwd:
+        raise HTTPException(status_code=403, detail="Admin password required")
+
+    image, ga_id = _resolve_ga(ga_slug)
+    if not image:
+        raise HTTPException(status_code=404, detail="GA not found")
+
+    max_depth = min(max_depth, 3)  # cap recursion
+
+    image_path = os.path.join(BASE, "ga_library", image["filename"])
+    if not os.path.exists(image_path):
+        raise HTTPException(status_code=404, detail="GA image file not found")
+
+    try:
+        from deepen import deepen as run_deepen
+        stats = run_deepen(ga_image_id=ga_id, max_depth=max_depth,
+                           image_path=image_path)
+        return JSONResponse({
+            "status": "ok",
+            "ga_slug": ga_slug,
+            **stats,
+        })
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Deepen failed: {str(e)}")
 
 
 @app.post("/admin/batch-analyze")

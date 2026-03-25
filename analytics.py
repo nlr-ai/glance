@@ -759,6 +759,11 @@ def get_leaderboard_data(domain_config: dict) -> dict:
         all_scores = [g["avg_glance"] for g in gas_with_data]
         total_tests = sum(g["n_tests"] for g in gas)
 
+        # Compute avg_display_score: uses real scores if available,
+        # otherwise falls back to predicted/display scores for gallery view
+        all_display = [g["display_score"] for g in sorted_gas if g["display_score"] is not None]
+        avg_display = (sum(all_display) / len(all_display)) if all_display else None
+
         dcfg = domain_config.get(domain_key, {})
         result[domain_key] = {
             "label": label,
@@ -769,6 +774,7 @@ def get_leaderboard_data(domain_config: dict) -> dict:
             "n_tests": total_tests,
             "top_score": max(all_scores) if all_scores else None,
             "avg_score": (sum(all_scores) / len(all_scores)) if all_scores else None,
+            "avg_display_score": round(avg_display, 4) if avg_display is not None else None,
         }
 
     return result
@@ -1003,6 +1009,10 @@ def get_domain_leaderboard(domain: str, domain_config: dict) -> dict | None:
         median_score = None
         std_score = None
 
+    # avg_display_score: fallback using predicted scores when no real tests
+    all_display = [g["display_score"] for g in sorted_gas if g["display_score"] is not None]
+    avg_display = (sum(all_display) / len(all_display)) if all_display else None
+
     dcfg = domain_config.get(domain, {})
     label = dcfg.get("label", domain)
 
@@ -1015,6 +1025,7 @@ def get_domain_leaderboard(domain: str, domain_config: dict) -> dict | None:
         "n_gas": len(gas),
         "n_tests": total_tests,
         "avg_score": round(avg_score, 4) if avg_score is not None else None,
+        "avg_display_score": round(avg_display, 4) if avg_display is not None else None,
         "median_score": round(median_score, 4) if median_score is not None else None,
         "std_score": round(std_score, 4) if std_score is not None else None,
     }

@@ -4,34 +4,61 @@
 
 {% block head %}
 <style>
-/* ===== GLANCE Leaderboard — Overview Page =====
+/* ===== GLANCE Leaderboard — Redesigned Overview =====
+   Gallery-style domain cards with top-3 GA previews.
    Uses app-wide dark blue theme from style.css variables.
-   All styles self-contained — no style.css modifications.
-   ================================================ */
+   ====================================================== */
 
 /* --- Layout --- */
 .lb-page {
-    max-width: 1100px;
+    max-width: 1000px;
     margin: 0 auto;
     padding: var(--sp-8) 0 var(--sp-16);
 }
 
-/* --- Header --- */
-.lb-header {
+/* --- Hero Section --- */
+.lb-hero {
     text-align: center;
-    margin-bottom: var(--sp-6);
+    padding: var(--sp-8) var(--sp-4);
+    margin-bottom: var(--sp-8);
 }
-.lb-header h1 {
+.lb-hero h1 {
     font-size: var(--text-2xl);
     font-weight: 700;
     color: var(--text);
     letter-spacing: -0.02em;
     margin-bottom: var(--sp-2);
 }
-.lb-header .subtitle {
-    color: var(--text-dim);
+.lb-hero .subtitle {
+    color: var(--text-muted);
     font-size: var(--text-sm);
     font-weight: 400;
+    margin-bottom: var(--sp-5);
+}
+.lb-hero-stats {
+    display: flex;
+    justify-content: center;
+    gap: var(--sp-8);
+}
+.lb-hero-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.lb-hero-stat-value {
+    font-family: var(--font-mono);
+    font-weight: 800;
+    font-size: var(--text-xl);
+    color: var(--text);
+    line-height: 1.2;
+}
+.lb-hero-stat-label {
+    font-size: var(--text-xs);
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 500;
+    margin-top: 2px;
 }
 
 /* --- Breadcrumb --- */
@@ -60,95 +87,28 @@
     font-weight: 600;
 }
 
-/* --- Domain Pills Bar --- */
-.lb-pills {
-    display: flex;
-    gap: var(--sp-2);
-    overflow-x: auto;
-    padding: var(--sp-1) 0 var(--sp-6);
-    scrollbar-width: thin;
-    scrollbar-color: var(--border-subtle) transparent;
-    justify-content: center;
-    flex-wrap: wrap;
-}
-.lb-pills::-webkit-scrollbar {
-    height: 4px;
-}
-.lb-pills::-webkit-scrollbar-thumb {
-    background: var(--border-subtle);
-    border-radius: 2px;
-}
-.lb-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--sp-2);
-    padding: var(--sp-2) var(--sp-4);
-    background: var(--surface);
-    border: 1px solid var(--border-subtle);
-    border-radius: 999px;
-    font-size: var(--text-xs);
-    font-weight: 500;
-    color: var(--text-muted);
-    text-decoration: none;
-    white-space: nowrap;
-    transition: all 0.2s ease;
-}
-.lb-pill:hover {
-    border-color: var(--primary);
-    color: var(--primary);
-    background: rgba(20, 184, 166, 0.08);
-}
-.lb-pill.active {
-    border-color: var(--primary);
-    color: var(--primary);
-    background: rgba(20, 184, 166, 0.12);
-    font-weight: 600;
-}
-.lb-pill-emoji {
-    font-size: 0.85rem;
-    line-height: 1;
-}
-.lb-pill-count {
-    font-family: var(--font-mono);
-    font-size: 0.65rem;
-    background: var(--bg-subtle);
-    padding: 1px 6px;
-    border-radius: 999px;
-    color: var(--text-dim);
-}
-
-/* --- Domain Cards Grid --- */
+/* --- Domain Cards Grid (2 columns) --- */
 .domain-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: var(--sp-5);
 }
 
+/* --- Domain Card --- */
 .domain-card {
     background: linear-gradient(135deg, var(--surface) 0%, rgba(255,255,255,0.03) 100%);
     border: 1px solid var(--border-subtle);
     border-left: 4px solid var(--border-subtle);
     border-radius: var(--radius-lg);
-    padding: var(--sp-6);
+    padding: var(--sp-5);
     text-decoration: none;
     color: inherit;
     display: flex;
     flex-direction: column;
-    gap: var(--sp-5);
+    gap: var(--sp-4);
     transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
     position: relative;
     overflow: hidden;
-}
-.domain-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    opacity: 0.04;
-    border-radius: inherit;
-    pointer-events: none;
 }
 .domain-card:hover {
     transform: translateY(-3px);
@@ -156,17 +116,16 @@
     border-color: var(--border);
 }
 
-/* --- Card header (emoji + title + count) --- */
+/* --- Card header --- */
 .dc-header {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     gap: var(--sp-3);
 }
 .dc-emoji {
-    font-size: 1.75rem;
+    font-size: 1.5rem;
     line-height: 1;
     flex-shrink: 0;
-    margin-top: 2px;
 }
 .dc-header-text {
     flex: 1;
@@ -180,95 +139,117 @@
     line-height: 1.3;
 }
 .dc-study-count {
-    font-size: var(--text-sm);
+    font-size: var(--text-xs);
     color: var(--text-muted);
     margin-top: 2px;
     font-weight: 400;
 }
 
-/* --- Score hero (avg score as big number) --- */
-.dc-score-hero {
+/* --- Score badge in card header --- */
+.dc-score-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-1);
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-family: var(--font-mono);
+    font-weight: 800;
+    font-size: var(--text-sm);
+    flex-shrink: 0;
+    line-height: 1.2;
+}
+.dc-score-badge.bg-green  { background: rgba(34, 197, 94, 0.15); color: #22c55e; }
+.dc-score-badge.bg-yellow { background: rgba(234, 179, 8, 0.15); color: #eab308; }
+.dc-score-badge.bg-orange { background: rgba(249, 115, 22, 0.15); color: #f97316; }
+.dc-score-badge.bg-red    { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+.dc-score-badge.bg-none   { background: var(--bg-subtle); color: var(--text-dim); }
+
+.dc-predicted-tag {
+    font-size: 0.5625rem;
+    font-weight: 600;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    opacity: 0.7;
+}
+
+/* --- Top GAs preview list --- */
+.dc-top-gas {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2);
+}
+.dc-ga-row {
     display: flex;
     align-items: center;
     gap: var(--sp-3);
+    padding: var(--sp-2);
+    border-radius: var(--radius-md);
+    background: rgba(255,255,255,0.02);
+    border: 1px solid transparent;
+    transition: border-color 0.15s;
 }
-.dc-score-number {
-    font-family: var(--font-mono);
-    font-weight: 800;
-    font-size: 2.5rem;
-    line-height: 1;
-    letter-spacing: -0.03em;
+.dc-ga-row:hover {
+    border-color: var(--border-subtle);
 }
-.dc-score-unit {
-    font-size: var(--text-sm);
-    color: var(--text-muted);
-    font-weight: 400;
-}
-.dc-score-dash {
-    font-family: var(--font-mono);
-    font-weight: 700;
-    font-size: 2rem;
-    color: var(--text-dim);
-    line-height: 1;
-}
-.dc-score-ring {
+.dc-ga-thumb {
+    width: 56px;
+    height: 32px;
     flex-shrink: 0;
-}
-
-/* Verdict pill */
-.dc-verdict {
-    display: inline-block;
-    font-size: 0.6875rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    padding: 0.15rem 0.625rem;
-    border-radius: 100px;
-    margin-top: 0.25rem;
-}
-
-/* Score colors */
-.score-green  { color: #22c55e; }
-.score-yellow { color: #eab308; }
-.score-orange { color: #f97316; }
-.score-red    { color: #ef4444; }
-
-/* --- Score bar --- */
-.dc-bar {
-    height: 10px;
-    background: var(--bg-subtle);
-    border-radius: 5px;
+    border-radius: var(--radius-sm);
     overflow: hidden;
+    background: var(--bg-subtle);
 }
-.dc-bar-fill {
+.dc-ga-thumb img {
+    width: 100%;
     height: 100%;
-    border-radius: 5px;
-    transition: width 0.6s ease-out;
+    object-fit: cover;
 }
-.bar-green  { background: #22c55e; }
-.bar-yellow { background: #eab308; }
-.bar-orange { background: #f97316; }
-.bar-red    { background: #ef4444; }
-
-/* --- Meta line (GA count + test count) --- */
-.dc-meta {
-    display: flex;
-    gap: var(--sp-4);
-    font-size: var(--text-sm);
-    color: var(--text-muted);
+.dc-ga-info {
+    flex: 1;
+    min-width: 0;
 }
-.dc-meta-item {
-    display: flex;
-    align-items: center;
-    gap: var(--sp-1);
-}
-.dc-meta-val {
-    font-family: var(--font-mono);
+.dc-ga-title {
+    font-size: var(--text-xs);
     font-weight: 600;
     color: var(--text);
+    line-height: 1.3;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+}
+.dc-ga-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    margin-top: 1px;
+}
+.dc-ga-archetype {
+    font-size: 0.625rem;
+    color: var(--text-muted);
+}
+.dc-ga-score-mini {
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    font-weight: 700;
+}
+.dc-ga-score-mini.score-green  { color: #22c55e; }
+.dc-ga-score-mini.score-yellow { color: #eab308; }
+.dc-ga-score-mini.score-orange { color: #f97316; }
+.dc-ga-score-mini.score-red    { color: #ef4444; }
+
+/* --- Footer link --- */
+.dc-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    font-size: var(--text-xs);
+    color: var(--primary);
+    font-weight: 500;
 }
 
-/* --- "Non evalué" pill for domain cards --- */
+/* --- No data pill --- */
 .dc-no-eval-pill {
     display: inline-flex;
     align-items: center;
@@ -278,14 +259,6 @@
     font-weight: 600;
     background: var(--bg-subtle);
     color: var(--text-dim);
-}
-
-/* --- Empty card state --- */
-.domain-card-empty {
-    opacity: 0.55;
-}
-.domain-card-empty:hover {
-    opacity: 0.7;
 }
 
 /* --- Global empty state --- */
@@ -308,31 +281,27 @@
 }
 
 /* --- Responsive --- */
-@media (max-width: 900px) {
+@media (max-width: 760px) {
     .domain-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: 1fr;
+    }
+    .lb-hero-stats {
+        gap: var(--sp-6);
     }
 }
 @media (max-width: 560px) {
     .lb-page {
         padding: var(--sp-6) 0 var(--sp-12);
     }
-    .lb-header h1 {
+    .lb-hero h1 {
         font-size: var(--text-xl);
     }
-    .domain-grid {
-        grid-template-columns: 1fr;
+    .lb-hero-stats {
+        flex-wrap: wrap;
         gap: var(--sp-4);
     }
     .domain-card {
-        padding: var(--sp-5);
-    }
-    .dc-score-number {
-        font-size: 2rem;
-    }
-    .lb-pills {
-        justify-content: flex-start;
-        flex-wrap: nowrap;
+        padding: var(--sp-4);
     }
 }
 </style>
@@ -340,9 +309,28 @@
 
 {% block content %}
 <div class="lb-page">
-    <div class="lb-header">
-        <h1>GLANCE Leaderboard</h1>
-        <p class="subtitle">Classement des Graphical Abstracts par domaine</p>
+    {# --- Hero Section --- #}
+    <div class="lb-hero">
+        <h1>Leaderboards</h1>
+        <p class="subtitle">Figures scientifiques analys&eacute;es par GLANCE</p>
+        <div class="lb-hero-stats">
+            <div class="lb-hero-stat">
+                <span class="lb-hero-stat-value">{{ total_gas }}</span>
+                <span class="lb-hero-stat-label">figures</span>
+            </div>
+            <div class="lb-hero-stat">
+                <span class="lb-hero-stat-value">{{ total_domains }}</span>
+                <span class="lb-hero-stat-label">domaines</span>
+            </div>
+            <div class="lb-hero-stat">
+                {% if avg_score_global is not none %}
+                <span class="lb-hero-stat-value">{{ avg_score_global }}%</span>
+                {% else %}
+                <span class="lb-hero-stat-value">&mdash;</span>
+                {% endif %}
+                <span class="lb-hero-stat-label">score moyen</span>
+            </div>
+        </div>
     </div>
 
     <nav class="lb-nav">
@@ -353,91 +341,118 @@
         <span class="active">Leaderboard</span>
     </nav>
 
-    {% if all_domains %}
-    <div class="lb-pills">
-        {% for d in all_domains %}
-        {% if d.key != 'user_upload' %}
-        <a href="/leaderboard/{{ d.key }}" class="lb-pill">
-            {% if d.emoji %}<span class="lb-pill-emoji">{{ d.emoji }}</span>{% endif %}
-            {{ d.label }}
-            <span class="lb-pill-count">{{ d.n_gas }}</span>
-        </a>
-        {% endif %}
-        {% endfor %}
-    </div>
-    {% endif %}
-
+    {# --- Domain Cards --- #}
     {% if domains %}
     <div class="domain-grid">
         {% for domain_key, domain_data in domains %}
-        {% if domain_key != 'user_upload' %}
-        {% set has_data = domain_data.avg_score is not none %}
-        {% if has_data %}
-            {% set pct = (domain_data.avg_score * 100) | round(0) | int %}
-        {% endif %}
         {% set d_color = domain_data.color|default('#71717a') %}
         {% set d_emoji = domain_data.emoji|default('') %}
-        <a href="/leaderboard/{{ domain_key }}" class="domain-card {{ 'domain-card-empty' if not has_data }}"
+
+        {# Compute domain score: prefer real avg_score, fall back to avg_display_score #}
+        {% set real_score = domain_data.avg_score %}
+        {% set display_score = domain_data.avg_display_score %}
+        {% set has_real = real_score is not none %}
+        {% set has_display = display_score is not none %}
+        {% set is_predicted = (not has_real) and has_display %}
+
+        {% if has_real %}
+            {% set show_pct = (real_score * 100) | round(0) | int %}
+        {% elif has_display %}
+            {% set show_pct = (display_score * 100) | round(0) | int %}
+        {% endif %}
+
+        {# Score color #}
+        {% if has_real or has_display %}
+            {% if show_pct >= 80 %}
+                {% set sc = "green" %}
+            {% elif show_pct >= 60 %}
+                {% set sc = "yellow" %}
+            {% elif show_pct >= 40 %}
+                {% set sc = "orange" %}
+            {% else %}
+                {% set sc = "red" %}
+            {% endif %}
+        {% endif %}
+
+        <a href="/leaderboard/{{ domain_key }}" class="domain-card"
            style="border-left-color: {{ d_color }};">
+
+            {# --- Header: emoji + title + count + score badge --- #}
             <div class="dc-header">
                 {% if d_emoji %}
                 <span class="dc-emoji">{{ d_emoji }}</span>
                 {% endif %}
                 <div class="dc-header-text">
                     <div class="dc-title">{{ domain_data.label }}</div>
-                    <div class="dc-study-count">{{ domain_data.n_gas }} {{ 'étude' if domain_data.n_gas == 1 else 'études' }}</div>
+                    <div class="dc-study-count">{{ domain_data.n_gas }} {{ 'figure' if domain_data.n_gas == 1 else 'figures' }}</div>
                 </div>
-            </div>
-
-            <div class="dc-score-hero">
-                {% if has_data %}
-                    {% if pct >= 80 %}
-                        {% set sc = "green" %}
-                    {% elif pct >= 60 %}
-                        {% set sc = "yellow" %}
-                    {% elif pct >= 40 %}
-                        {% set sc = "orange" %}
-                    {% else %}
-                        {% set sc = "red" %}
+                {% if has_real or has_display %}
+                <div>
+                    <span class="dc-score-badge bg-{{ sc }}">{{ show_pct }}%</span>
+                    {% if is_predicted %}
+                    <span class="dc-predicted-tag">prediction</span>
                     {% endif %}
-                    {% set v_color = verdict_color(domain_data.avg_score) | trim %}
-                    <div class="dc-score-ring">
-                        {% set circ = 2 * 3.14159 * 28 %}
-                        {% set ring_offset = circ - (circ * pct / 100) %}
-                        <svg width="70" height="70" viewBox="0 0 70 70">
-                            <circle cx="35" cy="35" r="28" fill="none" stroke="currentColor" stroke-width="5" opacity="0.1"/>
-                            <circle cx="35" cy="35" r="28" fill="none" stroke="{{ v_color }}" stroke-width="5"
-                                    stroke-linecap="round" stroke-dasharray="{{ circ | round(1) }}" stroke-dashoffset="{{ ring_offset | round(1) }}"
-                                    transform="rotate(-90 35 35)"/>
-                            <text x="35" y="40" text-anchor="middle" fill="{{ v_color }}"
-                                  font-family="var(--font-mono)" font-weight="800" font-size="18">{{ pct }}</text>
-                        </svg>
-                    </div>
-                    <div>
-                        <span class="dc-score-unit">% moy.</span>
-                        <div class="dc-verdict" style="background:{{ v_color }}20;color:{{ v_color }};">{{ verdict_label(domain_data.avg_score) }}</div>
-                    </div>
+                </div>
                 {% else %}
-                    <span class="dc-no-eval-pill">Non &eacute;valu&eacute;</span>
+                <span class="dc-no-eval-pill">Non &eacute;valu&eacute;</span>
                 {% endif %}
             </div>
 
-            <div class="dc-bar">
-                {% if has_data %}
-                    <div class="dc-bar-fill bar-{{ sc }}" style="width: {{ pct }}%;"></div>
+            {# --- Top 3 GAs preview --- #}
+            {% if domain_data.gas %}
+            <div class="dc-top-gas">
+                {% for ga in domain_data.gas[:3] %}
+                {% set ga_has_real = ga.avg_glance is not none %}
+                {% set ga_has_display = ga.display_score is not none %}
+                {% set ga_show = ga_has_real or ga_has_display %}
+                {% if ga_show %}
+                    {% set ga_score = ga.avg_glance if ga_has_real else ga.display_score %}
+                    {% set ga_pct = (ga_score * 100) | round(0) | int %}
+                    {% if ga_pct >= 80 %}
+                        {% set ga_sc = "green" %}
+                    {% elif ga_pct >= 60 %}
+                        {% set ga_sc = "yellow" %}
+                    {% elif ga_pct >= 40 %}
+                        {% set ga_sc = "orange" %}
+                    {% else %}
+                        {% set ga_sc = "red" %}
+                    {% endif %}
                 {% endif %}
+                <div class="dc-ga-row">
+                    <div class="dc-ga-thumb">
+                        {% if ga.filename %}
+                        <img src="/ga/{{ ga.filename }}" alt="{{ ga.title }}" loading="lazy">
+                        {% endif %}
+                    </div>
+                    <div class="dc-ga-info">
+                        <div class="dc-ga-title">{{ ga.title }}</div>
+                        <div class="dc-ga-meta">
+                            {% if ga_show %}
+                            <span class="dc-ga-score-mini score-{{ ga_sc }}">{{ ga_pct }}%</span>
+                            {% if not ga_has_real %}
+                            <span class="dc-ga-archetype">prediction</span>
+                            {% endif %}
+                            {% else %}
+                            <span class="dc-ga-archetype">-</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
             </div>
+            {% endif %}
 
-            <div class="dc-meta">
-                <div class="dc-meta-item">
-                    <span class="dc-meta-val">{{ domain_data.n_gas }}</span> GAs
-                </div>
-                <div class="dc-meta-item">
-                    <span class="dc-meta-val">{{ domain_data.n_tests }}</span> tests
-                </div>
+            {# --- Footer --- #}
+            {% if domain_data.n_gas > 3 %}
+            <div class="dc-footer">
+                Voir {{ domain_data.n_gas - 3 }} autre{{ 's' if domain_data.n_gas - 3 > 1 else '' }} &rarr;
             </div>
+            {% elif domain_data.n_gas > 0 %}
+            <div class="dc-footer">
+                Voir tout &rarr;
+            </div>
+            {% endif %}
         </a>
-        {% endif %}
         {% endfor %}
     </div>
     {% else %}
