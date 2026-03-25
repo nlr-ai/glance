@@ -1406,14 +1406,14 @@ def ga_detail(request: Request, ga_id: str):
     ga_abstract = _generate_ga_abstract(sidecar, image)
     executive_summary = _generate_executive_summary(sidecar, image, detail, recommendations)
 
-    # Email gate: lock user_upload GAs unless unlock cookie or admin pwd
+    # Email gate: DISABLED — user_upload GAs are never locked
     is_user_upload = (image.get("domain") == "user_upload")
     is_locked = False
-    admin_pwd = os.environ.get("GLANCE_ADMIN_PWD", "gL4NC3")
-    is_admin = (request.query_params.get("pwd", "") == admin_pwd)
-    if is_user_upload and not is_admin:
-        unlock_cookie = request.cookies.get(f"glance_unlock_{ga_id}")
-        is_locked = not bool(unlock_cookie)
+    # admin_pwd = os.environ.get("GLANCE_ADMIN_PWD", "gL4NC3")
+    # is_admin = (request.query_params.get("pwd", "") == admin_pwd)
+    # if is_user_upload and not is_admin:
+    #     unlock_cookie = request.cookies.get(f"glance_unlock_{ga_id}")
+    #     is_locked = not bool(unlock_cookie)
 
     # Stripe availability (graceful degradation: hide payment option if not configured)
     from payments import is_stripe_configured
