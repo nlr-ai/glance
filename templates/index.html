@@ -564,6 +564,76 @@
     .lp-counter-value { font-size: 1.5rem; }
     .lp-counters { grid-template-columns: repeat(2, 1fr); }
 }
+
+/* ===== L3 Graph Decorations ===== */
+.graph-decoration {
+    position: absolute;
+    z-index: 0;
+    pointer-events: none;
+    overflow: visible;
+}
+/* Hero graph — large, centered behind title */
+.graph-hero {
+    top: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 900px;
+    height: 520px;
+    opacity: 0.12;
+}
+/* Stats graph — offset right, behind live counters */
+.graph-stats {
+    top: -30px;
+    right: -100px;
+    width: 550px;
+    height: 420px;
+    opacity: 0.10;
+}
+/* Domain graph — bottom-left behind domain grid */
+.graph-domains {
+    bottom: -20px;
+    left: -80px;
+    width: 480px;
+    height: 360px;
+    opacity: 0.08;
+}
+/* Make sections that need graph BGs position-relative */
+.lp-live-bg,
+.lp-domains-bg {
+    position: relative;
+    overflow: hidden;
+}
+
+/* Subtle node pulse animation (8-10s cycle) */
+@keyframes graphNodePulse {
+    0%, 100% { opacity: 0.65; }
+    50% { opacity: 1; }
+}
+@keyframes graphNodePulseB {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 0.95; }
+}
+/* Slow dash animation for accent links */
+@keyframes graphLinkDash {
+    to { stroke-dashoffset: -28; }
+}
+
+.gn-pulse   { animation: graphNodePulse  8s ease-in-out infinite; }
+.gn-pulse-b { animation: graphNodePulse 10s ease-in-out 2s infinite; }
+.gn-pulse-c { animation: graphNodePulseB  9s ease-in-out 4s infinite; }
+.gl-dash    { stroke-dasharray: 8 16; animation: graphLinkDash 14s linear infinite; }
+
+/* Responsive: shrink/hide decorations on smaller screens */
+@media (max-width: 768px) {
+    .graph-hero { width: 640px; height: 400px; opacity: 0.09; }
+    .graph-stats { width: 400px; height: 320px; right: -120px; }
+    .graph-domains { width: 360px; height: 280px; left: -100px; }
+}
+@media (max-width: 480px) {
+    .graph-hero { width: 440px; height: 300px; opacity: 0.07; }
+    .graph-stats { display: none; }
+    .graph-domains { display: none; }
+}
 </style>
 {% endblock %}
 
@@ -572,6 +642,83 @@
 
 <!-- ===== SECTION 1: HERO ===== -->
 <div class="lp-hero">
+    {# ── L3 Graph Decoration: Hero ──
+       Inspired by glance_ga_graph.yaml (19 nodes, 38 links).
+       Decorative constellation of interconnected nodes behind the title. #}
+    <svg class="graph-decoration graph-hero" viewBox="0 0 900 520" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <defs>
+            <filter id="glow-h" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur stdDeviation="3" result="b"/>
+                <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+        </defs>
+        <!-- Structural links (subtle gray) -->
+        <g stroke="#94a3b8" stroke-width="0.8" opacity="0.3">
+            <line x1="130" y1="85"  x2="275" y2="135"/>
+            <line x1="275" y1="135" x2="420" y2="95"/>
+            <line x1="420" y1="95"  x2="570" y2="145"/>
+            <line x1="570" y1="145" x2="720" y2="105"/>
+            <line x1="275" y1="135" x2="325" y2="248"/>
+            <line x1="420" y1="95"  x2="395" y2="218"/>
+            <line x1="570" y1="145" x2="525" y2="268"/>
+            <line x1="130" y1="85"  x2="185" y2="208"/>
+            <line x1="720" y1="105" x2="670" y2="238"/>
+            <line x1="185" y1="208" x2="325" y2="248"/>
+            <line x1="325" y1="248" x2="395" y2="218"/>
+            <line x1="395" y1="218" x2="525" y2="268"/>
+            <line x1="525" y1="268" x2="670" y2="238"/>
+            <line x1="185" y1="208" x2="235" y2="338"/>
+            <line x1="325" y1="248" x2="365" y2="355"/>
+            <line x1="395" y1="218" x2="448" y2="348"/>
+            <line x1="525" y1="268" x2="565" y2="378"/>
+            <line x1="670" y1="238" x2="625" y2="368"/>
+            <line x1="235" y1="338" x2="365" y2="355"/>
+            <line x1="365" y1="355" x2="448" y2="348"/>
+            <line x1="448" y1="348" x2="565" y2="378"/>
+            <line x1="565" y1="378" x2="625" y2="368"/>
+            <line x1="365" y1="355" x2="420" y2="455"/>
+            <line x1="448" y1="348" x2="420" y2="455"/>
+            <line x1="275" y1="135" x2="185" y2="208"/>
+            <line x1="570" y1="145" x2="670" y2="238"/>
+            <line x1="130" y1="85"  x2="420" y2="95"/>
+            <line x1="720" y1="105" x2="570" y2="145"/>
+        </g>
+        <!-- Accent links (teal, animated dash) -->
+        <g stroke="#0d9488" stroke-width="1.1" opacity="0.22">
+            <line x1="420" y1="95"  x2="325" y2="248" class="gl-dash"/>
+            <line x1="395" y1="218" x2="448" y2="348" class="gl-dash" style="animation-delay:-4s"/>
+            <line x1="525" y1="268" x2="365" y2="355" class="gl-dash" style="animation-delay:-9s"/>
+        </g>
+        <!-- Nodes (teal circles, varying size = weight) -->
+        <g filter="url(#glow-h)">
+            <!-- Row 1: top arc -->
+            <circle cx="130" cy="85"  r="11" fill="#0d9488" opacity="0.55" class="gn-pulse"/>
+            <circle cx="275" cy="135" r="17" fill="#0d9488" opacity="0.7"  class="gn-pulse-b"/>
+            <circle cx="420" cy="95"  r="22" fill="#0d9488" opacity="0.8"  class="gn-pulse"/>
+            <circle cx="570" cy="145" r="15" fill="#0d9488" opacity="0.65" class="gn-pulse-c"/>
+            <circle cx="720" cy="105" r="10" fill="#0d9488" opacity="0.5"  class="gn-pulse-b"/>
+            <!-- Row 2: middle band -->
+            <circle cx="185" cy="208" r="12" fill="#0d9488" opacity="0.55" class="gn-pulse-c"/>
+            <circle cx="325" cy="248" r="19" fill="#0d9488" opacity="0.75" class="gn-pulse-b"/>
+            <circle cx="395" cy="218" r="10" fill="#0d9488" opacity="0.5"  class="gn-pulse"/>
+            <circle cx="525" cy="268" r="16" fill="#0d9488" opacity="0.7"  class="gn-pulse-c"/>
+            <circle cx="670" cy="238" r="9"  fill="#0d9488" opacity="0.45" class="gn-pulse-b"/>
+            <!-- Row 3: lower band -->
+            <circle cx="235" cy="338" r="8"  fill="#0d9488" opacity="0.4"  class="gn-pulse"/>
+            <circle cx="365" cy="355" r="14" fill="#0d9488" opacity="0.6"  class="gn-pulse-c"/>
+            <circle cx="448" cy="348" r="11" fill="#0d9488" opacity="0.5"  class="gn-pulse-b"/>
+            <circle cx="565" cy="378" r="9"  fill="#0d9488" opacity="0.45" class="gn-pulse"/>
+            <circle cx="625" cy="368" r="7"  fill="#0d9488" opacity="0.35" class="gn-pulse-c"/>
+            <!-- Central anchor node (GLANCE = highest weight) -->
+            <circle cx="420" cy="455" r="24" fill="#0d9488" opacity="0.45" class="gn-pulse-b"/>
+            <!-- Peripheral dust -->
+            <circle cx="65"  cy="165" r="5" fill="#0d9488" opacity="0.2"/>
+            <circle cx="790" cy="185" r="6" fill="#0d9488" opacity="0.2"/>
+            <circle cx="95"  cy="395" r="4" fill="#0d9488" opacity="0.15"/>
+            <circle cx="760" cy="350" r="5" fill="#0d9488" opacity="0.15"/>
+        </g>
+    </svg>
+
     <div class="lp-hero-content">
         <div class="lp-hero-badge">Benchmark scientifique</div>
         <h1><span>GLANCE</span></h1>
@@ -710,6 +857,68 @@
 
 <!-- ===== SECTION 4: LIVE STATS ===== -->
 <div class="lp-live-bg">
+    {# ── L3 Graph Decoration: Stats ──
+       Tighter cluster inspired by immunomod_ga_graph.yaml zone structure.
+       Offset right so it doesn't compete with counter numbers. #}
+    <svg class="graph-decoration graph-stats" viewBox="0 0 550 420" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <defs>
+            <filter id="glow-s" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur stdDeviation="2.5" result="b"/>
+                <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+        </defs>
+        <g stroke="#94a3b8" stroke-width="0.7" opacity="0.28">
+            <line x1="90"  y1="65"  x2="180" y2="115"/>
+            <line x1="180" y1="115" x2="275" y2="85"/>
+            <line x1="275" y1="85"  x2="370" y2="128"/>
+            <line x1="370" y1="128" x2="460" y2="78"/>
+            <line x1="90"  y1="65"  x2="135" y2="178"/>
+            <line x1="180" y1="115" x2="220" y2="198"/>
+            <line x1="275" y1="85"  x2="295" y2="208"/>
+            <line x1="370" y1="128" x2="385" y2="218"/>
+            <line x1="460" y1="78"  x2="430" y2="188"/>
+            <line x1="135" y1="178" x2="220" y2="198"/>
+            <line x1="220" y1="198" x2="295" y2="208"/>
+            <line x1="295" y1="208" x2="385" y2="218"/>
+            <line x1="385" y1="218" x2="430" y2="188"/>
+            <line x1="135" y1="178" x2="165" y2="290"/>
+            <line x1="220" y1="198" x2="250" y2="300"/>
+            <line x1="295" y1="208" x2="310" y2="312"/>
+            <line x1="385" y1="218" x2="370" y2="322"/>
+            <line x1="165" y1="290" x2="250" y2="300"/>
+            <line x1="250" y1="300" x2="310" y2="312"/>
+            <line x1="310" y1="312" x2="370" y2="322"/>
+            <line x1="250" y1="300" x2="275" y2="388"/>
+            <line x1="310" y1="312" x2="275" y2="388"/>
+            <line x1="220" y1="198" x2="385" y2="218"/>
+            <line x1="275" y1="85"  x2="220" y2="198"/>
+        </g>
+        <g stroke="#0d9488" stroke-width="0.9" opacity="0.18">
+            <line x1="275" y1="85"  x2="295" y2="208" class="gl-dash" style="animation-delay:-3s"/>
+            <line x1="295" y1="208" x2="275" y2="388" class="gl-dash" style="animation-delay:-8s"/>
+        </g>
+        <g filter="url(#glow-s)">
+            <circle cx="90"  cy="65"  r="9"  fill="#0d9488" opacity="0.5"  class="gn-pulse-c"/>
+            <circle cx="180" cy="115" r="14" fill="#0d9488" opacity="0.6"  class="gn-pulse"/>
+            <circle cx="275" cy="85"  r="19" fill="#0d9488" opacity="0.7"  class="gn-pulse-b"/>
+            <circle cx="370" cy="128" r="12" fill="#0d9488" opacity="0.55" class="gn-pulse-c"/>
+            <circle cx="460" cy="78"  r="8"  fill="#0d9488" opacity="0.4"  class="gn-pulse"/>
+            <circle cx="135" cy="178" r="10" fill="#0d9488" opacity="0.5"  class="gn-pulse-b"/>
+            <circle cx="220" cy="198" r="16" fill="#0d9488" opacity="0.65" class="gn-pulse"/>
+            <circle cx="295" cy="208" r="11" fill="#0d9488" opacity="0.5"  class="gn-pulse-c"/>
+            <circle cx="385" cy="218" r="13" fill="#0d9488" opacity="0.55" class="gn-pulse-b"/>
+            <circle cx="430" cy="188" r="7"  fill="#0d9488" opacity="0.35" class="gn-pulse"/>
+            <circle cx="165" cy="290" r="8"  fill="#0d9488" opacity="0.4"  class="gn-pulse-c"/>
+            <circle cx="250" cy="300" r="12" fill="#0d9488" opacity="0.5"  class="gn-pulse-b"/>
+            <circle cx="310" cy="312" r="10" fill="#0d9488" opacity="0.45" class="gn-pulse"/>
+            <circle cx="370" cy="322" r="7"  fill="#0d9488" opacity="0.35" class="gn-pulse-c"/>
+            <circle cx="275" cy="388" r="17" fill="#0d9488" opacity="0.45" class="gn-pulse-b"/>
+            <circle cx="45"  cy="138" r="4"  fill="#0d9488" opacity="0.15"/>
+            <circle cx="500" cy="158" r="5"  fill="#0d9488" opacity="0.15"/>
+            <circle cx="110" cy="350" r="4"  fill="#0d9488" opacity="0.12"/>
+        </g>
+    </svg>
+
     <div class="lp-section">
         <div class="lp-section-header">
             <h2>{% if landing.total_tests > 0 %}En ce moment{% else %}La bibliotheque{% endif %}</h2>
@@ -752,6 +961,57 @@
 
 <!-- ===== SECTION 5: DOMAIN GRID ===== -->
 <div class="lp-domains-bg">
+    {# ── L3 Graph Decoration: Domains ──
+       Sparse constellation, bottom-left. Uses darker teal for light bg. #}
+    <svg class="graph-decoration graph-domains" viewBox="0 0 480 360" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <defs>
+            <filter id="glow-d" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur stdDeviation="2" result="b"/>
+                <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+        </defs>
+        <g stroke="#0d9488" stroke-width="0.6" opacity="0.18">
+            <line x1="75"  y1="55"  x2="190" y2="95"/>
+            <line x1="190" y1="95"  x2="315" y2="65"/>
+            <line x1="315" y1="65"  x2="410" y2="115"/>
+            <line x1="75"  y1="55"  x2="118" y2="158"/>
+            <line x1="190" y1="95"  x2="220" y2="178"/>
+            <line x1="315" y1="65"  x2="292" y2="168"/>
+            <line x1="410" y1="115" x2="365" y2="198"/>
+            <line x1="118" y1="158" x2="220" y2="178"/>
+            <line x1="220" y1="178" x2="292" y2="168"/>
+            <line x1="292" y1="168" x2="365" y2="198"/>
+            <line x1="118" y1="158" x2="148" y2="258"/>
+            <line x1="220" y1="178" x2="240" y2="268"/>
+            <line x1="292" y1="168" x2="322" y2="278"/>
+            <line x1="148" y1="258" x2="240" y2="268"/>
+            <line x1="240" y1="268" x2="322" y2="278"/>
+            <line x1="240" y1="268" x2="228" y2="338"/>
+            <line x1="190" y1="95"  x2="292" y2="168"/>
+            <line x1="118" y1="158" x2="292" y2="168"/>
+        </g>
+        <g stroke="#0d9488" stroke-width="0.8" opacity="0.12">
+            <line x1="190" y1="95"  x2="220" y2="178" class="gl-dash" style="animation-delay:-5s"/>
+            <line x1="220" y1="178" x2="240" y2="268" class="gl-dash" style="animation-delay:-10s"/>
+        </g>
+        <g filter="url(#glow-d)">
+            <circle cx="75"  cy="55"  r="8"  fill="#0d9488" opacity="0.35" class="gn-pulse"/>
+            <circle cx="190" cy="95"  r="14" fill="#0d9488" opacity="0.45" class="gn-pulse-b"/>
+            <circle cx="315" cy="65"  r="10" fill="#0d9488" opacity="0.38" class="gn-pulse-c"/>
+            <circle cx="410" cy="115" r="7"  fill="#0d9488" opacity="0.3"  class="gn-pulse"/>
+            <circle cx="118" cy="158" r="11" fill="#0d9488" opacity="0.4"  class="gn-pulse-b"/>
+            <circle cx="220" cy="178" r="16" fill="#0d9488" opacity="0.5"  class="gn-pulse-c"/>
+            <circle cx="292" cy="168" r="9"  fill="#0d9488" opacity="0.35" class="gn-pulse"/>
+            <circle cx="365" cy="198" r="7"  fill="#0d9488" opacity="0.28" class="gn-pulse-b"/>
+            <circle cx="148" cy="258" r="8"  fill="#0d9488" opacity="0.3"  class="gn-pulse-c"/>
+            <circle cx="240" cy="268" r="12" fill="#0d9488" opacity="0.4"  class="gn-pulse"/>
+            <circle cx="322" cy="278" r="9"  fill="#0d9488" opacity="0.32" class="gn-pulse-b"/>
+            <circle cx="228" cy="338" r="13" fill="#0d9488" opacity="0.3"  class="gn-pulse-c"/>
+            <circle cx="35"  cy="125" r="4"  fill="#0d9488" opacity="0.12"/>
+            <circle cx="445" cy="68"  r="4"  fill="#0d9488" opacity="0.12"/>
+        </g>
+    </svg>
+
     <div class="lp-section">
         <div class="lp-section-header">
             <h2>Explorez par domaine</h2>
