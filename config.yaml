@@ -49,6 +49,8 @@ domains:
   med:
     label: "Médical"
     label_en: "Medical"
+    emoji: "⚕️"
+    color: "#ef4444"
     q1: "De quoi parlait ce post ?"
     q1_en: "What was this post about?"
     q2: "Dans cette image, quel produit semblait le mieux documenté ?"
@@ -60,6 +62,8 @@ domains:
   tech:
     label: "Tech / IA"
     label_en: "Tech / AI"
+    emoji: "🤖"
+    color: "#6366f1"
     q1: "De quoi parlait ce post ?"
     q1_en: "What was this post about?"
     q2: "Dans cette image, quel modèle avait le meilleur résultat ?"
@@ -71,6 +75,8 @@ domains:
   policy:
     label: "Politique de santé publique"
     label_en: "Public health policy"
+    emoji: "🏥"
+    color: "#f43f5e"
     q1: "De quoi parlait ce post ?"
     q1_en: "What was this post about?"
     q2: "Dans cette étude, quel résultat de santé était le plus impacté ?"
@@ -82,6 +88,8 @@ domains:
   education:
     label: "Éducation"
     label_en: "Education"
+    emoji: "📚"
+    color: "#f59e0b"
     q1: "De quoi parlait ce post ?"
     q1_en: "What was this post about?"
     q2: "Dans cette image, quelle approche semblait la plus efficace ?"
@@ -93,6 +101,8 @@ domains:
   climate:
     label: "Climat / Environnement"
     label_en: "Climate / Environment"
+    emoji: "🌍"
+    color: "#06b6d4"
     q1: "De quoi parlait ce post ?"
     q1_en: "What was this post about?"
     q2: "Dans cette image, quelle solution avait le plus grand impact ?"
@@ -104,6 +114,8 @@ domains:
   psychology:
     label: "Psychologie"
     label_en: "Psychology"
+    emoji: "🧠"
+    color: "#a855f7"
     q1: "De quoi parlait ce post ?"
     q1_en: "What was this post about?"
     q2: "Dans cette étude, quelle condition avait le plus grand effet ?"
@@ -115,6 +127,8 @@ domains:
   economics:
     label: "Économie"
     label_en: "Economics"
+    emoji: "📊"
+    color: "#3b82f6"
     q1: "De quoi parlait ce post ?"
     q1_en: "What was this post about?"
     q2: "Dans cette image, quel résultat était le plus marquant ?"
@@ -126,6 +140,8 @@ domains:
   neuroscience:
     label: "Neurosciences"
     label_en: "Neuroscience"
+    emoji: "🧬"
+    color: "#ec4899"
     q1: "De quoi parlait ce post ?"
     q1_en: "What was this post about?"
     q2: "Dans cette étude, quelle condition avait le meilleur résultat ?"
@@ -137,6 +153,8 @@ domains:
   nutrition:
     label: "Nutrition / Santé publique"
     label_en: "Nutrition / Public health"
+    emoji: "🍎"
+    color: "#10b981"
     q1: "De quoi parlait ce post ?"
     q1_en: "What was this post about?"
     q2: "Dans cette image, quelle intervention semblait la plus efficace ?"
@@ -148,6 +166,8 @@ domains:
   energy:
     label: "Énergie / Ingénierie"
     label_en: "Energy / Engineering"
+    emoji: "⚡"
+    color: "#eab308"
     q1: "De quoi parlait ce post ?"
     q1_en: "What was this post about?"
     q2: "Dans cette image, quelle techno semblait la plus performante ?"
@@ -159,6 +179,8 @@ domains:
   epidemiology:
     label: "Épidémiologie"
     label_en: "Epidemiology"
+    emoji: "🦠"
+    color: "#14b8a6"
     q1: "De quoi parlait ce post ?"
     q1_en: "What was this post about?"
     q2: "Dans cette étude, quel groupe ou intervention avait le meilleur résultat ?"
@@ -170,6 +192,8 @@ domains:
   ecology:
     label: "Écologie / Biologie"
     label_en: "Ecology / Biology"
+    emoji: "🌿"
+    color: "#22c55e"
     q1: "De quoi parlait ce post ?"
     q1_en: "What was this post about?"
     q2: "Dans cette image, quel facteur semblait le plus déterminant ?"
@@ -181,6 +205,8 @@ domains:
   transport:
     label: "Transport / Urbanisme"
     label_en: "Transport / Urban planning"
+    emoji: "🚆"
+    color: "#64748b"
     q1: "De quoi parlait ce post ?"
     q1_en: "What was this post about?"
     q2: "Dans cette image, quel mode de transport était le plus performant ?"
@@ -192,6 +218,8 @@ domains:
   agriculture:
     label: "Agriculture"
     label_en: "Agriculture"
+    emoji: "🌾"
+    color: "#84cc16"
     q1: "De quoi parlait ce post ?"
     q1_en: "What was this post about?"
     q2: "Dans cette image, quelle méthode semblait la plus productive ?"
@@ -203,6 +231,8 @@ domains:
   materials:
     label: "Science des matériaux"
     label_en: "Materials science"
+    emoji: "🔬"
+    color: "#8b5cf6"
     q1: "De quoi parlait ce post ?"
     q1_en: "What was this post about?"
     q2: "Dans cette image, quelle alternative semblait la plus prometteuse ?"
@@ -214,6 +244,8 @@ domains:
   generic:
     label: "Générique"
     label_en: "General"
+    emoji: "📋"
+    color: "#71717a"
     q1: "De quoi parlait ce post ?"
     q1_en: "What was this post about?"
     q2: "Dans cette image, quel élément semblait le mieux démontré ?"

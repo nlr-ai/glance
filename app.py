@@ -921,12 +921,13 @@ def leaderboard(request: Request):
     data = get_leaderboard_data(domain_config)
     domains = sorted(
         data.items(),
-        key=lambda kv: (kv[1]["avg_score"] is not None, kv[1]["avg_score"] or 0),
+        key=lambda kv: kv[1]["n_gas"],
         reverse=True,
     )
     # Build domain pills for inter-domain navigation
     all_domains = [
-        {"key": k, "label": v["label"], "n_gas": v["n_gas"]}
+        {"key": k, "label": v["label"], "n_gas": v["n_gas"],
+         "emoji": v.get("emoji", ""), "color": v.get("color", "#71717a")}
         for k, v in domains
     ]
     return templates.TemplateResponse("leaderboard.html", {
@@ -1004,11 +1005,12 @@ def leaderboard_domain(request: Request, domain: str):
     all_lb_data = get_leaderboard_data(domain_config)
     all_domains_sorted = sorted(
         all_lb_data.items(),
-        key=lambda kv: (kv[1]["avg_score"] is not None, kv[1]["avg_score"] or 0),
+        key=lambda kv: kv[1]["n_gas"],
         reverse=True,
     )
     all_domains = [
-        {"key": k, "label": v["label"], "n_gas": v["n_gas"]}
+        {"key": k, "label": v["label"], "n_gas": v["n_gas"],
+         "emoji": v.get("emoji", ""), "color": v.get("color", "#71717a")}
         for k, v in all_domains_sorted
     ]
 

@@ -759,8 +759,11 @@ def get_leaderboard_data(domain_config: dict) -> dict:
         all_scores = [g["avg_glance"] for g in gas_with_data]
         total_tests = sum(g["n_tests"] for g in gas)
 
+        dcfg = domain_config.get(domain_key, {})
         result[domain_key] = {
             "label": label,
+            "emoji": dcfg.get("emoji", ""),
+            "color": dcfg.get("color", "#71717a"),
             "gas": sorted_gas,
             "n_gas": len(gas),
             "n_tests": total_tests,
@@ -1000,11 +1003,14 @@ def get_domain_leaderboard(domain: str, domain_config: dict) -> dict | None:
         median_score = None
         std_score = None
 
-    label = domain_config.get(domain, {}).get("label", domain)
+    dcfg = domain_config.get(domain, {})
+    label = dcfg.get("label", domain)
 
     return {
         "domain": domain,
         "label": label,
+        "emoji": dcfg.get("emoji", ""),
+        "color": dcfg.get("color", "#71717a"),
         "gas": sorted_gas,
         "n_gas": len(gas),
         "n_tests": total_tests,

@@ -104,6 +104,10 @@
     background: rgba(20, 184, 166, 0.12);
     font-weight: 600;
 }
+.lb-pill-emoji {
+    font-size: 0.85rem;
+    line-height: 1;
+}
 .lb-pill-count {
     font-family: var(--font-mono);
     font-size: 0.65rem;
@@ -123,6 +127,7 @@
 .domain-card {
     background: linear-gradient(135deg, var(--surface) 0%, rgba(255,255,255,0.03) 100%);
     border: 1px solid var(--border-subtle);
+    border-left: 4px solid var(--border-subtle);
     border-radius: var(--radius-lg);
     padding: var(--sp-6);
     text-decoration: none;
@@ -131,6 +136,19 @@
     flex-direction: column;
     gap: var(--sp-5);
     transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    position: relative;
+    overflow: hidden;
+}
+.domain-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    opacity: 0.04;
+    border-radius: inherit;
+    pointer-events: none;
 }
 .domain-card:hover {
     transform: translateY(-3px);
@@ -138,7 +156,22 @@
     border-color: var(--border);
 }
 
-/* --- Card title --- */
+/* --- Card header (emoji + title + count) --- */
+.dc-header {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--sp-3);
+}
+.dc-emoji {
+    font-size: 1.75rem;
+    line-height: 1;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+.dc-header-text {
+    flex: 1;
+    min-width: 0;
+}
 .dc-title {
     font-size: var(--text-lg);
     font-weight: 700;
@@ -146,12 +179,18 @@
     letter-spacing: -0.01em;
     line-height: 1.3;
 }
+.dc-study-count {
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+    margin-top: 2px;
+    font-weight: 400;
+}
 
 /* --- Score hero (avg score as big number) --- */
 .dc-score-hero {
     display: flex;
-    align-items: baseline;
-    gap: var(--sp-2);
+    align-items: center;
+    gap: var(--sp-3);
 }
 .dc-score-number {
     font-family: var(--font-mono);
@@ -172,6 +211,9 @@
     color: var(--text-dim);
     line-height: 1;
 }
+.dc-score-ring {
+    flex-shrink: 0;
+}
 
 /* Verdict pill */
 .dc-verdict {
@@ -183,16 +225,6 @@
     padding: 0.15rem 0.625rem;
     border-radius: 100px;
     margin-top: 0.25rem;
-}
-
-/* Score ring in domain card */
-.dc-score-hero {
-    display: flex;
-    align-items: center;
-    gap: var(--sp-3);
-}
-.dc-score-ring {
-    flex-shrink: 0;
 }
 
 /* Score colors */
@@ -324,10 +356,13 @@
     {% if all_domains %}
     <div class="lb-pills">
         {% for d in all_domains %}
+        {% if d.key != 'user_upload' %}
         <a href="/leaderboard/{{ d.key }}" class="lb-pill">
+            {% if d.emoji %}<span class="lb-pill-emoji">{{ d.emoji }}</span>{% endif %}
             {{ d.label }}
             <span class="lb-pill-count">{{ d.n_gas }}</span>
         </a>
+        {% endif %}
         {% endfor %}
     </div>
     {% endif %}
@@ -335,12 +370,24 @@
     {% if domains %}
     <div class="domain-grid">
         {% for domain_key, domain_data in domains %}
+        {% if domain_key != 'user_upload' %}
         {% set has_data = domain_data.avg_score is not none %}
         {% if has_data %}
             {% set pct = (domain_data.avg_score * 100) | round(0) | int %}
         {% endif %}
-        <a href="/leaderboard/{{ domain_key }}" class="domain-card {{ 'domain-card-empty' if not has_data }}">
-            <div class="dc-title">{{ domain_data.label }}</div>
+        {% set d_color = domain_data.color|default('#71717a') %}
+        {% set d_emoji = domain_data.emoji|default('') %}
+        <a href="/leaderboard/{{ domain_key }}" class="domain-card {{ 'domain-card-empty' if not has_data }}"
+           style="border-left-color: {{ d_color }};">
+            <div class="dc-header">
+                {% if d_emoji %}
+                <span class="dc-emoji">{{ d_emoji }}</span>
+                {% endif %}
+                <div class="dc-header-text">
+                    <div class="dc-title">{{ domain_data.label }}</div>
+                    <div class="dc-study-count">{{ domain_data.n_gas }} {{ 'étude' if domain_data.n_gas == 1 else 'études' }}</div>
+                </div>
+            </div>
 
             <div class="dc-score-hero">
                 {% if has_data %}
@@ -390,6 +437,7 @@
                 </div>
             </div>
         </a>
+        {% endif %}
         {% endfor %}
     </div>
     {% else %}

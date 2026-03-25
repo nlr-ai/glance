@@ -84,6 +84,10 @@
     background: rgba(20, 184, 166, 0.12);
     font-weight: 600;
 }
+.lb-pill-emoji {
+    font-size: 0.85rem;
+    line-height: 1;
+}
 .lb-pill-count {
     font-family: var(--font-mono);
     font-size: 0.65rem;
@@ -501,17 +505,20 @@
     {% if all_domains %}
     <div class="lb-pills">
         {% for d in all_domains %}
+        {% if d.key != 'user_upload' %}
         <a href="/leaderboard/{{ d.key }}" class="lb-pill {{ 'active' if d.key == domain else '' }}">
+            {% if d.emoji %}<span class="lb-pill-emoji">{{ d.emoji }}</span>{% endif %}
             {{ d.label }}
             <span class="lb-pill-count">{{ d.n_gas }}</span>
         </a>
+        {% endif %}
         {% endfor %}
     </div>
     {% endif %}
 
     {# --- Stats header --- #}
     <div class="lb-header">
-        <h1>{{ data.label }}</h1>
+        <h1>{% if data.emoji %}{{ data.emoji }} {% endif %}{{ data.label }}</h1>
     </div>
 
     <div class="lb-summary">
