@@ -523,7 +523,8 @@ def render_overlay_svg(graph, sim_result, width, height):
             f'data-attention-ratio="{node["att_ratio"]:.3f}" '
             f'data-energy="{node.get("glow", 0):.1f}" '
             f'data-color="{node["color"]}" '
-            f'data-space-id="{_svg_escape(node.get("space_id", ""))}">')
+            f'data-space-id="{_svg_escape(node.get("space_id", ""))}" '
+            f'data-narratives="{_svg_escape("|".join(b["name"] + ":" + b["status"] for b in node.get("narrative_badges", [])))}">')
         # Base sphere with marble texture
         parts.append(
             f'      <circle cx="{cx:.1f}" cy="{cy:.1f}" r="{r:.1f}" '
