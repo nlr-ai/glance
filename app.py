@@ -1996,6 +1996,72 @@ async def analyze_tool(tool_name: str, ga_slug: str, request: Request, pwd: str 
     return JSONResponse({"tool": tool_name, "status": "ok"})
 
 
+@app.post("/admin/batch-analyze")
+async def admin_batch_analyze(pwd: str = ""):
+    """Run vision analysis + save_graph on all GAs that don't have a graph yet.
+
+    Admin-only. Runs sequentially to respect Gemini rate limits.
+    Returns progress as JSON.
+    """
+    admin_pwd = os.environ.get("GLANCE_ADMIN_PWD", "gL4NC3")
+    if pwd != admin_pwd:
+        raise HTTPException(status_code=403, detail="Admin password required")
+
+    from vision_scorer import analyze_ga_image
+
+    db = get_db()
+    # Find all GA images that have NO graph in ga_graphs
+    images = db.execute("""
+        SELECT i.id, i.filename, i.slug, i.title
+        FROM ga_images i
+        LEFT JOIN ga_graphs g ON g.ga_image_id = i.id
+        WHERE g.id IS NULL
+        ORDER BY i.id
+    """).fetchall()
+    db.close()
+
+    results = []
+    for img in images:
+        ga_id = img["id"]
+        filename = img["filename"]
+        image_path = os.path.join(BASE, "ga_library", filename)
+
+        if not os.path.exists(image_path):
+            results.append({"ga_id": ga_id, "slug": img["slug"], "status": "file_not_found"})
+            continue
+
+        try:
+            with open(image_path, "rb") as f:
+                image_bytes = f.read()
+            result = analyze_ga_image(image_bytes, filename=filename)
+            graph = result["graph"]
+            graph_id = save_graph(graph, ga_image_id=ga_id,
+                                 graph_type="vision", source="batch_analyze")
+            results.append({
+                "ga_id": ga_id,
+                "slug": img["slug"],
+                "status": "ok",
+                "graph_id": graph_id,
+                "nodes": len(graph.get("nodes", [])),
+                "links": len(graph.get("links", [])),
+            })
+            log.info(f"Batch: GA {ga_id} ({img['slug']}) → graph {graph_id}")
+        except Exception as e:
+            results.append({"ga_id": ga_id, "slug": img["slug"], "status": f"error: {str(e)[:100]}"})
+            log.warning(f"Batch: GA {ga_id} failed: {e}")
+
+        # Rate limit: 4s between Gemini calls
+        time.sleep(4)
+
+    return JSONResponse({
+        "total": len(images),
+        "processed": len(results),
+        "ok": sum(1 for r in results if r["status"] == "ok"),
+        "errors": sum(1 for r in results if r["status"].startswith("error")),
+        "results": results,
+    })
+
+
 @app.post("/analyze/unlock/{ga_id}")
 async def unlock_analysis(ga_id: int, email: str = Form(...)):
     """Capture email lead and unlock the full analysis for this GA."""
