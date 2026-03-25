@@ -3,6 +3,7 @@ services:
     runtime: python
     name: glance
     plan: standard
+    autoDeploy: false
     buildCommand: pip install -r deploy/requirements.txt
     startCommand: bash start.sh
     envVars:
@@ -13,7 +14,7 @@ services:
       - key: GEMINI_API_KEY
         sync: false
       - key: GEMINI_MODEL
-        value: "gemini-2.5-pro-preview-06-05"
+        value: "gemini-2.5-pro"
       - key: RENDER_API_KEY
         sync: false
       - key: STRIPE_SECRET_KEY
