@@ -22,6 +22,7 @@ from db import get_next_image, save_test, get_test, get_stats
 from db import get_all_tests, get_image_count, get_all_images, add_ga_image
 from db import get_image_by_id, get_image_by_slug, get_tests_for_image, get_tests_for_participant, get_landing_stats, get_example_ga
 from db import get_referral_count, get_top_referrers, save_analysis_lead
+from db import get_latest_graph, get_reading_sims, save_graph
 from scoring import score_test, classify_speed_accuracy
 from analytics import (
     compute_aggregate_stats,
@@ -1471,6 +1472,7 @@ def ga_detail(request: Request, ga_id: str):
         "perceptual_spin": perceptual_spin,
         "share_slug": share_slug,
         "ga_id": ga_id,
+        "is_admin": is_admin,
     })
 
 
@@ -1645,6 +1647,163 @@ async def analyze_submit(request: Request, file: UploadFile = File(...)):
     # Redirect to the ga-detail page (prefer slug)
     redirect_key = ga_slug or ga_id
     return RedirectResponse(url=f"/ga-detail/{redirect_key}", status_code=303)
+
+
+@app.post("/analyze/improve/{ga_slug}")
+async def analyze_improve(ga_slug: str, pwd: str = ""):
+    """Run one improvement turn on a GA. Returns JSON with turn results."""
+    admin_pwd = os.environ.get("GLANCE_ADMIN_PWD", "gL4NC3")
+    if pwd != admin_pwd:
+        raise HTTPException(status_code=403, detail="Admin password required")
+
+    # 1. Look up GA
+    image = get_image_by_slug(ga_slug)
+    if not image:
+        raise HTTPException(status_code=404, detail="GA not found")
+
+    ga_id = image["id"]
+    filename = image["filename"]
+    image_path = os.path.join(BASE, "ga_library", filename)
+
+    if not os.path.exists(image_path):
+        raise HTTPException(status_code=404, detail="GA image file not found")
+
+    # 2. Get latest graph
+    latest = get_latest_graph(ga_id)
+
+    if not latest:
+        # No graph yet — run initial analysis
+        try:
+            from vision_scorer import analyze_ga_image
+            with open(image_path, "rb") as f:
+                image_bytes = f.read()
+            result = analyze_ga_image(image_bytes, filename=filename)
+            graph = result["graph"]
+            graph_id = save_graph(graph, ga_image_id=ga_id, graph_type="vision", source="improve_initial")
+            # Wait for async sim
+            time.sleep(3)
+            return JSONResponse({
+                "turn": 0,
+                "action": "initial_analysis",
+                "graph_id": graph_id,
+                "node_count": len(graph.get("nodes", [])),
+                "link_count": len(graph.get("links", [])),
+                "message": "Analyse initiale completee. Cliquez a nouveau pour ameliorer.",
+            })
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Initial analysis failed: {str(e)}")
+
+    # 3. Build intent from latest sim + graph data
+    graph = latest["graph"]
+    graph_id = latest["id"]
+    graph_path_tmp = os.path.join(BASE, "data", f"improve_{ga_slug}_{int(time.time())}.yaml")
+
+    # Save graph to temp file for advisor
+    with open(graph_path_tmp, "w", encoding="utf-8") as f:
+        yaml.dump(graph, f, default_flow_style=False, allow_unicode=True)
+
+    # Get sim results
+    sims = get_reading_sims(graph_id=graph_id)
+    sim_s1 = next((s for s in sims if s["mode"] == "system1"), None)
+    sim_s2 = next((s for s in sims if s["mode"] == "system2"), None)
+
+    intent_parts = []
+
+    if sim_s1 and sim_s1.get("narrative_text"):
+        intent_parts.append("## Lecture simulee (System 1 — 5s)\n" + sim_s1["narrative_text"])
+
+        s1_cov = sim_s1.get("narrative_coverage", 0) or 0
+        s2_cov = (sim_s2.get("narrative_coverage", 0) or 0) if sim_s2 else 0
+        if s2_cov > s1_cov + 0.2:
+            intent_parts.append(
+                f"En 90 secondes (System 2), la couverture narrative monte a {s2_cov:.0%} "
+                f"(vs {s1_cov:.0%} en 5s).")
+
+        sim_prompts = json.loads(sim_s1.get("prompts_json", "[]"))
+        if sim_prompts:
+            intent_parts.append("## Axes d'amelioration\n" + "\n".join(f"- {p}" for p in sim_prompts[:3]))
+
+    # Anti-pattern diagnosis
+    anti_patterns = graph.get("metadata", {}).get("channel_analysis", {}).get("anti_patterns", [])
+    if anti_patterns:
+        ap_text = "\n".join(f"- {ap.get('type')}: {ap.get('node_id', '')} — {ap.get('issue', '')}"
+                           for ap in anti_patterns[:5])
+        intent_parts.append("## Anti-patterns detectes\n" + ap_text)
+
+    if not intent_parts:
+        intent_parts.append("Analyser le graph actuel et proposer des ameliorations de clarte visuelle.")
+
+    intent = "\n\n".join(intent_parts)
+
+    # 4. Call advisor
+    try:
+        from ga_advisor import advise
+        advised = advise(image_path, graph_path_tmp, intent, prior_graph=True)
+    except Exception as e:
+        # Clean up temp file
+        try:
+            os.remove(graph_path_tmp)
+        except OSError:
+            pass
+        raise HTTPException(status_code=500, detail=f"Advisor failed: {str(e)}")
+
+    # Clean up temp file
+    try:
+        os.remove(graph_path_tmp)
+    except OSError:
+        pass
+
+    if not advised:
+        return JSONResponse({
+            "turn": "N/A",
+            "action": "no_changes",
+            "message": "L'advisor n'a propose aucun changement.",
+        })
+
+    # 5. Count changes
+    changes = [n for n in advised.get("nodes", []) if n.get("_change")]
+
+    # 6. Save improved graph (triggers async sim + health)
+    new_graph_id = save_graph(advised, ga_image_id=ga_id, graph_type="advised", source="improve_manual")
+
+    # 7. Wait briefly for async sim
+    time.sleep(3)
+
+    # 8. Get new sim results
+    new_sims = get_reading_sims(graph_id=new_graph_id)
+    new_s1 = next((s for s in new_sims if s["mode"] == "system1"), None)
+
+    # Build response
+    response_data = {
+        "action": "improved",
+        "graph_id": new_graph_id,
+        "prev_graph_id": graph_id,
+        "changes": [{"node": c.get("name", ""), "change": c.get("_change", "")} for c in changes],
+        "n_changes": len(changes),
+        "node_count": len(advised.get("nodes", [])),
+        "link_count": len(advised.get("links", [])),
+    }
+
+    if new_s1:
+        response_data["sim_s1"] = {
+            "verdict": new_s1.get("complexity_verdict"),
+            "pressure": new_s1.get("budget_pressure"),
+            "visited": new_s1.get("nodes_visited"),
+            "total": new_s1.get("nodes_total"),
+            "skipped": new_s1.get("nodes_skipped"),
+            "narrative_coverage": new_s1.get("narrative_coverage"),
+            "narrative_text": new_s1.get("narrative_text", ""),
+        }
+
+    # Compare with previous
+    if sim_s1:
+        response_data["prev_sim_s1"] = {
+            "verdict": sim_s1.get("complexity_verdict"),
+            "pressure": sim_s1.get("budget_pressure"),
+            "narrative_coverage": sim_s1.get("narrative_coverage"),
+        }
+
+    return JSONResponse(response_data)
 
 
 @app.post("/analyze/unlock/{ga_id}")

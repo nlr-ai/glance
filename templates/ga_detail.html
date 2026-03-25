@@ -900,4 +900,108 @@
     });
 })();
 </script>
+
+<!-- Improve section (admin only) -->
+{% if is_admin %}
+<div style="margin-top:2rem;padding:1.5rem;border:1px solid var(--gd-border);border-radius:var(--gd-radius);background:var(--gd-card);box-shadow:var(--gd-shadow-sm);">
+    <h3 style="margin-bottom:1rem;font-size:1rem;font-weight:700;color:var(--gd-navy);">Boucle d'amelioration</h3>
+    <button id="improveBtn" onclick="runImprove()"
+            style="padding:0.75rem 1.5rem;background:var(--gd-teal);color:white;border:none;
+                   border-radius:var(--gd-radius-sm);cursor:pointer;font-size:0.9rem;font-weight:500;">
+        Ameliorer le graph
+    </button>
+    <span id="improveSpinner" style="display:none;margin-left:1rem;color:var(--gd-text-dim);">
+        Amelioration en cours...
+    </span>
+    <div id="improveResults" style="display:none;margin-top:1.5rem;"></div>
+</div>
+
+<script>
+let improveCount = 0;
+
+async function runImprove() {
+    const btn = document.getElementById('improveBtn');
+    const spinner = document.getElementById('improveSpinner');
+    const resultsDiv = document.getElementById('improveResults');
+
+    btn.disabled = true;
+    spinner.style.display = 'inline';
+
+    try {
+        const slug = '{{ image.slug or image.id }}';
+        const pwd = new URLSearchParams(window.location.search).get('pwd') || '';
+        const resp = await fetch(`/analyze/improve/${slug}?pwd=${pwd}`, { method: 'POST' });
+
+        if (!resp.ok) {
+            const err = await resp.json();
+            throw new Error(err.detail || 'Erreur');
+        }
+
+        const data = await resp.json();
+        improveCount++;
+
+        let html = `<div style="border:1px solid var(--gd-border);border-radius:var(--gd-radius-sm);
+                         padding:1rem;margin-bottom:1rem;background:var(--gd-bg);">`;
+        html += `<h4 style="margin:0 0 0.75rem;font-size:0.85rem;color:var(--gd-text-dim);">
+                  Tour #${improveCount} — ${data.n_changes || 0} changements</h4>`;
+
+        if (data.changes && data.changes.length > 0) {
+            html += '<ul style="margin:0.5rem 0;padding-left:1.25rem;font-size:0.8rem;color:var(--gd-text-muted);">';
+            for (const c of data.changes.slice(0, 5)) {
+                html += `<li><strong>${c.node}</strong>: ${c.change}</li>`;
+            }
+            if (data.changes.length > 5) html += `<li>+${data.changes.length - 5} autres...</li>`;
+            html += '</ul>';
+        }
+
+        if (data.sim_s1) {
+            const s = data.sim_s1;
+            const verdictColor = s.verdict === 'OK' ? '#22c55e' : s.verdict === 'DENSE' ? '#eab308' : '#ef4444';
+            html += `<div style="margin-top:0.75rem;font-size:0.8rem;color:var(--gd-text-muted);">`;
+            html += `<span style="color:${verdictColor};font-weight:600;">${s.verdict}</span>`;
+            html += ` — pression ${(s.pressure || 0).toFixed(2)}x`;
+            html += ` — ${s.visited}/${s.total} visites`;
+            html += ` — couverture narrative ${Math.round((s.narrative_coverage || 0) * 100)}%`;
+
+            if (data.prev_sim_s1) {
+                const prev = data.prev_sim_s1;
+                const covDelta = ((s.narrative_coverage || 0) - (prev.narrative_coverage || 0)) * 100;
+                if (Math.abs(covDelta) >= 1) {
+                    const sign = covDelta > 0 ? '+' : '';
+                    const color = covDelta > 0 ? '#22c55e' : '#ef4444';
+                    html += ` <span style="color:${color};">(${sign}${covDelta.toFixed(0)}%)</span>`;
+                }
+            }
+            html += '</div>';
+
+            if (s.narrative_text) {
+                html += `<details style="margin-top:0.75rem;">
+                    <summary style="cursor:pointer;font-size:0.75rem;color:var(--gd-text-dim);">Lecture simulee</summary>
+                    <p style="margin:0.5rem 0 0;font-size:0.75rem;color:var(--gd-text-muted);
+                       line-height:1.5;white-space:pre-wrap;">${s.narrative_text}</p>
+                </details>`;
+            }
+        }
+
+        if (data.action === 'initial_analysis') {
+            html += `<p style="margin-top:0.5rem;font-size:0.8rem;color:var(--gd-teal);">${data.message}</p>`;
+        }
+        if (data.action === 'no_changes') {
+            html += `<p style="margin-top:0.5rem;font-size:0.8rem;color:var(--gd-text-dim);">${data.message}</p>`;
+        }
+
+        html += '</div>';
+
+        resultsDiv.innerHTML = html + resultsDiv.innerHTML;
+        resultsDiv.style.display = 'block';
+
+    } catch (err) {
+        alert('Erreur: ' + err.message);
+    } finally {
+        btn.disabled = false;
+        spinner.style.display = 'none';
+    }
+}
+</script>
+{% endif %}
 {% endblock %}
