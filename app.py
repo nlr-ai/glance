@@ -1997,68 +1997,72 @@ async def analyze_tool(tool_name: str, ga_slug: str, request: Request, pwd: str 
 
 
 @app.post("/admin/batch-analyze")
-async def admin_batch_analyze(pwd: str = ""):
-    """Run vision analysis + save_graph on all GAs that don't have a graph yet.
+async def admin_batch_analyze(pwd: str = "", batch_size: int = 5):
+    """Launch background batch analysis on GAs without graphs.
 
-    Admin-only. Runs sequentially to respect Gemini rate limits.
-    Returns progress as JSON.
+    Fires a background thread that processes `batch_size` GAs at a time
+    (default 5). Returns immediately with the list of GAs queued.
+    Check /admin for progress (graphs table).
     """
     admin_pwd = os.environ.get("GLANCE_ADMIN_PWD", "gL4NC3")
     if pwd != admin_pwd:
         raise HTTPException(status_code=403, detail="Admin password required")
 
-    from vision_scorer import analyze_ga_image
+    batch_size = min(batch_size, 20)  # cap at 20 per call
 
     db = get_db()
-    # Find all GA images that have NO graph in ga_graphs
     images = db.execute("""
         SELECT i.id, i.filename, i.slug, i.title
         FROM ga_images i
         LEFT JOIN ga_graphs g ON g.ga_image_id = i.id
         WHERE g.id IS NULL
         ORDER BY i.id
-    """).fetchall()
+        LIMIT ?
+    """, (batch_size,)).fetchall()
+    total_remaining = db.execute("""
+        SELECT COUNT(*) FROM ga_images i
+        LEFT JOIN ga_graphs g ON g.ga_image_id = i.id
+        WHERE g.id IS NULL
+    """).fetchone()[0]
     db.close()
 
-    results = []
-    for img in images:
-        ga_id = img["id"]
-        filename = img["filename"]
-        image_path = os.path.join(BASE, "ga_library", filename)
+    if not images:
+        return JSONResponse({"status": "done", "message": "All GAs already have graphs.", "remaining": 0})
 
-        if not os.path.exists(image_path):
-            results.append({"ga_id": ga_id, "slug": img["slug"], "status": "file_not_found"})
-            continue
+    queued = [{"ga_id": img["id"], "slug": img["slug"], "title": img["title"]} for img in images]
 
-        try:
-            with open(image_path, "rb") as f:
-                image_bytes = f.read()
-            result = analyze_ga_image(image_bytes, filename=filename)
-            graph = result["graph"]
-            graph_id = save_graph(graph, ga_image_id=ga_id,
-                                 graph_type="vision", source="batch_analyze")
-            results.append({
-                "ga_id": ga_id,
-                "slug": img["slug"],
-                "status": "ok",
-                "graph_id": graph_id,
-                "nodes": len(graph.get("nodes", [])),
-                "links": len(graph.get("links", [])),
-            })
-            log.info(f"Batch: GA {ga_id} ({img['slug']}) → graph {graph_id}")
-        except Exception as e:
-            results.append({"ga_id": ga_id, "slug": img["slug"], "status": f"error: {str(e)[:100]}"})
-            log.warning(f"Batch: GA {ga_id} failed: {e}")
+    # Fire and forget — background thread
+    import threading
 
-        # Rate limit: 4s between Gemini calls
-        time.sleep(4)
+    def _batch_worker(image_list):
+        from vision_scorer import analyze_ga_image
+        for img in image_list:
+            ga_id = img["id"]
+            filename = img["filename"]
+            image_path = os.path.join(BASE, "ga_library", filename)
+            if not os.path.exists(image_path):
+                log.warning(f"Batch: {filename} not found, skipping")
+                continue
+            try:
+                with open(image_path, "rb") as f:
+                    image_bytes = f.read()
+                result = analyze_ga_image(image_bytes, filename=filename)
+                graph_id = save_graph(result["graph"], ga_image_id=ga_id,
+                                     graph_type="vision", source="batch_analyze")
+                log.info(f"Batch: GA {ga_id} ({img['slug']}) → graph {graph_id}")
+            except Exception as e:
+                log.warning(f"Batch: GA {ga_id} failed: {e}")
+            time.sleep(6)  # gentle rate limit
+
+    t = threading.Thread(target=_batch_worker, args=([dict(img) for img in images],), daemon=True)
+    t.start()
 
     return JSONResponse({
-        "total": len(images),
-        "processed": len(results),
-        "ok": sum(1 for r in results if r["status"] == "ok"),
-        "errors": sum(1 for r in results if r["status"].startswith("error")),
-        "results": results,
+        "status": "started",
+        "queued": len(queued),
+        "remaining_after": total_remaining - len(queued),
+        "batch": queued,
+        "message": f"Batch de {len(queued)} GAs lancé en background. Check /admin pour voir les résultats.",
     })
 
 
