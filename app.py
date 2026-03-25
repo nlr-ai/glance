@@ -2564,6 +2564,36 @@ async def analyze_deepen(ga_slug: str, pwd: str = "", max_depth: int = 1):
         raise HTTPException(status_code=500, detail=f"Deepen failed: {str(e)}")
 
 
+@app.post("/analyze/extract-claims")
+async def analyze_extract_claims(request: Request):
+    """Extract structured claims from a paper abstract using Gemini.
+
+    Accepts JSON body: {"abstract": "text...", "context": "optional..."}
+    Returns claims classified by data family + suggested GA narratives.
+    """
+    try:
+        body = await request.json()
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid JSON body")
+
+    abstract_text = body.get("abstract", "").strip()
+    if not abstract_text:
+        raise HTTPException(status_code=400, detail="'abstract' field is required")
+
+    context = body.get("context", None)
+
+    try:
+        from claim_extractor import extract_claims
+        result = extract_claims(abstract_text, context=context)
+        return JSONResponse(result)
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    except RuntimeError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Claim extraction failed: {str(e)}")
+
+
 @app.post("/admin/batch-analyze")
 async def admin_batch_analyze(pwd: str = "", batch_size: int = 5):
     """Launch background batch analysis on GAs without graphs.

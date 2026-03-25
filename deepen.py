@@ -314,13 +314,14 @@ def deepen(ga_image_id, max_depth=1, image_path=None):
         else 0.0
     )
 
-    # Save the merged graph
+    # Save the merged graph (skip_deepen=True to prevent infinite recursion)
     graph_id = save_graph(
         graph,
         ga_image_id=ga_image_id,
         graph_type="deepened",
         source="deepen",
         version=f"depth_{max_depth}",
+        skip_deepen=True,
     )
 
     stats = {

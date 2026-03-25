@@ -429,7 +429,7 @@ def save_reading_simulation(result, narrative_text, ga_image_id=None, graph_id=N
 
 
 def save_graph(graph, ga_image_id, graph_type="vision", source="gemini_vision",
-               version=None, yaml_path=None):
+               version=None, yaml_path=None, skip_deepen=False):
     """Persist a graph to DB and trigger async reader simulation.
 
     This is the SINGLE entry point for graph persistence. Every time a graph
@@ -443,6 +443,7 @@ def save_graph(graph, ga_image_id, graph_type="vision", source="gemini_vision",
         source: origin of graph ('gemini_vision', 'channel_analyzer', 'advisor')
         version: optional version string
         yaml_path: optional path to also save YAML file
+        skip_deepen: when True, skip auto-deepen in post-save (prevents recursion)
 
     Returns:
         graph_id: ID of the inserted row
@@ -476,7 +477,7 @@ def save_graph(graph, ga_image_id, graph_type="vision", source="gemini_vision",
             f.write(graph_yaml)
 
     # ── Async post-save listener ──
-    def _post_save_async(graph_dict, gimg_id, gid):
+    def _post_save_async(graph_dict, gimg_id, gid, _skip_deepen=False):
         """Background thread: run reader sim + graph health after every graph save."""
         import logging
         log = logging.getLogger("db.post_save")
@@ -571,10 +572,34 @@ def save_graph(graph, ga_image_id, graph_type="vision", source="gemini_vision",
         except Exception as e:
             log.warning(f"Abstract fill failed for graph {gid}: {e}")
 
+        # ── 5. Auto-deepen if narratives are weak ──
+        try:
+            if not _skip_deepen and sim_s1:
+                narr_details = sim_s1.get("narrative_details", [])
+                weak = [n for n in narr_details if n.get("status") == "missed" or
+                        (n.get("received", 0) < 0.5 and n.get("status") == "reached")]
+                has_spaces_with_bbox = any(
+                    n.get("node_type") == "space" and n.get("bbox")
+                    for n in graph_dict.get("nodes", [])
+                )
+                if weak and has_spaces_with_bbox:
+                    from deepen import deepen
+                    # Resolve GA image path for deepen
+                    _deepen_img_path = None
+                    db6 = get_db()
+                    _row = db6.execute("SELECT filename FROM ga_images WHERE id = ?", (gimg_id,)).fetchone()
+                    db6.close()
+                    if _row:
+                        _deepen_img_path = os.path.join(os.path.dirname(__file__), "ga_library", _row[0])
+                    deepen(gimg_id, max_depth=1, image_path=_deepen_img_path)
+                    log.info(f"Auto-deepened GA {gimg_id}: {len(weak)} weak narratives")
+        except Exception as e:
+            log.warning(f"Auto-deepen failed for GA {gimg_id}: {e}")
+
     # Fire and forget — non-blocking
     t = threading.Thread(
         target=_post_save_async,
-        args=(graph, ga_image_id, graph_id),
+        args=(graph, ga_image_id, graph_id, skip_deepen),
         daemon=True,
     )
     t.start()
