@@ -19,7 +19,7 @@ from db import get_db, init_db, create_participant, get_participant_by_token
 from db import get_next_image, save_test, get_test, get_stats
 from db import get_all_tests, get_image_count, get_all_images, add_ga_image
 from db import get_image_by_id, get_tests_for_image, get_landing_stats, get_example_ga
-from db import get_referral_count, get_top_referrers
+from db import get_referral_count, get_top_referrers, save_analysis_lead
 from scoring import score_test, classify_speed_accuracy
 from analytics import (
     compute_aggregate_stats,
@@ -248,6 +248,17 @@ def terms(request: Request):
         "lang": lang,
         "og_title": "Conditions d'utilisation — GLANCE",
         "og_description": "Conditions d'utilisation de la plateforme GLANCE par SciSense.",
+    })
+
+
+@app.get("/pricing", response_class=HTMLResponse)
+def pricing(request: Request):
+    lang = _lang(request)
+    return templates.TemplateResponse("pricing.html", {
+        "request": request,
+        "lang": lang,
+        "og_title": "Offres GLANCE — SciSense",
+        "og_description": "Du test gratuit à l'audit complet — choisissez votre niveau d'analyse GLANCE.",
     })
 
 
