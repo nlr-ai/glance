@@ -1063,6 +1063,17 @@ function renderToolResult(tool, data) {
     </div>
     {% endif %}
 
+    <!-- Stored Abstract (from DB — backfilled from sidecars/graphs) -->
+    {% if image.abstract %}
+    <details class="gd-abstract" style="cursor:pointer;">
+        <summary class="gd-abstract-title" style="list-style:none;">
+            <span>Abstract</span>
+            <span style="font-size:0.75rem;color:var(--gd-text-dim);margin-left:auto;">&#9660;</span>
+        </summary>
+        <div class="gd-abstract-text" style="margin-top:0.5rem;white-space:pre-line;">{{ image.abstract }}</div>
+    </details>
+    {% endif %}
+
     <!-- Email gate wrapper for user_upload GAs -->
     {% if is_locked %}
     <div class="gd-gate-wrapper">

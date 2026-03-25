@@ -64,7 +64,8 @@ CREATE TABLE IF NOT EXISTS ga_images (
     reddit_post_id TEXT,
     image_hash TEXT,
     designers TEXT,
-    public INTEGER DEFAULT 1
+    public INTEGER DEFAULT 1,
+    abstract TEXT
 );
 
 CREATE TABLE IF NOT EXISTS ga_graphs (
@@ -326,6 +327,10 @@ def init_db():
     _migrate_add_columns(conn, "ga_graphs", [
         ("overlay_path", "TEXT"),
     ])
+    # Migrate: add abstract column to ga_images
+    _migrate_add_columns(conn, "ga_images", [
+        ("abstract", "TEXT"),
+    ])
     # Migrate: ensure auth_tokens table exists (for existing DBs)
     conn.execute("""
         CREATE TABLE IF NOT EXISTS auth_tokens (
@@ -535,6 +540,36 @@ def save_graph(graph, ga_image_id, graph_type="vision", source="gemini_vision",
                     log.info(f"Overlay rendered for graph {gid}: {overlay_path}")
         except Exception as e:
             log.warning(f"Overlay render failed for graph {gid}: {e}")
+
+        # ── 4. Fill abstract from graph narratives (if empty) ──
+        try:
+            db5 = get_db()
+            existing_abstract = db5.execute(
+                "SELECT abstract FROM ga_images WHERE id = ?", (gimg_id,)
+            ).fetchone()
+            if existing_abstract and not existing_abstract[0]:
+                # Extract narrative node names + syntheses from graph
+                nodes = graph_dict.get("nodes", [])
+                narratives = [n for n in nodes if n.get("node_type") == "narrative"]
+                if narratives:
+                    parts = []
+                    for n in narratives:
+                        name = n.get("name", "")
+                        synthesis = n.get("synthesis", "")
+                        if synthesis:
+                            parts.append(f"- {name}: {synthesis}" if name else f"- {synthesis}")
+                        elif name:
+                            parts.append(f"- {name}")
+                    if parts:
+                        abstract_text = "Narratives:\n" + "\n".join(parts)
+                        db5.execute(
+                            "UPDATE ga_images SET abstract = ? WHERE id = ?",
+                            (abstract_text, gimg_id))
+                        db5.commit()
+                        log.info(f"Abstract filled from graph narratives for GA {gimg_id}")
+            db5.close()
+        except Exception as e:
+            log.warning(f"Abstract fill failed for graph {gid}: {e}")
 
     # Fire and forget — non-blocking
     t = threading.Thread(

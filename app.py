@@ -1858,6 +1858,20 @@ async def analyze_submit(request: Request, file: UploadFile = File(...), public:
         db.commit()
         ga_id = db.execute("SELECT last_insert_rowid()").fetchone()[0]
         ga_slug = slug
+
+        # Build and store abstract from analysis metadata
+        abstract_parts = []
+        if title:
+            abstract_parts.append(f"Title: {title}")
+        if main_finding:
+            abstract_parts.append(f"Finding: {main_finding}")
+        if executive_summary:
+            abstract_parts.append(f"Summary: {executive_summary}")
+        if abstract_parts:
+            abstract_text = "\n".join(abstract_parts)
+            db.execute("UPDATE ga_images SET abstract = ? WHERE id = ?", (abstract_text, ga_id))
+            db.commit()
+
         db.close()
     except Exception as e:
         logger.error(f"DB insert failed: {e}")
