@@ -73,5 +73,26 @@
         "BNT162b2",
         "NEJM"
     ],
-    "ocr_word_count": 39
+    "ocr_word_count": 38,
+    "raw_ocr_text": "COVID-19 Vaccine Efficacy by Subgroup (Polack et al., 2020)\n16-55 years\n95.6\n>55 years\n93.7\nSevere disease\n88.9\nAsymptomatic\n75\n20\n40\n80\n100\n% efficacy\nPolack, F. P et al. (2020). Safety and Efficacy of BNT162b2. NEJM.",
+    "raw_ocr_lines": [
+        "COVID-19 Vaccine Efficacy by Subgroup (Polack et al., 2020)",
+        "16-55 years",
+        "95.6",
+        ">55 years",
+        "93.7",
+        "Severe disease",
+        "88.9",
+        "Asymptomatic",
+        "75",
+        "20",
+        "40",
+        "80",
+        "100",
+        "% efficacy",
+        "Polack, F. P et al. (2020). Safety and Efficacy of BNT162b2. NEJM."
+    ],
+    "ocr_languages": [
+        "en"
+    ]
 }

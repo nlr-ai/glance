@@ -53,5 +53,25 @@
         "+40%",
         "40%"
     ],
-    "ocr_word_count": 22
+    "ocr_word_count": 22,
+    "raw_ocr_text": "Oregon Health Insurance Experiment\nPie (control)\nPhysical health\n(0%)\n5%\nFinancial strain\n(-25%)\nEmergency visits\n+40%)\n25%\n40%\n30%\nDepression screening\n(+30%)",
+    "raw_ocr_lines": [
+        "Oregon Health Insurance Experiment",
+        "Pie (control)",
+        "Physical health",
+        "(0%)",
+        "5%",
+        "Financial strain",
+        "(-25%)",
+        "Emergency visits",
+        "+40%)",
+        "25%",
+        "40%",
+        "30%",
+        "Depression screening",
+        "(+30%)"
+    ],
+    "ocr_languages": [
+        "en"
+    ]
 }

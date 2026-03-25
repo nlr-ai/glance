@@ -60,5 +60,18 @@
         "for",
         "depression"
     ],
-    "ocr_word_count": 27
+    "ocr_word_count": 27,
+    "raw_ocr_text": "CBT vs Medications for Depression\nPie chart (control)\nCombined therapy (0.82)\nCBT (0.71)\nSSRIs (0.53)\nPlacebo (0.16)\nCuijpers, P et al. (2020). Meta-analysis of CBT for depression.",
+    "raw_ocr_lines": [
+        "CBT vs Medications for Depression",
+        "Pie chart (control)",
+        "Combined therapy (0.82)",
+        "CBT (0.71)",
+        "SSRIs (0.53)",
+        "Placebo (0.16)",
+        "Cuijpers, P et al. (2020). Meta-analysis of CBT for depression."
+    ],
+    "ocr_languages": [
+        "en"
+    ]
 }

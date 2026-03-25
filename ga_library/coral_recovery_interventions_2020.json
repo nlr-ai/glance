@@ -75,5 +75,28 @@
         "Reef",
         "Reports"
     ],
-    "ocr_word_count": 41
+    "ocr_word_count": 38,
+    "raw_ocr_text": "Coral Reef Recovery Interventions\nCover Increase (%)\nCoral gardening\n25\nMarine protected areas\n15\nPollution control\nNo intervention\n~5\n~5\n10\n15\n20\n25\n% cover change\nCompiled from Bostrëm-Einarsson et al. (2020) & UNEP Coral Reef Reports.",
+    "raw_ocr_lines": [
+        "Coral Reef Recovery Interventions",
+        "Cover Increase (%)",
+        "Coral gardening",
+        "25",
+        "Marine protected areas",
+        "15",
+        "Pollution control",
+        "No intervention",
+        "~5",
+        "~5",
+        "10",
+        "15",
+        "20",
+        "25",
+        "% cover change",
+        "Compiled from Bostrëm-Einarsson et al. (2020) & UNEP Coral Reef Reports."
+    ],
+    "ocr_languages": [
+        "fr",
+        "en"
+    ]
 }

@@ -63,5 +63,18 @@
         "volume",
         "PNAS"
     ],
-    "ocr_word_count": 29
+    "ocr_word_count": 29,
+    "raw_ocr_text": "Exercise and Hippocampal Volume Change\nPie chart (control)\nAerobic exercise (+2)\nWalking (+0.5)\nStretching (-1.4)\nControl (-1.5)\nErickson, K. I. et al. (2011). Exercise training increases hippocampal volume. PNAS.",
+    "raw_ocr_lines": [
+        "Exercise and Hippocampal Volume Change",
+        "Pie chart (control)",
+        "Aerobic exercise (+2)",
+        "Walking (+0.5)",
+        "Stretching (-1.4)",
+        "Control (-1.5)",
+        "Erickson, K. I. et al. (2011). Exercise training increases hippocampal volume. PNAS."
+    ],
+    "ocr_languages": [
+        "en"
+    ]
 }

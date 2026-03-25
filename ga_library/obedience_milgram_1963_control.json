@@ -58,5 +58,18 @@
         "Obedience",
         "JASP"
     ],
-    "ocr_word_count": 25
+    "ocr_word_count": 25,
+    "raw_ocr_text": "Obedience to Authority\nPie chart (control)\nBaseline (65)\nRemote feedback (40)\nTouch proximity (30)\nExperimenter absent (20)\nMilgram; S. (1963). Behavioral Study of Obedience. JASP",
+    "raw_ocr_lines": [
+        "Obedience to Authority",
+        "Pie chart (control)",
+        "Baseline (65)",
+        "Remote feedback (40)",
+        "Touch proximity (30)",
+        "Experimenter absent (20)",
+        "Milgram; S. (1963). Behavioral Study of Obedience. JASP"
+    ],
+    "ocr_languages": [
+        "en"
+    ]
 }

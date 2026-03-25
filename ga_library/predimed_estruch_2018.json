@@ -82,5 +82,27 @@
         "Diet",
         "NEJM"
     ],
-    "ocr_word_count": 48
+    "ocr_word_count": 44,
+    "raw_ocr_text": "Mediterranean Diet and Cardiovascular Risk\nPREDIMED (Estruch et al., 2018)\nMed + EVOO\n31\nMed\n+ Nuts\n28\nLow-fat diet\nControl diet\n10\n15\n20\n25\n30\n% CV risk reduction\nEstruch, R. et al. (2018). Primary Prevention of CVD with Mediterranean Diet. NEJM.",
+    "raw_ocr_lines": [
+        "Mediterranean Diet and Cardiovascular Risk",
+        "PREDIMED (Estruch et al., 2018)",
+        "Med + EVOO",
+        "31",
+        "Med",
+        "+ Nuts",
+        "28",
+        "Low-fat diet",
+        "Control diet",
+        "10",
+        "15",
+        "20",
+        "25",
+        "30",
+        "% CV risk reduction",
+        "Estruch, R. et al. (2018). Primary Prevention of CVD with Mediterranean Diet. NEJM."
+    ],
+    "ocr_languages": [
+        "en"
+    ]
 }

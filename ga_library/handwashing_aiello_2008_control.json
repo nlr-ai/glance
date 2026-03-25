@@ -67,5 +67,18 @@
         "disease",
         "AJPH"
     ],
-    "ocr_word_count": 33
+    "ocr_word_count": 34,
+    "raw_ocr_text": "Handwashing and Respiratory Infections\nPie chart (control)\nSoap and water (24)\nHand sanitizer (21)\nEducation only (10)\nControl (0)\nAiello; A. E. et al. (2008) . Effect of hand hygiene on infectious disease. AJPH.",
+    "raw_ocr_lines": [
+        "Handwashing and Respiratory Infections",
+        "Pie chart (control)",
+        "Soap and water (24)",
+        "Hand sanitizer (21)",
+        "Education only (10)",
+        "Control (0)",
+        "Aiello; A. E. et al. (2008) . Effect of hand hygiene on infectious disease. AJPH."
+    ],
+    "ocr_languages": [
+        "en"
+    ]
 }

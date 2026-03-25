@@ -65,5 +65,19 @@
         "&",
         "Evolution"
     ],
-    "ocr_word_count": 31
+    "ocr_word_count": 31,
+    "raw_ocr_text": "Pollinator Decline Drivers\nPie chart (control)\nHabitat loss (45)\nPesticides (25)\nClimate change (15)\nInvasive species (10)\nPotts, S. G. et al. (2010). Global pollinator declines. Trends in Ecology & Evolution.",
+    "raw_ocr_lines": [
+        "Pollinator Decline Drivers",
+        "Pie chart (control)",
+        "Habitat loss (45)",
+        "Pesticides (25)",
+        "Climate change (15)",
+        "Invasive species (10)",
+        "Potts, S. G. et al. (2010). Global pollinator declines. Trends in Ecology & Evolution."
+    ],
+    "ocr_languages": [
+        "fr",
+        "en"
+    ]
 }

@@ -68,5 +68,29 @@
         "v16.0",
         "2023"
     ],
-    "ocr_word_count": 34
+    "ocr_word_count": 32,
+    "raw_ocr_text": "Renewable Energy LCOE Comparison (Lazard, 2023)\nNuclear\n141\nGas combined\n45\nWind onshore\n29\nSolar utility\n24\n20\n40\n80\n100\n120\n140\n$IMWh\nLazard's Levelized Cost of Energy Analysis; v16.0 (2023).",
+    "raw_ocr_lines": [
+        "Renewable Energy LCOE Comparison (Lazard, 2023)",
+        "Nuclear",
+        "141",
+        "Gas combined",
+        "45",
+        "Wind onshore",
+        "29",
+        "Solar utility",
+        "24",
+        "20",
+        "40",
+        "80",
+        "100",
+        "120",
+        "140",
+        "$IMWh",
+        "Lazard's Levelized Cost of Energy Analysis; v16.0 (2023)."
+    ],
+    "ocr_languages": [
+        "fr",
+        "en"
+    ]
 }

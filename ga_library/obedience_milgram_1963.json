@@ -67,5 +67,28 @@
         "Obedience",
         "JASP"
     ],
-    "ocr_word_count": 34
+    "ocr_word_count": 32,
+    "raw_ocr_text": "Obedience to Authority\nMilgram Experiment (1963)\nBaseline\n65\nRemote feedback\n40\nTouch proximity\n30\nExperimenter absent\n20\n10\n20\n30\n40\n50\n% obedience\nMilgram; S. (1963). Behavioral Study of Obedience. JASP",
+    "raw_ocr_lines": [
+        "Obedience to Authority",
+        "Milgram Experiment (1963)",
+        "Baseline",
+        "65",
+        "Remote feedback",
+        "40",
+        "Touch proximity",
+        "30",
+        "Experimenter absent",
+        "20",
+        "10",
+        "20",
+        "30",
+        "40",
+        "50",
+        "% obedience",
+        "Milgram; S. (1963). Behavioral Study of Obedience. JASP"
+    ],
+    "ocr_languages": [
+        "en"
+    ]
 }

@@ -73,5 +73,26 @@
         "Emotion",
         "ANYAS"
     ],
-    "ocr_word_count": 39
+    "ocr_word_count": 37,
+    "raw_ocr_text": "Sleep Stages and Memory Consolidation (Walker; 2009)\nFull night sleep\n94\nNap\n85\nFragmented sleep\n72\nSleep deprived\n60\n20\n40\n80\n% retention\nWalker; M. P (2009). The Role of Sleep in Cognition and Emotion. ANYAS.",
+    "raw_ocr_lines": [
+        "Sleep Stages and Memory Consolidation (Walker; 2009)",
+        "Full night sleep",
+        "94",
+        "Nap",
+        "85",
+        "Fragmented sleep",
+        "72",
+        "Sleep deprived",
+        "60",
+        "20",
+        "40",
+        "80",
+        "% retention",
+        "Walker; M. P (2009). The Role of Sleep in Cognition and Emotion. ANYAS."
+    ],
+    "ocr_languages": [
+        "fr",
+        "en"
+    ]
 }

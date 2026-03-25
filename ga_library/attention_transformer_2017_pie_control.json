@@ -74,5 +74,25 @@
         "NeurIPS",
         "2017"
     ],
-    "ocr_word_count": 41
+    "ocr_word_count": 40,
+    "raw_ocr_text": "Machine Translation\nBLEU Score Distribution (WMT 2014 EN-DE)\nPie chart encoding\narea-based\nperceptually misleading for close values\n23.3%\n26.9%\nTransformer (Big): 28.4 BLEU\nTransformer (Base): 27.3 BLEU\nConvS2S: 25.2 BLEU\nGNMT+RL: 24.6 BLEU\n23.9%\n25.9%\nSource: Vaswani etal, MeurIPs 2017",
+    "raw_ocr_lines": [
+        "Machine Translation",
+        "BLEU Score Distribution (WMT 2014 EN-DE)",
+        "Pie chart encoding",
+        "area-based",
+        "perceptually misleading for close values",
+        "23.3%",
+        "26.9%",
+        "Transformer (Big): 28.4 BLEU",
+        "Transformer (Base): 27.3 BLEU",
+        "ConvS2S: 25.2 BLEU",
+        "GNMT+RL: 24.6 BLEU",
+        "23.9%",
+        "25.9%",
+        "Source: Vaswani etal, MeurIPs 2017"
+    ],
+    "ocr_languages": [
+        "en"
+    ]
 }

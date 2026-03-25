@@ -65,5 +65,18 @@
         "BNT162b2",
         "NEJM"
     ],
-    "ocr_word_count": 31
+    "ocr_word_count": 31,
+    "raw_ocr_text": "COVID-19 Vaccine Efficacy by Subgroup\nPie chart (control)\n16-55 years (95.6)\n>55 years (93.7)\nSevere disease (88.9)\nAsymptomatic (75)\nPolack, F. P et al. (2020). Safety and Efficacy of BNTI62b2. NEJM.",
+    "raw_ocr_lines": [
+        "COVID-19 Vaccine Efficacy by Subgroup",
+        "Pie chart (control)",
+        "16-55 years (95.6)",
+        ">55 years (93.7)",
+        "Severe disease (88.9)",
+        "Asymptomatic (75)",
+        "Polack, F. P et al. (2020). Safety and Efficacy of BNTI62b2. NEJM."
+    ],
+    "ocr_languages": [
+        "en"
+    ]
 }

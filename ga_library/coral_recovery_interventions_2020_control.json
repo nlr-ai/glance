@@ -65,5 +65,19 @@
         "Reef",
         "Reports"
     ],
-    "ocr_word_count": 31
+    "ocr_word_count": 31,
+    "raw_ocr_text": "Coral Reef Recovery Interventions\nPie chart (control)\nCoral gardening (+25)\nMarine protected areas (+15)\nPollution control (+8)\nNo intervention (-5)\nCompiled from Bostrëm-Einarsson et al. (2020) & UNEP Coral Reef Reports.",
+    "raw_ocr_lines": [
+        "Coral Reef Recovery Interventions",
+        "Pie chart (control)",
+        "Coral gardening (+25)",
+        "Marine protected areas (+15)",
+        "Pollution control (+8)",
+        "No intervention (-5)",
+        "Compiled from Bostrëm-Einarsson et al. (2020) & UNEP Coral Reef Reports."
+    ],
+    "ocr_languages": [
+        "fr",
+        "en"
+    ]
 }

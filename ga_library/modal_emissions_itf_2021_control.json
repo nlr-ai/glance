@@ -62,5 +62,21 @@
         "Paris",
         "Agreement"
     ],
-    "ocr_word_count": 28
+    "ocr_word_count": 28,
+    "raw_ocr_text": "CO2 Emissions per Passenger-km by Transport Mode\nPie chart (control)\nCar (170)\nBus (65)\nTrain (14)\nBicycle (0)\nInternational Transport Forum (2021). Transport COz\nthe Paris Agreement.\nand",
+    "raw_ocr_lines": [
+        "CO2 Emissions per Passenger-km by Transport Mode",
+        "Pie chart (control)",
+        "Car (170)",
+        "Bus (65)",
+        "Train (14)",
+        "Bicycle (0)",
+        "International Transport Forum (2021). Transport COz",
+        "the Paris Agreement.",
+        "and"
+    ],
+    "ocr_languages": [
+        "fr",
+        "en"
+    ]
 }

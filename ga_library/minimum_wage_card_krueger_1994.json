@@ -77,5 +77,22 @@
         "Employment",
         "AER"
     ],
-    "ocr_word_count": 44
+    "ocr_word_count": 36,
+    "raw_ocr_text": "Minimum Wage and Employment\nCard & Krueger (1994)\nNJ fast food\n13\nNJ full-service\nPA full-service\nPA fast food -2.2\n10\n12\n% employment change\nCard, D. & Krueger; A. (1994). Minimum Wages and Employment. AER",
+    "raw_ocr_lines": [
+        "Minimum Wage and Employment",
+        "Card & Krueger (1994)",
+        "NJ fast food",
+        "13",
+        "NJ full-service",
+        "PA full-service",
+        "PA fast food -2.2",
+        "10",
+        "12",
+        "% employment change",
+        "Card, D. & Krueger; A. (1994). Minimum Wages and Employment. AER"
+    ],
+    "ocr_languages": [
+        "en"
+    ]
 }

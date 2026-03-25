@@ -77,5 +77,38 @@
         "NeurIPS",
         "2017"
     ],
-    "ocr_word_count": 44
+    "ocr_word_count": 40,
+    "raw_ocr_text": "Machine Translation\nWMT 2014 EN  DE\nVaswani et al.,\nAttention Is All You Need\" (2017)\n30\n29\n28.4\n28\n27.3\n27\n26\n25.2\n25\n24.6\n24\n23\n22\nGNMT+RL\nConvS2S\nTransformer\nTransformer\n(Google)\n(Gehring)\n(Base)\nSource:\nVaswa(Big)\nal, Neurips 2017",
+    "raw_ocr_lines": [
+        "Machine Translation",
+        "WMT 2014 EN  DE",
+        "Vaswani et al.,",
+        "Attention Is All You Need\" (2017)",
+        "30",
+        "29",
+        "28.4",
+        "28",
+        "27.3",
+        "27",
+        "26",
+        "25.2",
+        "25",
+        "24.6",
+        "24",
+        "23",
+        "22",
+        "GNMT+RL",
+        "ConvS2S",
+        "Transformer",
+        "Transformer",
+        "(Google)",
+        "(Gehring)",
+        "(Base)",
+        "Source:",
+        "Vaswa(Big)",
+        "al, Neurips 2017"
+    ],
+    "ocr_languages": [
+        "en"
+    ]
 }

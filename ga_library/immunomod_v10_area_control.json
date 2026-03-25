@@ -64,5 +64,25 @@
         "Children",
         "2026"
     ],
-    "ocr_word_count": 32
+    "ocr_word_count": 31,
+    "raw_ocr_text": "Immunomodulateurs\nNiveau de preuve clinique\nEncodage par aire (cercles proportionnels)\nMV13O\nCRL1505\nPMBL\nRCT\nPreclinical\nOM-85\n5 RCTs\n18 RCTs\nArea encoding Stevens 8-0 7\nperceptual compressturce: Inchauspe MDPI Children\n7026",
+    "raw_ocr_lines": [
+        "Immunomodulateurs",
+        "Niveau de preuve clinique",
+        "Encodage par aire (cercles proportionnels)",
+        "MV13O",
+        "CRL1505",
+        "PMBL",
+        "RCT",
+        "Preclinical",
+        "OM-85",
+        "5 RCTs",
+        "18 RCTs",
+        "Area encoding Stevens 8-0 7",
+        "perceptual compressturce: Inchauspe MDPI Children",
+        "7026"
+    ],
+    "ocr_languages": [
+        "fr"
+    ]
 }

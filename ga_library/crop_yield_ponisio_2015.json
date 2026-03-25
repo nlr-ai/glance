@@ -79,5 +79,24 @@
         "Soc",
         "B"
     ],
-    "ocr_word_count": 45
+    "ocr_word_count": 41,
+    "raw_ocr_text": "Crop Yield by Farming Method\nMeta-analysis (Ponisio et al., 2015)\nPrecision farming\nConservation\nIntegrated\n~8\nOrganic\n19\n=20\n~15\n10\n% yield gap vs conventional\nPonisio; L. C. et al. (2015). Diversification practices reduce the yield gap. Proc. R. Soc. B.",
+    "raw_ocr_lines": [
+        "Crop Yield by Farming Method",
+        "Meta-analysis (Ponisio et al., 2015)",
+        "Precision farming",
+        "Conservation",
+        "Integrated",
+        "~8",
+        "Organic",
+        "19",
+        "=20",
+        "~15",
+        "10",
+        "% yield gap vs conventional",
+        "Ponisio; L. C. et al. (2015). Diversification practices reduce the yield gap. Proc. R. Soc. B."
+    ],
+    "ocr_languages": [
+        "en"
+    ]
 }

@@ -70,5 +70,28 @@
         "Cohen's",
         "d"
     ],
-    "ocr_word_count": 38
+    "ocr_word_count": 35,
+    "raw_ocr_text": "Visible Learning Meta-Analysis (Hattie, 2009)\nEducational Interventions by Effect Size\nFeedback\nd = 0.73\nDirect instruction\n0.59\nPeer tutoring\nd = 0.55\nHomework\nd = 0.29\n0.2\n0.4\n0.6\n0.8\n1.0\nEffect size (Cohen's d)",
+    "raw_ocr_lines": [
+        "Visible Learning Meta-Analysis (Hattie, 2009)",
+        "Educational Interventions by Effect Size",
+        "Feedback",
+        "d = 0.73",
+        "Direct instruction",
+        "0.59",
+        "Peer tutoring",
+        "d = 0.55",
+        "Homework",
+        "d = 0.29",
+        "0.2",
+        "0.4",
+        "0.6",
+        "0.8",
+        "1.0",
+        "Effect size (Cohen's d)"
+    ],
+    "ocr_languages": [
+        "fr",
+        "en"
+    ]
 }

@@ -65,5 +65,31 @@
         "benchmarks",
         "2023"
     ],
-    "ocr_word_count": 31
+    "ocr_word_count": 30,
+    "raw_ocr_text": "Battery Technologies\nEnergy Density Comparison (2023)\nSolid-state\n400\nLithium-ion\n250\nSodium-ion\n160\nLead-acid\n40\n50\n100\n150\n200\n250\n300\n350\n400\nWh/kg\nCompiled from DOE & industry benchmarks (2023).",
+    "raw_ocr_lines": [
+        "Battery Technologies",
+        "Energy Density Comparison (2023)",
+        "Solid-state",
+        "400",
+        "Lithium-ion",
+        "250",
+        "Sodium-ion",
+        "160",
+        "Lead-acid",
+        "40",
+        "50",
+        "100",
+        "150",
+        "200",
+        "250",
+        "300",
+        "350",
+        "400",
+        "Wh/kg",
+        "Compiled from DOE & industry benchmarks (2023)."
+    ],
+    "ocr_languages": [
+        "en"
+    ]
 }

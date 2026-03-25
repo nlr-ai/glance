@@ -65,5 +65,27 @@
         "%",
         "change"
     ],
-    "ocr_word_count": 33
+    "ocr_word_count": 32,
+    "raw_ocr_text": "Oregon Health Insurance Experiment\nMedicaid Coverage vs No Coverage\n4 Health Outcomes\nPhysical health\n0%\nFinancial strain\n25%\nDepression screening\n+30%\nEmergency visits\n+40%\n~40\n~20\n20\n40\nEffect size (% change)",
+    "raw_ocr_lines": [
+        "Oregon Health Insurance Experiment",
+        "Medicaid Coverage vs No Coverage",
+        "4 Health Outcomes",
+        "Physical health",
+        "0%",
+        "Financial strain",
+        "25%",
+        "Depression screening",
+        "+30%",
+        "Emergency visits",
+        "+40%",
+        "~40",
+        "~20",
+        "20",
+        "40",
+        "Effect size (% change)"
+    ],
+    "ocr_languages": [
+        "en"
+    ]
 }

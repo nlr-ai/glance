@@ -101,5 +101,30 @@
         "moduler",
         "l'immunité"
     ],
-    "ocr_word_count": 68
+    "ocr_word_count": 25,
+    "raw_ocr_text": "Patholo gical\nProtected\nVural RTIs\nTn2 bias\nRe-suscept.\nClinical evidence\n7emo\n18 RCTs\nWhe\nezing\nAisgma\n5 RCTs\nRCI\nPreclin.\nOM-85[\nPMBL\nMV130\nCRL1505\nMvgut",
+    "raw_ocr_lines": [
+        "Patholo gical",
+        "Protected",
+        "Vural RTIs",
+        "Tn2 bias",
+        "Re-suscept.",
+        "Clinical evidence",
+        "7emo",
+        "18 RCTs",
+        "Whe",
+        "ezing",
+        "Aisgma",
+        "5 RCTs",
+        "RCI",
+        "Preclin.",
+        "OM-85[",
+        "PMBL",
+        "MV130",
+        "CRL1505",
+        "Mvgut"
+    ],
+    "ocr_languages": [
+        "en"
+    ]
 }

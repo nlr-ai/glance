@@ -57,5 +57,25 @@
         "GT",
         "38%"
     ],
-    "ocr_word_count": 26
+    "ocr_word_count": 26,
+    "raw_ocr_text": "Project Drawdown\nPie chart (control)\nElectric vehicles\n(10.8 GT)\nSolar farms\n6%\n(36.9 GT)\nReduced food waste\n(70.5 GT)\n20%\n38%\n35%\nPlant-rich diets\n(65.0 GT)",
+    "raw_ocr_lines": [
+        "Project Drawdown",
+        "Pie chart (control)",
+        "Electric vehicles",
+        "(10.8 GT)",
+        "Solar farms",
+        "6%",
+        "(36.9 GT)",
+        "Reduced food waste",
+        "(70.5 GT)",
+        "20%",
+        "38%",
+        "35%",
+        "Plant-rich diets",
+        "(65.0 GT)"
+    ],
+    "ocr_languages": [
+        "fr"
+    ]
 }

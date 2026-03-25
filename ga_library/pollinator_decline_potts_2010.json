@@ -76,5 +76,28 @@
         "&",
         "Evolution"
     ],
-    "ocr_word_count": 42
+    "ocr_word_count": 41,
+    "raw_ocr_text": "Pollinator Decline Drivers\nRelative Impact (Potts et al., 2010)\nHabitat loss\n45\nPesticides\n25\nClimate change\n15\nInvasive species\n10\n10\n20\n30\n40\n% relative impact\nPotts, S. G. et al. (2010). Global pollinator declines. Trends in Ecology & Evolution.",
+    "raw_ocr_lines": [
+        "Pollinator Decline Drivers",
+        "Relative Impact (Potts et al., 2010)",
+        "Habitat loss",
+        "45",
+        "Pesticides",
+        "25",
+        "Climate change",
+        "15",
+        "Invasive species",
+        "10",
+        "10",
+        "20",
+        "30",
+        "40",
+        "% relative impact",
+        "Potts, S. G. et al. (2010). Global pollinator declines. Trends in Ecology & Evolution."
+    ],
+    "ocr_languages": [
+        "fr",
+        "en"
+    ]
 }

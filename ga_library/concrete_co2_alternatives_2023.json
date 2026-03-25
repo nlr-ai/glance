@@ -75,5 +75,29 @@
         "science",
         "literature"
     ],
-    "ocr_word_count": 41
+    "ocr_word_count": 38,
+    "raw_ocr_text": "Concrete Alternatives\nCO2 Reduction vs Portland Cement (2023)\nGeopolymer\n80\nLC3\n40\nFly ash blend\n25\nStandard Portland\n10\n20\n30\n40\n50\n70\n80\n% CO2 reduction\nCompiled from IEA Cement Technology Roadmap & materials science literature.",
+    "raw_ocr_lines": [
+        "Concrete Alternatives",
+        "CO2 Reduction vs Portland Cement (2023)",
+        "Geopolymer",
+        "80",
+        "LC3",
+        "40",
+        "Fly ash blend",
+        "25",
+        "Standard Portland",
+        "10",
+        "20",
+        "30",
+        "40",
+        "50",
+        "70",
+        "80",
+        "% CO2 reduction",
+        "Compiled from IEA Cement Technology Roadmap & materials science literature."
+    ],
+    "ocr_languages": [
+        "en"
+    ]
 }

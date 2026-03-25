@@ -74,5 +74,32 @@
         "gigatons",
         "2020–2050"
     ],
-    "ocr_word_count": 42
+    "ocr_word_count": 41,
+    "raw_ocr_text": "Project Drawdown (Hawken, 2017)\nTop Climate Solutions by CO2 Reduction Potential\nReduced food waste\n70.5 GT\nPlant-rich diets\n65.0 GT\nSolar farms\n36.9 GT\nElectric vehicles\n10.8 GT\n10\n20\n30\n40\n50\n60\n70\n80\n90\nCO2 reduction (gigatons; 2020-2050)",
+    "raw_ocr_lines": [
+        "Project Drawdown (Hawken, 2017)",
+        "Top Climate Solutions by CO2 Reduction Potential",
+        "Reduced food waste",
+        "70.5 GT",
+        "Plant-rich diets",
+        "65.0 GT",
+        "Solar farms",
+        "36.9 GT",
+        "Electric vehicles",
+        "10.8 GT",
+        "10",
+        "20",
+        "30",
+        "40",
+        "50",
+        "60",
+        "70",
+        "80",
+        "90",
+        "CO2 reduction (gigatons; 2020-2050)"
+    ],
+    "ocr_languages": [
+        "fr",
+        "en"
+    ]
 }

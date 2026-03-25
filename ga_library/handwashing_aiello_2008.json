@@ -78,5 +78,26 @@
         "disease",
         "AJPH"
     ],
-    "ocr_word_count": 44
+    "ocr_word_count": 41,
+    "raw_ocr_text": "Handwashing and Respiratory Infections\nMeta-analysis (Aiello et al., 2008)\nSoap and water\n24\nHand sanitizer\n21\nEducation only\n10\nControl\n10\n15\n20\n25\n% risk reduction\nAiello, A. E. et al. (2008). Effect of hand hygiene on infectious disease. AJPH.",
+    "raw_ocr_lines": [
+        "Handwashing and Respiratory Infections",
+        "Meta-analysis (Aiello et al., 2008)",
+        "Soap and water",
+        "24",
+        "Hand sanitizer",
+        "21",
+        "Education only",
+        "10",
+        "Control",
+        "10",
+        "15",
+        "20",
+        "25",
+        "% risk reduction",
+        "Aiello, A. E. et al. (2008). Effect of hand hygiene on infectious disease. AJPH."
+    ],
+    "ocr_languages": [
+        "en"
+    ]
 }

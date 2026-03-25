@@ -69,5 +69,20 @@
         "Diet",
         "NEJM"
     ],
-    "ocr_word_count": 35
+    "ocr_word_count": 35,
+    "raw_ocr_text": "Mediterranean Diet and Cardiovascular Risk\nPie chart (control)\nMed\nEVOO (31)\nMed\n+ Nuts (28)\nLow-fat diet (6)\nControl diet (0)\nEstruch; R. et al. (2018) . Primary Prevention of CVD with Mediterranean Diet. NEJM.",
+    "raw_ocr_lines": [
+        "Mediterranean Diet and Cardiovascular Risk",
+        "Pie chart (control)",
+        "Med",
+        "EVOO (31)",
+        "Med",
+        "+ Nuts (28)",
+        "Low-fat diet (6)",
+        "Control diet (0)",
+        "Estruch; R. et al. (2018) . Primary Prevention of CVD with Mediterranean Diet. NEJM."
+    ],
+    "ocr_languages": [
+        "en"
+    ]
 }

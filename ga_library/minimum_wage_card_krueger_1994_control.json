@@ -65,5 +65,22 @@
         "Employment",
         "AER"
     ],
-    "ocr_word_count": 32
+    "ocr_word_count": 31,
+    "raw_ocr_text": "Minimum Wage and Employment\nPie chart (control)\nNJ fast food (+13)\nNJ full-service (+3)\nPA full-service (-1)\nPA fast food (-2.2)\nCard, D.\nKrueger; A. (1994).\nMinimum Wages\nEmployment. AER.\nand",
+    "raw_ocr_lines": [
+        "Minimum Wage and Employment",
+        "Pie chart (control)",
+        "NJ fast food (+13)",
+        "NJ full-service (+3)",
+        "PA full-service (-1)",
+        "PA fast food (-2.2)",
+        "Card, D.",
+        "Krueger; A. (1994).",
+        "Minimum Wages",
+        "Employment. AER.",
+        "and"
+    ],
+    "ocr_languages": [
+        "en"
+    ]
 }

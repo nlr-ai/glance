@@ -60,5 +60,18 @@
         "science",
         "literature"
     ],
-    "ocr_word_count": 26
+    "ocr_word_count": 26,
+    "raw_ocr_text": "Concrete Alternatives\nPie chart (control)\nGeopolymer (80)\nLC3 (40)\nFly ash blend (25)\nStandard Portland (0)\nCompiled from IEA Cement Technology Roadmap & materials science literature.",
+    "raw_ocr_lines": [
+        "Concrete Alternatives",
+        "Pie chart (control)",
+        "Geopolymer (80)",
+        "LC3 (40)",
+        "Fly ash blend (25)",
+        "Standard Portland (0)",
+        "Compiled from IEA Cement Technology Roadmap & materials science literature."
+    ],
+    "ocr_languages": [
+        "en"
+    ]
 }

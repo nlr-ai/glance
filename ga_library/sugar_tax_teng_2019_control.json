@@ -62,5 +62,18 @@
         "taxes",
         "BMJ"
     ],
-    "ocr_word_count": 28
+    "ocr_word_count": 29,
+    "raw_ocr_text": "Sugar Tax Effects on Consumption\nPie chart (control)\nPhiladelphia (38)\nBerkeley (21)\nUK (10)\nMexico (7.6)\nTeng, A. M. et al. (2019). Impact of sugar-sweetened beverage taxes. BMJ .",
+    "raw_ocr_lines": [
+        "Sugar Tax Effects on Consumption",
+        "Pie chart (control)",
+        "Philadelphia (38)",
+        "Berkeley (21)",
+        "UK (10)",
+        "Mexico (7.6)",
+        "Teng, A. M. et al. (2019). Impact of sugar-sweetened beverage taxes. BMJ ."
+    ],
+    "ocr_languages": [
+        "en"
+    ]
 }

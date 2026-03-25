@@ -67,5 +67,19 @@
         "Soc",
         "B"
     ],
-    "ocr_word_count": 33
+    "ocr_word_count": 32,
+    "raw_ocr_text": "Crop Yield by Farming Method\nPie chart (control)\nPrecision farming (+3)\nConservation (-5)\nIntegrated (-8)\nOrganic (-19)\nPonisio; L. C. et al. (2015). Diversification practices reduce the yield gap.\nProc. R. Soc.",
+    "raw_ocr_lines": [
+        "Crop Yield by Farming Method",
+        "Pie chart (control)",
+        "Precision farming (+3)",
+        "Conservation (-5)",
+        "Integrated (-8)",
+        "Organic (-19)",
+        "Ponisio; L. C. et al. (2015). Diversification practices reduce the yield gap.",
+        "Proc. R. Soc."
+    ],
+    "ocr_languages": [
+        "en"
+    ]
 }
