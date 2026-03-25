@@ -636,11 +636,11 @@ def get_next_image(participant_id):
     if seen_ids:
         placeholders = ",".join("?" * len(seen_ids))
         row = db.execute(
-            f"SELECT * FROM ga_images WHERE id NOT IN ({placeholders}) ORDER BY RANDOM() LIMIT 1",
+            f"SELECT * FROM ga_images WHERE id NOT IN ({placeholders}) AND domain != 'user_upload' ORDER BY RANDOM() LIMIT 1",
             seen_ids,
         ).fetchone()
     else:
-        row = db.execute("SELECT * FROM ga_images ORDER BY RANDOM() LIMIT 1").fetchone()
+        row = db.execute("SELECT * FROM ga_images WHERE domain != 'user_upload' ORDER BY RANDOM() LIMIT 1").fetchone()
 
     db.close()
     return dict(row) if row else None
@@ -917,8 +917,8 @@ def get_landing_stats() -> dict:
 
     total_participants = db.execute("SELECT COUNT(*) as c FROM participants").fetchone()["c"]
     total_tests = db.execute("SELECT COUNT(*) as c FROM tests").fetchone()["c"]
-    total_gas = db.execute("SELECT COUNT(*) as c FROM ga_images").fetchone()["c"]
-    total_domains = db.execute("SELECT COUNT(DISTINCT domain) as c FROM ga_images").fetchone()["c"]
+    total_gas = db.execute("SELECT COUNT(*) as c FROM ga_images WHERE domain != 'user_upload'").fetchone()["c"]
+    total_domains = db.execute("SELECT COUNT(DISTINCT domain) as c FROM ga_images WHERE domain != 'user_upload'").fetchone()["c"]
 
     avg_row = db.execute("SELECT AVG(glance_score) as avg_g FROM tests WHERE glance_score IS NOT NULL").fetchone()
     avg_glance = round(avg_row["avg_g"], 4) if avg_row["avg_g"] is not None else None
@@ -929,7 +929,7 @@ def get_landing_stats() -> dict:
                   COUNT(t.id) as n_tests
            FROM ga_images g
            JOIN tests t ON t.ga_image_id = g.id
-           WHERE t.glance_score IS NOT NULL
+           WHERE t.glance_score IS NOT NULL AND g.domain != 'user_upload'
            GROUP BY g.id
            ORDER BY avg_glance DESC
            LIMIT 5"""
@@ -937,7 +937,7 @@ def get_landing_stats() -> dict:
     top_gas = [dict(r) for r in top_rows]
 
     domain_rows = db.execute(
-        "SELECT domain, COUNT(*) as n_gas FROM ga_images GROUP BY domain ORDER BY n_gas DESC"
+        "SELECT domain, COUNT(*) as n_gas FROM ga_images WHERE domain != 'user_upload' GROUP BY domain ORDER BY n_gas DESC"
     ).fetchall()
     domain_counts = {r["domain"]: r["n_gas"] for r in domain_rows}
 
