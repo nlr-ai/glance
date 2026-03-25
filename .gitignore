@@ -14,3 +14,7 @@ SciSense_Visual_Truth.pdf
 SciSense_Visual_Validation.pdf
 *.m4a
 data/*.m4a
+docs/MONETIZATION.md
+config/notebooklm_system_prompt.md
+data/transcript_*.md
+data/visual_channel_catalog.md

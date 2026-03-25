@@ -6,7 +6,7 @@ import urllib.error
 import os
 import sys
 
-API_KEY = "K2jwd2gW9mXfev4BRZFj3zeC-Yb_PfSQIlvwFaCDDw2VN-LY-a-T3aZaovvt5xIyS0iuLOigN9hpb9of140ljg"
+API_KEY = os.environ.get("IDEOGRAM_API_KEY", "")
 API_URL = "https://api.ideogram.ai/generate"
 
 LEURRES_DIR = os.path.dirname(os.path.abspath(__file__))

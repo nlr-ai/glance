@@ -84,7 +84,7 @@ GLANCE does not just measure -- it improves.
 |--------|-------|---------------|
 | GA V1 -> reco "area->length" -> GA V2 -> Delta_S9b > +20% | Upgrade path produces predicted improvement | Recommendations are actionable |
 | Immunomod V10(VEC) vs V10(area control) | Delta_S9b > 0.30 | Our design beats the standard |
-| Client GA before/after audit | S9b increases after corrections | The EUR 99 product has measurable ROI |
+| Client GA before/after audit | S9b increases after corrections | The audit product has measurable ROI |
 | Multi-domain: med + tech + climate | Recommendations work everywhere | Not a niche tool |
 
 **What this proves:** GLANCE does not just measure -- it improves.
