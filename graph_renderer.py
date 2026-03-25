@@ -542,7 +542,7 @@ def render_overlay_svg(graph, sim_result, width, height):
     parts.append('  </g>')
 
     # ── Layer group: Scanpath (default OFF) ──
-    parts.append('  <g class="layer-scanpath" style="display:none;">')
+    parts.append('  <g class="layer-scanpath">')
 
     if data["scanpath"]:
         # Polyline connecting visited nodes
