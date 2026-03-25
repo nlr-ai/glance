@@ -125,14 +125,20 @@ def _build_intent_from_diagnosis(turn_data):
                 f"Un lecteur qui scanne rapidement ne peut pas distinguer les catégories sur l'axe {cat}. "
                 f"Quel mapping {cat}→catégorie différencierait les types d'éléments sans dépendre des autres canaux ?")
 
-    # Low-effectiveness channels
+    # Low-effectiveness channels — inject Gemini's own diagnosis (issues field)
     for ch in turn_data.get("low_channels", []):
         eff = ch.get("effectiveness", 0)
         channel = ch.get("channel", "")
-        prompts.append(
-            f"Le canal '{channel}' a une effectiveness de {eff:.1f}. "
-            f"L'information encodée par ce canal n'atteint pas le lecteur efficacement. "
-            f"Quelle modification concrète le ferait passer au-dessus de 0.7 ?")
+        issue = ch.get("issues", "").strip()
+        if issue:
+            prompts.append(
+                f"Le canal '{channel}' a une effectiveness de {eff:.1f}. "
+                f"Diagnostic : {issue} "
+                f"Quelle modification concrète le ferait passer au-dessus de 0.7 ?")
+        else:
+            prompts.append(
+                f"Le canal '{channel}' a une effectiveness de {eff:.1f} — sous le seuil fonctionnel. "
+                f"Quelle modification concrète le ferait passer au-dessus de 0.7 ?")
 
     # Archetype-specific — dynamic problem description
     archetype = turn_data.get("archetype", "")
@@ -142,26 +148,26 @@ def _build_intent_from_diagnosis(turn_data):
     if archetype == "fantome":
         n_nodes = turn_data.get("node_count", 0)
         prompts.append(
-            f"Le GA a {n_nodes} éléments mais aucun ne domine visuellement (Fantôme). "
+            f"Le GA a {n_nodes} éléments mais aucun ne domine visuellement (visuel 'Fantôme'). "
             f"Le lecteur voit une image pendant 5 secondes et repart sans rien retenir. "
             f"Quel élément unique devrait dominer pour ancrer le message ?")
     elif archetype == "encyclopedie":
         word_count = turn_data.get("word_count", 0)
         n_nodes = turn_data.get("node_count", 0)
         prompts.append(
-            f"Le GA contient {word_count} mots et {n_nodes} éléments sans hiérarchie (Encyclopédie). "
+            f"Le GA contient {word_count} mots et {n_nodes} éléments sans hiérarchie (visuel 'Encyclopédie'). "
             f"Le lecteur reçoit trop d'information en parallèle et ne sait pas par où commencer. "
             f"Quels mots portent de l'information qui n'est pas déjà encodée visuellement ?")
     elif archetype == "desequilibre":
         prompts.append(
-            f"Un élément écrase tous les autres visuellement (Déséquilibré). "
+            f"Un élément écrase tous les autres visuellement (visuel 'Déséquilibré'). "
             f"Le lecteur ne voit que cet élément et rate le reste du message. "
             f"Comment redistribuer l'espace pour que le poids visuel reflète l'importance scientifique ?")
     elif archetype == "embelli":
         s9b = turn_data.get("s9b", 0)
         if s9b < 0.7:
             prompts.append(
-                f"S9b={s9b:.2f} — le lecteur perçoit une hiérarchie mais elle n'est pas assez forte (Embelli). "
+                f"S9b={s9b:.2f} — le lecteur perçoit une hiérarchie mais elle n'est pas assez forte (visuel 'Embelli'). "
                 f"'{top_node}' devrait être vu en premier mais il est en compétition avec d'autres éléments. "
                 f"Quel est LE message principal et comment le rendre impossible à rater en 3 secondes ?")
 
