@@ -76,6 +76,42 @@ CREATE TABLE IF NOT EXISTS ga_graphs (
     FOREIGN KEY (ga_image_id) REFERENCES ga_images(id)
 );
 
+CREATE TABLE IF NOT EXISTS improvement_runs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ga_image_id INTEGER,
+    turn INTEGER NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    archetype TEXT,
+    archetype_confidence REAL,
+    s9b REAL,
+    s10 REAL,
+    composite_score REAL,
+    word_count INTEGER,
+    channels_used INTEGER,
+    avg_effectiveness REAL,
+    anti_pattern_count INTEGER,
+    hierarchy_clear INTEGER,
+    delta REAL,
+    intent TEXT,
+    changes_made INTEGER,
+    graph_id INTEGER,
+    node_count INTEGER,
+    link_count INTEGER,
+    resolved_nodes INTEGER,
+    high_energy_nodes INTEGER,
+    avg_node_weight REAL,
+    avg_node_energy REAL,
+    dominant_encoding TEXT,
+    color_count INTEGER,
+    executive_summary TEXT,
+    fragile_count INTEGER,
+    incongruent_count INTEGER,
+    inverse_count INTEGER,
+    missing_category_count INTEGER,
+    FOREIGN KEY (ga_image_id) REFERENCES ga_images(id),
+    FOREIGN KEY (graph_id) REFERENCES ga_graphs(id)
+);
+
 CREATE TABLE IF NOT EXISTS analysis_leads (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
