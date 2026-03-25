@@ -1345,3 +1345,223 @@ def get_participant_percentile(participant_id: int) -> int:
     percentile = (n_below / (total - 1)) * 100.0
 
     return round(percentile)
+
+
+# ── Participant Rankings ────────────────────────────────────────────
+
+
+def get_participant_ranking_comprehension(min_tests: int = 3) -> list[dict]:
+    """Rank participants by average GLANCE composite score (comprehension).
+
+    Only includes participants with at least `min_tests` completed tests,
+    to avoid single-test flukes inflating the ranking.
+
+    For each qualifying participant, computes:
+    - avg_glance: average GLANCE composite score across all their tests
+    - n_tests: total tests completed
+    - best_score: highest single-test GLANCE score
+    - streak: consecutive tests (ordered by created_at) with score >= 0.70
+    - profile: anonymized descriptor from clinical_domain + data_literacy
+    - percentile: "Top X%" among all qualifying participants
+
+    Returns:
+        List of dicts sorted by avg_glance descending.
+    """
+    from db import get_db
+
+    db = get_db()
+
+    # Get all tests with participant profile data, ordered by participant + time
+    rows = db.execute(
+        """SELECT t.participant_id, t.glance_score, t.created_at,
+                  t.q1_time_ms, t.q2_time_ms, t.q3_time_ms,
+                  t.exposure_actual_ms,
+                  p.clinical_domain, p.data_literacy, p.experience_years,
+                  g.domain as ga_domain
+           FROM tests t
+           JOIN participants p ON t.participant_id = p.id
+           JOIN ga_images g ON t.ga_image_id = g.id
+           ORDER BY t.participant_id, t.created_at ASC"""
+    ).fetchall()
+    db.close()
+
+    if not rows:
+        return []
+
+    # Group by participant
+    participants = {}
+    for r in rows:
+        pid = r["participant_id"]
+        if pid not in participants:
+            participants[pid] = {
+                "participant_id": pid,
+                "clinical_domain": r["clinical_domain"],
+                "data_literacy": r["data_literacy"],
+                "experience_years": r["experience_years"],
+                "scores": [],
+                "domains": set(),
+                "total_time_ms": 0,
+            }
+        score = float(r["glance_score"] or 0.0)
+        participants[pid]["scores"].append(score)
+        participants[pid]["domains"].add(r["ga_domain"])
+        # Accumulate response time
+        rt = (r["q1_time_ms"] or 0) + (r["q2_time_ms"] or 0) + (r["q3_time_ms"] or 0)
+        if r["exposure_actual_ms"]:
+            rt += r["exposure_actual_ms"]
+        participants[pid]["total_time_ms"] += rt
+
+    # Filter by min_tests and compute metrics
+    glance_threshold = get_constant("glance_pass_threshold", 0.70)
+    result = []
+    for pid, p in participants.items():
+        n = len(p["scores"])
+        if n < min_tests:
+            continue
+
+        avg_glance = sum(p["scores"]) / n
+        best_score = max(p["scores"])
+
+        # Compute current streak: consecutive scores >= threshold from the end
+        streak = 0
+        for s in reversed(p["scores"]):
+            if s >= glance_threshold:
+                streak += 1
+            else:
+                break
+
+        # Build anonymized profile descriptor
+        profile = _build_profile_descriptor(
+            p["clinical_domain"], p["data_literacy"], p["experience_years"]
+        )
+
+        result.append({
+            "participant_id": pid,
+            "profile": profile,
+            "avg_glance": round(avg_glance, 4),
+            "n_tests": n,
+            "best_score": round(best_score, 4),
+            "streak": streak,
+            "domains_covered": len(p["domains"]),
+            "total_time_s": round(p["total_time_ms"] / 1000, 1),
+        })
+
+    # Sort by avg_glance descending
+    result.sort(key=lambda x: x["avg_glance"], reverse=True)
+
+    # Compute percentile for each participant
+    total = len(result)
+    for i, entry in enumerate(result):
+        if total <= 1:
+            entry["top_pct"] = 1
+        else:
+            entry["top_pct"] = max(1, round((i / total) * 100))
+
+    return result
+
+
+def get_participant_ranking_contribution() -> list[dict]:
+    """Rank participants by number of tests completed (contribution).
+
+    For each participant, computes:
+    - n_tests: total tests completed
+    - avg_glance: average GLANCE composite score
+    - domains_covered: number of distinct GA domains tested
+    - total_time_s: estimated total time from RT sums
+    - profile: anonymized descriptor
+
+    Returns:
+        List of dicts sorted by n_tests descending.
+    """
+    from db import get_db
+
+    db = get_db()
+
+    rows = db.execute(
+        """SELECT t.participant_id, t.glance_score,
+                  t.q1_time_ms, t.q2_time_ms, t.q3_time_ms,
+                  t.exposure_actual_ms,
+                  p.clinical_domain, p.data_literacy, p.experience_years,
+                  g.domain as ga_domain
+           FROM tests t
+           JOIN participants p ON t.participant_id = p.id
+           JOIN ga_images g ON t.ga_image_id = g.id
+           ORDER BY t.participant_id"""
+    ).fetchall()
+    db.close()
+
+    if not rows:
+        return []
+
+    # Group by participant
+    participants = {}
+    for r in rows:
+        pid = r["participant_id"]
+        if pid not in participants:
+            participants[pid] = {
+                "participant_id": pid,
+                "clinical_domain": r["clinical_domain"],
+                "data_literacy": r["data_literacy"],
+                "experience_years": r["experience_years"],
+                "scores": [],
+                "domains": set(),
+                "total_time_ms": 0,
+            }
+        participants[pid]["scores"].append(float(r["glance_score"] or 0.0))
+        participants[pid]["domains"].add(r["ga_domain"])
+        rt = (r["q1_time_ms"] or 0) + (r["q2_time_ms"] or 0) + (r["q3_time_ms"] or 0)
+        if r["exposure_actual_ms"]:
+            rt += r["exposure_actual_ms"]
+        participants[pid]["total_time_ms"] += rt
+
+    result = []
+    for pid, p in participants.items():
+        n = len(p["scores"])
+        avg_glance = sum(p["scores"]) / n if n > 0 else 0.0
+        profile = _build_profile_descriptor(
+            p["clinical_domain"], p["data_literacy"], p["experience_years"]
+        )
+        result.append({
+            "participant_id": pid,
+            "profile": profile,
+            "n_tests": n,
+            "avg_glance": round(avg_glance, 4),
+            "domains_covered": len(p["domains"]),
+            "total_time_s": round(p["total_time_ms"] / 1000, 1),
+        })
+
+    # Sort by n_tests descending, then avg_glance as tiebreaker
+    result.sort(key=lambda x: (x["n_tests"], x["avg_glance"]), reverse=True)
+
+    # Compute percentile for each participant
+    total = len(result)
+    for i, entry in enumerate(result):
+        if total <= 1:
+            entry["top_pct"] = 1
+        else:
+            entry["top_pct"] = max(1, round((i / total) * 100))
+
+    return result
+
+
+def _build_profile_descriptor(clinical_domain: str, data_literacy: str,
+                                experience_years: str) -> str:
+    """Build an anonymized profile descriptor from participant fields.
+
+    Example output: "Pediatre . 5-15 ans . Profil Tech/Data"
+    """
+    parts = []
+
+    # Clinical domain — use as-is (already a readable label from onboard form)
+    if clinical_domain:
+        parts.append(clinical_domain)
+
+    # Experience years
+    if experience_years:
+        parts.append(experience_years)
+
+    # Data literacy
+    if data_literacy:
+        parts.append(data_literacy)
+
+    return " · ".join(parts) if parts else "Profil anonyme"
