@@ -59,7 +59,8 @@ CREATE TABLE IF NOT EXISTS ga_images (
     redesign_image_id INTEGER,
     ingestion_source TEXT DEFAULT 'manual',
     reddit_post_id TEXT,
-    image_hash TEXT
+    image_hash TEXT,
+    designer TEXT
 );
 
 CREATE TABLE IF NOT EXISTS ga_graphs (
@@ -293,6 +294,10 @@ def init_db():
         ("prompts_json", "TEXT"),
         ("plan_vs_actual_json", "TEXT"),
     ])
+    # Migrate: add designer column to ga_images (first person to /analyze)
+    _migrate_add_columns(conn, "ga_images", [
+        ("designer", "TEXT"),
+    ])
     # Generate slugs for any images that don't have one yet
     _backfill_slugs(conn)
     conn.close()
@@ -524,6 +529,23 @@ def get_reading_sims(ga_image_id=None, graph_id=None):
         rows = []
     db.close()
     return [dict(r) for r in rows]
+
+
+def claim_designer(ga_image_id, designer_id):
+    """Set the designer of a GA if not already claimed.
+
+    The first person to /analyze a GA becomes its designer.
+    Returns True if claimed, False if already taken.
+    """
+    db = get_db()
+    row = db.execute("SELECT designer FROM ga_images WHERE id = ?", (ga_image_id,)).fetchone()
+    if row and row[0]:
+        db.close()
+        return False  # already claimed
+    db.execute("UPDATE ga_images SET designer = ? WHERE id = ?", (designer_id, ga_image_id))
+    db.commit()
+    db.close()
+    return True
 
 
 def get_image_by_slug(slug: str):
