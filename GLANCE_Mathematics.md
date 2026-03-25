@@ -1693,5 +1693,140 @@ q1Input.addEventListener('keydown', (e) => {
 
 ---
 
+## 9i. Resolution — Recursive Depth of Structural Analysis
+
+### Definition
+
+Resolution measures how deeply a GA has been decomposed into structural components. It is not a qualitative mode — it is a quantitative, measurable property of the graph.
+
+**Core idea:** Each space node in the graph can be re-analyzed as a sub-image (cropped to its bbox). This produces a child graph with its own spaces, things, and narratives. Those child spaces can in turn be re-analyzed. The resolution is the depth of this recursion.
+
+### Formal Definition
+
+Let `G(0)` be the root graph produced by a single analysis call on the full image:
+
+```
+G(0) = analyze(image)      →  N(0) nodes,  S(0) spaces,  L(0) links
+```
+
+For each space `s ∈ S(d)` at depth `d`, we can produce a child graph by cropping the image to `s.bbox` and re-analyzing:
+
+```
+G(d+1, s) = analyze(crop(image, s.bbox))
+```
+
+The total graph at resolution `R` is the union of all graphs up to depth `R`:
+
+```
+G(R) = G(0) ∪ ⋃_{d=0}^{R-1} ⋃_{s ∈ S(d)} G(d+1, s)
+```
+
+### Resolution Metric
+
+```
+R = max depth of nested space analysis
+
+Quantitatively:
+  R = log₂(|N_total| / |N(0)|)
+
+Where:
+  |N_total| = total nodes across all depths
+  |N(0)|    = nodes from the root analysis (~10)
+```
+
+A GA analyzed once has `R ≈ 0`. After one level of deepening: `R ≈ log₂(50/10) ≈ 2.3`. The metric is continuous and comparable across GAs.
+
+### Scaling Laws
+
+| Depth d | Calls | Nodes (est.) | Links (est.) | Gemini cost |
+|---------|-------|-------------|-------------|-------------|
+| 0 | 1 | ~10 | ~30 | 1 call |
+| 1 | 1 + S(0) ≈ 5 | ~50 | ~150 | 5 calls |
+| 2 | 5 + S(1) ≈ 25 | ~250 | ~750 | 25 calls |
+| 3 | 25 + S(2) ≈ 125 | ~1250 | ~3750 | 125 calls |
+
+The number of calls grows as `Σ_{d=0}^{R} S^d` where `S` is the average number of spaces per analysis (~4). This is geometric: `O(S^R)`.
+
+**Practical limit:** R=2 is the sweet spot (25 calls, ~250 nodes). R=3 is expensive and rarely needed.
+
+### What Each Resolution Level Reveals
+
+**R=0 (Root):** The macro structure — "this GA has 3 zones, the main message is X, the evidence is in zone 2." This is what a reader gets in 5 seconds.
+
+**R=1 (Spaces deepened):** Internal structure of each zone — "inside the evidence zone, there are 4 bars, 2 labels, and an arrow connecting them." This is what a reader gets in 30 seconds of deliberate reading.
+
+**R=2 (Sub-spaces deepened):** Fine-grained detail — "the third bar has a confidence interval marker at the top, the label uses subscript notation, the arrow has a gradient from red to green." This is what a domain expert notices.
+
+### Linking Child Graphs to Parent
+
+When `G(d+1, s)` is produced for space `s`:
+
+1. **Containment link:** Every node in `G(d+1, s)` gets a link to `s` with `link_type = "containment"`, `weight = 1.0`
+2. **Resolution tag:** Every node gets `resolution_depth = d+1`
+3. **Bbox mapping:** Child node bbox coordinates are relative to `s.bbox`, transformed to absolute coordinates: `abs_x = s.bbox.x + child.bbox.x * s.bbox.w`
+4. **ID namespacing:** Child node IDs are prefixed: `thing:s3:detail_1` (child of space s3)
+
+### Resolution and Reader Simulation
+
+The reader sim at resolution R=0 simulates a 5-second glance. At R=1, the sim can model a reader who **enters** a space and scans its internal elements:
+
+```
+For each space visited at R=0:
+  If fixation_time(space) > threshold (e.g., 500ms):
+    Run sub-sim on G(1, space) with budget = fixation_time(space)
+    → reveals which internal elements are seen
+```
+
+This produces a **hierarchical scanpath**: the reader scans the macro structure (R=0), dwells on interesting zones, and within those zones, scans the details (R=1).
+
+### Resolution Density
+
+Beyond depth, we define **density** as the ratio of extracted information to visual area:
+
+```
+ρ = |N_total| / A_image
+
+Where A_image = image width × height in normalized [0,1]² space = 1
+So ρ = |N_total|
+```
+
+A GA with 10 nodes has ρ=10. After deepening to R=1: ρ=50. After R=2: ρ=250.
+
+The **information density** of the GA itself is fixed — resolution measures how much of that density we've **captured** in the graph.
+
+### Coverage at Resolution R
+
+```
+C(R) = Σ(node.bbox.area) / image.area
+
+C(0) ≈ 0.6   (root nodes cover ~60% of the image)
+C(1) ≈ 0.85  (sub-nodes fill gaps within spaces)
+C(2) ≈ 0.95  (fine-grained detail)
+```
+
+Diminishing returns: C converges toward 1.0 but never reaches it (whitespace, decorative borders, etc. don't generate nodes).
+
+### Implementation: `deepen(ga_id, max_depth=1)`
+
+```python
+def deepen(ga_id, max_depth=1):
+    """Recursively analyze spaces within a GA graph.
+
+    For each space at current depth:
+    1. Crop image to space bbox
+    2. analyze_ga_image(cropped_image, prior_graph=parent_graph)
+    3. Link child nodes to parent space
+    4. save_graph(merged_graph)  → triggers sim + health
+
+    Args:
+        ga_id: GA image ID in database
+        max_depth: how many levels to recurse (1 = one level of spaces)
+    """
+```
+
+One call to `deepen(ga_id, 1)` takes a 10-node graph and produces a ~50-node graph. The reader sim on the enriched graph reveals internal structure that was invisible at R=0.
+
+---
+
 *La beauté n'a aucune corrélation avec la compréhension.*
 *Seuls les chiffres savent si l'information a survécu au transfert.*
