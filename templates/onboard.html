@@ -32,166 +32,175 @@
 
 {% block content %}
 <div class="onboard">
-    <h1>Votre profil</h1>
-    <p>30 secondes. Aucune donnee personnelle collectee.</p>
+    <h1>{{ t('onboard_title', lang) }}</h1>
+    <p>{{ t('onboard_subtitle', lang) }}</p>
 
     <form method="post" action="/onboard">
 
         <fieldset>
-            <legend>Votre domaine</legend>
-            <p class="field-help">Votre activite principale. Pas besoin d'etre medecin — tous les profils nous interessent.</p>
+            <legend>{{ t('domain_legend', lang) }}</legend>
+            <p class="field-help">{{ t('domain_help', lang) }}</p>
             <div class="btn-group">
                 <label class="chip chip-med">
                     <input type="radio" name="clinical_domain" value="Pédiatre">
-                    <span>👶 Pediatre</span>
+                    <span>{{ t('chip_pediatre', lang) }}</span>
                 </label>
                 <label class="chip chip-med">
                     <input type="radio" name="clinical_domain" value="Médecin Généraliste">
-                    <span>🩺 Medecin generaliste</span>
+                    <span>{{ t('chip_generaliste', lang) }}</span>
                 </label>
                 <label class="chip chip-med">
                     <input type="radio" name="clinical_domain" value="Médecin spécialiste">
-                    <span>🔬 Medecin specialiste</span>
+                    <span>{{ t('chip_specialiste', lang) }}</span>
                 </label>
                 <label class="chip chip-pharma">
                     <input type="radio" name="clinical_domain" value="Pharmacien">
-                    <span>💊 Pharmacien</span>
+                    <span>{{ t('chip_pharmacien', lang) }}</span>
                 </label>
                 <label class="chip chip-med">
                     <input type="radio" name="clinical_domain" value="Infirmier">
-                    <span>🏥 Infirmier·e</span>
+                    <span>{{ t('chip_infirmier', lang) }}</span>
                 </label>
                 <label class="chip chip-research">
                     <input type="radio" name="clinical_domain" value="Chercheur Bio/Médical">
-                    <span>🧬 Chercheur bio/medical</span>
+                    <span>{{ t('chip_chercheur', lang) }}</span>
                 </label>
                 <label class="chip chip-tech">
                     <input type="radio" name="clinical_domain" value="Professionnel Tech/Data">
-                    <span>💻 Tech / Data / IA</span>
+                    <span>{{ t('chip_tech', lang) }}</span>
                 </label>
                 <label class="chip chip-student">
                     <input type="radio" name="clinical_domain" value="Étudiant">
-                    <span>🎓 Etudiant·e</span>
+                    <span>{{ t('chip_etudiant', lang) }}</span>
                 </label>
                 <label class="chip chip-public" >
                     <input type="radio" name="clinical_domain" value="Grand Public" checked>
-                    <span>🌍 Grand public</span>
+                    <span>{{ t('chip_public', lang) }}</span>
                 </label>
             </div>
         </fieldset>
 
         <fieldset>
-            <legend>Experience</legend>
-            <p class="field-help">Depuis combien de temps exercez-vous ou etudiez-vous dans votre domaine ?</p>
+            <legend>{{ t('experience_legend', lang) }}</legend>
+            <p class="field-help">{{ t('experience_help', lang) }}</p>
             <div class="btn-group">
                 <label class="chip">
                     <input type="radio" name="experience_years" value="Étudiant" checked>
-                    <span>📚 Etudiant</span>
+                    <span>{{ t('exp_student', lang) }}</span>
                 </label>
                 <label class="chip">
                     <input type="radio" name="experience_years" value="<5 ans">
-                    <span>🌱 &lt;5 ans</span>
+                    <span>{{ t('exp_lt5', lang) }}</span>
                 </label>
                 <label class="chip">
                     <input type="radio" name="experience_years" value="5-15 ans">
-                    <span>🌿 5-15 ans</span>
+                    <span>{{ t('exp_5_15', lang) }}</span>
                 </label>
                 <label class="chip">
                     <input type="radio" name="experience_years" value=">15 ans">
-                    <span>🌳 &gt;15 ans</span>
+                    <span>{{ t('exp_gt15', lang) }}</span>
                 </label>
             </div>
         </fieldset>
 
         <fieldset>
-            <legend>Rapport aux donnees</legend>
-            <p class="field-help">A quel point etes-vous a l'aise avec les graphiques, stats, et papiers scientifiques ?</p>
+            <legend>{{ t('data_legend', lang) }}</legend>
+            <p class="field-help">{{ t('data_help', lang) }}</p>
             <div class="btn-group">
                 <label class="chip chip-public">
                     <input type="radio" name="data_literacy" value="Grand public" checked>
-                    <span>👀 Je lis rarement des graphiques</span>
+                    <span>{{ t('lit_rare', lang) }}</span>
                 </label>
                 <label class="chip">
                     <input type="radio" name="data_literacy" value="Lecteur régulier">
-                    <span>📖 Je lis des papers regulierement</span>
+                    <span>{{ t('lit_regular', lang) }}</span>
                 </label>
                 <label class="chip chip-research">
                     <input type="radio" name="data_literacy" value="Auteur publié (peer-review)">
-                    <span>✍️ J'ai publie en peer-review</span>
+                    <span>{{ t('lit_author', lang) }}</span>
                 </label>
                 <label class="chip chip-tech">
                     <input type="radio" name="data_literacy" value="Profil Tech/Data">
-                    <span>📊 Je manipule des donnees quotidiennement</span>
+                    <span>{{ t('lit_data', lang) }}</span>
                 </label>
             </div>
         </fieldset>
 
         <fieldset>
-            <legend>Systeme GRADE</legend>
-            <p class="field-help">Utilisez-vous le systeme GRADE pour evaluer le niveau de preuve ? (Si vous ne savez pas ce que c'est, c'est non)</p>
+            <legend>{{ t('grade_legend', lang) }}</legend>
+            <p class="field-help">{{ t('grade_help', lang) }}</p>
             <div class="btn-group">
                 <label class="chip">
                     <input type="radio" name="grade_familiar" value="0" checked>
-                    <span>🤷 Non / je ne connais pas</span>
+                    <span>{{ t('grade_no', lang) }}</span>
                 </label>
                 <label class="chip">
                     <input type="radio" name="grade_familiar" value="1">
-                    <span>✅ Oui</span>
+                    <span>{{ t('grade_yes', lang) }}</span>
                 </label>
             </div>
         </fieldset>
 
         <fieldset>
-            <legend>Vision des couleurs</legend>
-            <p class="field-help">Environ 8% des hommes ont une anomalie de perception des couleurs. C'est important pour nos resultats.</p>
+            <legend>{{ t('vision_legend', lang) }}</legend>
+            <p class="field-help">{{ t('vision_help', lang) }}</p>
             <div class="btn-group">
                 <label class="chip">
                     <input type="radio" name="colorblind_status" value="Vision normale" checked>
-                    <span>👁️ Vision normale</span>
+                    <span>{{ t('vision_normal', lang) }}</span>
                 </label>
                 <label class="chip">
                     <input type="radio" name="colorblind_status" value="Daltonien">
-                    <span>🔴🟢 Daltonien</span>
+                    <span>{{ t('vision_colorblind', lang) }}</span>
                 </label>
                 <label class="chip">
                     <input type="radio" name="colorblind_status" value="Je ne sais pas">
-                    <span>❓ Je ne sais pas</span>
+                    <span>{{ t('vision_unknown', lang) }}</span>
                 </label>
             </div>
         </fieldset>
 
         <fieldset>
-            <legend>Mode de reponse</legend>
-            <p class="field-help">Comment preferez-vous repondre aux questions ouvertes ?</p>
+            <legend>{{ t('input_mode_legend', lang) }}</legend>
+            <p class="field-help">{{ t('input_mode_help', lang) }}</p>
             <div class="btn-group">
                 <label class="chip">
                     <input type="radio" name="input_mode" value="voice" checked>
-                    <span>🎤 Parler (Recommandé)</span>
+                    <span>{{ t('input_voice', lang) }}</span>
                 </label>
                 <label class="chip">
                     <input type="radio" name="input_mode" value="text">
-                    <span>⌨️ Taper</span>
+                    <span>{{ t('input_text', lang) }}</span>
                 </label>
             </div>
         </fieldset>
 
         <fieldset id="mic-test-section" class="hidden">
-            <legend>🔊 Test du microphone</legend>
-            <p class="field-help">Cliquez et dites quelques mots pour vérifier que le micro fonctionne.</p>
+            <legend>{{ t('mic_test_legend', lang) }}</legend>
+            <p class="field-help">{{ t('mic_test_help', lang) }}</p>
             <div id="mic-test-area">
-                <button type="button" class="btn btn-primary" id="btn-mic-test">🎤 Tester le micro</button>
+                <button type="button" class="btn btn-primary" id="btn-mic-test">{{ t('btn_mic_test', lang) }}</button>
                 <div id="mic-test-status" class="hidden">
                     <div class="voice-pulse"></div>
-                    <span>Écoute...</span>
+                    <span>{{ t('mic_listening', lang) }}</span>
                 </div>
                 <div id="mic-test-result" class="hidden">
                     <p id="mic-test-transcript" class="transcript-text"></p>
-                    <p class="mic-test-ok">✅ Micro fonctionnel</p>
+                    <p class="mic-test-ok">{{ t('mic_ok', lang) }}</p>
                 </div>
             </div>
         </fieldset>
 
-        <button type="submit" class="btn btn-primary">C'est parti</button>
+        <div class="consent-row" style="margin: 1.5rem 0 1rem; display: flex; align-items: flex-start; gap: 0.625rem;">
+            <input type="checkbox" id="consent-check" name="consent" value="1"
+                   style="margin-top: 0.25rem; accent-color: #14b8a6; width: 18px; height: 18px; flex-shrink: 0; cursor: pointer;">
+            <label for="consent-check" style="font-size: 0.875rem; color: #94a3b8; line-height: 1.5; cursor: pointer;">
+                J'accepte les <a href="/terms" target="_blank" style="color: #14b8a6; text-decoration: none;">conditions d'utilisation</a>
+                et la <a href="/privacy" target="_blank" style="color: #14b8a6; text-decoration: none;">politique de confidentialité</a>.
+            </label>
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="btn-submit">{{ t('btn_submit_onboard', lang) }}</button>
     </form>
 </div>
 
@@ -200,34 +209,37 @@
     const voiceRadio = document.querySelector('input[name="input_mode"][value="voice"]');
     const textRadio = document.querySelector('input[name="input_mode"][value="text"]');
     const micSection = document.getElementById('mic-test-section');
-    const submitBtn = document.querySelector('button[type="submit"]');
+    const submitBtn = document.getElementById('btn-submit');
+    const consentCheck = document.getElementById('consent-check');
     let micTested = false;
 
-    function updateMicRequirement() {
+    function updateSubmitState() {
+        const consentOk = consentCheck.checked;
         if (voiceRadio.checked) {
             micSection.classList.remove('hidden');
-            submitBtn.disabled = !micTested;
+            submitBtn.disabled = !micTested || !consentOk;
         } else {
             micSection.classList.add('hidden');
-            submitBtn.disabled = false;
+            submitBtn.disabled = !consentOk;
         }
     }
 
-    voiceRadio.addEventListener('change', updateMicRequirement);
-    textRadio.addEventListener('change', updateMicRequirement);
-    updateMicRequirement();
+    voiceRadio.addEventListener('change', updateSubmitState);
+    textRadio.addEventListener('change', updateSubmitState);
+    consentCheck.addEventListener('change', updateSubmitState);
+    updateSubmitState();
 
     document.getElementById('btn-mic-test').addEventListener('click', function() {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!SpeechRecognition) {
             textRadio.checked = true;
-            updateMicRequirement();
-            alert('Votre navigateur ne supporte pas la reconnaissance vocale. Mode texte activé.');
+            updateSubmitState();
+            alert('{{ t("speech_unsupported", lang) }}');
             return;
         }
 
         const rec = new SpeechRecognition();
-        rec.lang = 'fr';
+        rec.lang = '{{ lang | default("fr") }}';
         rec.interimResults = true;
         rec.maxAlternatives = 3;
 
@@ -248,7 +260,7 @@
             document.getElementById('mic-test-status').classList.add('hidden');
             document.getElementById('mic-test-result').classList.remove('hidden');
             micTested = true;
-            submitBtn.disabled = false;
+            updateSubmitState();
         };
 
         setTimeout(function() { try { rec.stop(); } catch(e) {} }, 3000);

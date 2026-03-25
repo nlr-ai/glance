@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block title %}Conditions d'utilisation — GLANCE{% endblock %}
+
+{% block head %}
+<style>
+    .legal-page {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 3rem 1.5rem 4rem;
+    }
+    .legal-page h1 {
+        font-size: var(--text-2xl, 2rem);
+        color: var(--text, #e2e8f0);
+        margin-bottom: 0.5rem;
+    }
+    .legal-page .legal-updated {
+        font-size: var(--text-sm, 0.8125rem);
+        color: var(--text-dim, #64748b);
+        margin-bottom: 2.5rem;
+    }
+    .legal-page h2 {
+        font-size: var(--text-lg, 1.25rem);
+        color: #14b8a6;
+        margin-top: 2.5rem;
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.375rem;
+        border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .legal-page p, .legal-page li {
+        font-size: var(--text-base, 0.9375rem);
+        color: var(--text-muted, #94a3b8);
+        line-height: 1.7;
+        margin-bottom: 0.75rem;
+    }
+    .legal-page ul {
+        list-style: none;
+        padding-left: 0;
+    }
+    .legal-page ul li {
+        padding-left: 1.25rem;
+        position: relative;
+    }
+    .legal-page ul li::before {
+        content: "—";
+        position: absolute;
+        left: 0;
+        color: var(--text-dim, #64748b);
+    }
+    .legal-page a {
+        color: #14b8a6;
+        text-decoration: none;
+    }
+    .legal-page a:hover {
+        text-decoration: underline;
+    }
+    .legal-page .back-link {
+        display: inline-block;
+        margin-top: 2rem;
+        font-size: var(--text-sm, 0.8125rem);
+        color: var(--text-dim, #64748b);
+    }
+    .legal-page .back-link:hover {
+        color: #14b8a6;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="legal-page">
+
+    <h1>Conditions d'utilisation</h1>
+    <p class="legal-updated">Dernière mise à jour : 25 mars 2026</p>
+
+    <h2>1. Service</h2>
+    <p>
+        GLANCE est un outil de recherche gratuit développé par SciSense SASU.
+        Il mesure la compréhension des Graphical Abstracts (GA) scientifiques
+        à travers un protocole standardisé en trois questions.
+    </p>
+
+    <h2>2. Éligibilité</h2>
+    <p>
+        GLANCE est ouvert à toute personne souhaitant y participer. Le contenu étant
+        exclusivement scientifique, aucune restriction d'âge n'est appliquée.
+    </p>
+
+    <h2>3. Utilisation</h2>
+    <p>
+        En participant, vous vous engagez à fournir des réponses honnêtes et de bonne foi.
+        Les données collectées sont utilisées exclusivement à des fins de recherche scientifique,
+        conformément à notre <a href="/privacy">politique de confidentialité</a>.
+    </p>
+
+    <h2>4. Propriété intellectuelle</h2>
+    <ul>
+        <li>La plateforme GLANCE est la propriété de SciSense SASU &copy; 2025-2026</li>
+        <li>Les images de Graphical Abstracts sont la propriété de leurs éditeurs et auteurs respectifs, utilisées dans un cadre de recherche</li>
+        <li>Le protocole de scoring GLANCE est développé par SciSense SASU</li>
+    </ul>
+
+    <h2>5. Avertissement</h2>
+    <p>
+        Les scores GLANCE sont des indicateurs de recherche. Ils ne constituent pas une évaluation
+        certifiée de compétences. GLANCE est un outil de recherche, pas un instrument d'évaluation
+        professionnelle ou académique.
+    </p>
+
+    <h2>6. Limitation de responsabilité</h2>
+    <p>
+        SciSense SASU fournit GLANCE « en l'état », sans garantie de disponibilité,
+        d'exactitude ou de continuité du service. SciSense ne saurait être tenue responsable
+        de toute interruption, erreur ou indisponibilité de la plateforme.
+    </p>
+
+    <h2>7. Droit applicable</h2>
+    <p>
+        Les présentes conditions sont régies par le droit français.
+        Tout litige sera soumis aux tribunaux compétents de Lyon.
+    </p>
+
+    <h2>8. Contact</h2>
+    <p>
+        Pour toute question relative à ces conditions, contactez-nous à
+        <a href="mailto:aurore.inchauspe@scisense.fr">aurore.inchauspe@scisense.fr</a>.
+    </p>
+
+    <a href="/" class="back-link">&larr; Retour à l'accueil</a>
+</div>
+{% endblock %}

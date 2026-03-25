@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+{% block title %}Politique de confidentialité — GLANCE{% endblock %}
+
+{% block head %}
+<style>
+    .legal-page {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 3rem 1.5rem 4rem;
+    }
+    .legal-page h1 {
+        font-size: var(--text-2xl, 2rem);
+        color: var(--text, #e2e8f0);
+        margin-bottom: 0.5rem;
+    }
+    .legal-page .legal-updated {
+        font-size: var(--text-sm, 0.8125rem);
+        color: var(--text-dim, #64748b);
+        margin-bottom: 2.5rem;
+    }
+    .legal-page h2 {
+        font-size: var(--text-lg, 1.25rem);
+        color: #14b8a6;
+        margin-top: 2.5rem;
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.375rem;
+        border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .legal-page h3 {
+        font-size: var(--text-md, 1.0625rem);
+        color: var(--text, #e2e8f0);
+        margin-top: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+    .legal-page p, .legal-page li {
+        font-size: var(--text-base, 0.9375rem);
+        color: var(--text-muted, #94a3b8);
+        line-height: 1.7;
+        margin-bottom: 0.75rem;
+    }
+    .legal-page ul {
+        list-style: none;
+        padding-left: 0;
+    }
+    .legal-page ul li {
+        padding-left: 1.25rem;
+        position: relative;
+    }
+    .legal-page ul li::before {
+        content: "—";
+        position: absolute;
+        left: 0;
+        color: var(--text-dim, #64748b);
+    }
+    .legal-page .highlight-box {
+        background: rgba(20, 184, 166, 0.08);
+        border-left: 3px solid #14b8a6;
+        padding: 1rem 1.25rem;
+        border-radius: 0 6px 6px 0;
+        margin: 1rem 0;
+    }
+    .legal-page .highlight-box p {
+        color: var(--text, #e2e8f0);
+        margin-bottom: 0;
+    }
+    .legal-page a {
+        color: #14b8a6;
+        text-decoration: none;
+    }
+    .legal-page a:hover {
+        text-decoration: underline;
+    }
+    .legal-page .back-link {
+        display: inline-block;
+        margin-top: 2rem;
+        font-size: var(--text-sm, 0.8125rem);
+        color: var(--text-dim, #64748b);
+    }
+    .legal-page .back-link:hover {
+        color: #14b8a6;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="legal-page">
+
+    <h1>Politique de confidentialité</h1>
+    <p class="legal-updated">Dernière mise à jour : 25 mars 2026</p>
+
+    <h2>1. Responsable du traitement</h2>
+    <p>
+        <strong>SciSense SASU</strong><br>
+        145 B Rue Pierre Valdo, 69005 Lyon, France<br>
+        SIRET : 94198983200014<br>
+        Contact : <a href="mailto:aurore.inchauspe@scisense.fr">aurore.inchauspe@scisense.fr</a>
+    </p>
+
+    <h2>2. Données collectées</h2>
+
+    <h3>Ce que nous collectons</h3>
+    <ul>
+        <li>Réponses anonymisées aux tests (texte libre Q1, choix Q2, choix Q3)</li>
+        <li>Temps de réaction pour chaque question</li>
+        <li>Transcriptions vocales (si le mode vocal est choisi)</li>
+        <li>Profil participant : domaine professionnel, années d'expérience, niveau de littératie en données</li>
+        <li>Cookie de session (jeton fonctionnel unique)</li>
+        <li>Informations techniques : taille d'écran, user agent du navigateur</li>
+    </ul>
+
+    <h3>Ce que nous ne collectons PAS</h3>
+    <div class="highlight-box">
+        <p>
+            Nous ne collectons ni votre nom, ni votre adresse e-mail, ni votre adresse IP (non stockée),
+            ni votre localisation géographique. Vos données sont anonymes dès la collecte.
+        </p>
+    </div>
+
+    <h2>3. Données vocales</h2>
+    <div class="highlight-box">
+        <p>
+            <strong>Aucun enregistrement audio n'est réalisé ni stocké.</strong>
+            La reconnaissance vocale utilise l'API Web Speech de votre navigateur.
+            Le traitement s'effectue localement sur votre appareil.
+            Seule la transcription textuelle est transmise et conservée — jamais le signal audio brut.
+        </p>
+    </div>
+
+    <h2>4. Finalité du traitement</h2>
+    <p>
+        Les données collectées servent exclusivement à la recherche scientifique sur la compréhension
+        des Graphical Abstracts (benchmark GLANCE). Les résultats sont publiés dans des revues
+        académiques sous forme de données agrégées et anonymisées uniquement.
+    </p>
+
+    <h2>5. Base légale</h2>
+    <ul>
+        <li><strong>Intérêt légitime</strong> (article 6.1.f RGPD) — recherche scientifique sur la communication visuelle des données</li>
+        <li><strong>Consentement</strong> (article 6.1.a RGPD) — pour l'utilisation du mode vocal et la transcription</li>
+    </ul>
+
+    <h2>6. Durée de conservation</h2>
+    <ul>
+        <li>Données anonymisées des tests : conservées indéfiniment à des fins de recherche</li>
+        <li>Cookie de session : expire après 30 jours</li>
+    </ul>
+
+    <h2>7. Cookies</h2>
+    <p>
+        GLANCE utilise un seul cookie fonctionnel : le jeton de session participant.
+        Ce cookie est strictement nécessaire au fonctionnement du service.
+    </p>
+    <div class="highlight-box">
+        <p>
+            Aucun cookie de suivi, aucun cookie publicitaire, aucun cookie d'analyse.
+        </p>
+    </div>
+
+    <h2>8. Tiers et hébergement</h2>
+    <p>
+        Aucune donnée n'est partagée avec des tiers. La plateforme est hébergée sur
+        <strong>Render.com</strong>, couvert par le EU-US Data Privacy Framework.
+    </p>
+
+    <h2>9. Vos droits (RGPD)</h2>
+    <p>
+        Conformément au Règlement Général sur la Protection des Données, vous disposez des droits suivants :
+    </p>
+    <ul>
+        <li>Droit d'accès à vos données</li>
+        <li>Droit de rectification</li>
+        <li>Droit à l'effacement</li>
+        <li>Droit à la portabilité</li>
+        <li>Droit d'opposition au traitement</li>
+        <li>Droit de retirer votre consentement à tout moment</li>
+    </ul>
+    <p>
+        Pour exercer ces droits, contactez-nous à
+        <a href="mailto:aurore.inchauspe@scisense.fr">aurore.inchauspe@scisense.fr</a>.
+        Nous y répondrons dans un délai de 30 jours.
+    </p>
+
+    <h2>10. Modifications</h2>
+    <p>
+        Cette politique peut être mise à jour. La date de dernière modification est indiquée en haut de cette page.
+        Nous vous invitons à la consulter régulièrement.
+    </p>
+
+    <a href="/" class="back-link">&larr; Retour à l'accueil</a>
+</div>
+{% endblock %}

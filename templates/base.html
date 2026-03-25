@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="{{ lang | default('fr') }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,19 +14,67 @@
     <meta property="og:description" content="{{ og_description | default('Le premier benchmark de compréhension des Graphical Abstracts scientifiques. Gratuit, 2 minutes.') }}">
     <meta property="og:url" content="{{ og_url | default(request.url) }}">
     <meta property="og:image" content="{{ og_image | default('https://glance.scisense.fr/static/og-default.png') }}">
-    <meta property="og:locale" content="fr_FR">
+    <meta property="og:locale" content="{{ 'en_US' if lang == 'en' else 'fr_FR' }}">
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{{ og_title | default('GLANCE — Testez votre oeil scientifique') }}">
     <meta name="twitter:description" content="{{ og_description | default('Benchmark de compréhension des Graphical Abstracts scientifiques.') }}">
     <meta name="twitter:image" content="{{ og_image | default('https://glance.scisense.fr/static/og-default.png') }}">
     <link rel="stylesheet" href="/static/style.css">
+    <style>
+    /* ── Language switcher ── */
+    .lang-switcher {
+        position: fixed;
+        top: 12px;
+        right: 12px;
+        z-index: 9999;
+        display: flex;
+        gap: 0;
+        border-radius: 6px;
+        overflow: hidden;
+        border: 1px solid rgba(255,255,255,0.15);
+        background: rgba(15,23,42,0.7);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        font-size: 0.7rem;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+    }
+    .lang-switcher a {
+        padding: 5px 10px;
+        color: #94a3b8;
+        text-decoration: none;
+        transition: background 0.15s, color 0.15s;
+    }
+    .lang-switcher a:hover {
+        color: #e2e8f0;
+        background: rgba(255,255,255,0.08);
+    }
+    .lang-switcher a.active {
+        background: rgba(13,148,136,0.25);
+        color: #14b8a6;
+    }
+    </style>
     {% block head %}{% endblock %}
 </head>
 <body>
+    {# Language switcher — visible on all pages except admin #}
+    {% if not hide_lang_switcher %}
+    <div class="lang-switcher">
+        <a href="?lang=fr" class="{{ 'active' if lang != 'en' else '' }}">FR</a>
+        <a href="?lang=en" class="{{ 'active' if lang == 'en' else '' }}">EN</a>
+    </div>
+    {% endif %}
     <div class="container">
         {% block content %}{% endblock %}
     </div>
+    {% block footer %}
+    <div style="text-align: center; padding: 1.5rem 1rem 2rem; font-size: 0.8125rem; color: #64748b;">
+        <a href="/privacy" style="color: #64748b; text-decoration: none;">Confidentialité</a>
+        <span style="margin: 0 0.5rem;">|</span>
+        <a href="/terms" style="color: #64748b; text-decoration: none;">Conditions d'utilisation</a>
+    </div>
+    {% endblock %}
     {% block scripts %}{% endblock %}
 </body>
 </html>

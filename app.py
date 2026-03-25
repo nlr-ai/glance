@@ -37,6 +37,8 @@ from analytics import (
     get_admin_analytics,
     compute_kpi_evolution,
     get_participant_percentile,
+    get_user_leaderboard_smartest,
+    get_user_leaderboard_active,
 )
 from config_loader import get_constant
 from cards import generate_test_card, generate_dashboard_card, generate_default_card, generate_ga_og_card
@@ -126,12 +128,96 @@ def _lang(request: Request) -> str:
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request):
     lang = _lang(request)
+    landing = get_landing_stats()
+
+    # Build domain list with labels from config
+    domain_list = []
+    for domain_key, n_gas in landing["domain_counts"].items():
+        label = CONFIG["domains"].get(domain_key, {}).get("label", domain_key)
+        domain_list.append({"key": domain_key, "label": label, "n_gas": n_gas})
+
+    # Example GA analysis for the demo section
+    example = _build_example_data()
+
     return templates.TemplateResponse("index.html", {
         "request": request,
         "lang": lang,
+        "landing": landing,
+        "domain_list": domain_list,
+        "example": example,
         "og_title": "GLANCE — Testez votre oeil scientifique en 2 minutes",
         "og_description": "47 GAs, 15 domaines. Le premier benchmark de compréhension des Graphical Abstracts. Gratuit.",
     })
+
+
+def _build_example_data() -> dict:
+    """Build example GA analysis data for the landing page demo section.
+
+    Tries to load real data from the GA with the most tests.
+    Falls back to hardcoded example values if no test data exists.
+    """
+    from scoring import score_glance_composite
+
+    fallback = {
+        "has_real_data": False,
+        "ga_filename": "immunomod_v10_wireframe.png",
+        "ga_title": "Immunomodulateurs RTIs",
+        "ga_id": None,
+        "ga_domain": "med",
+        "n_tests": 12,
+        "s9a": 0.67,
+        "s9b": 0.17,
+        "s9c": 0.0,
+        "fluency": 0.22,
+        "s2_coverage": 0.58,
+        "glance": 0.0,
+        "recommendation": "Remplacez les surfaces par des barres — vos lecteurs comprendront ~20% mieux.",
+    }
+    fallback["glance"] = round(score_glance_composite(
+        fallback["s9a"], fallback["s9b"], fallback["s9c"]
+    ), 4)
+
+    try:
+        example_ga = get_example_ga()
+    except Exception:
+        return fallback
+
+    if not example_ga or example_ga.get("n_tests", 0) == 0:
+        return fallback
+
+    ga_id = example_ga["id"]
+    detail = get_ga_detail_stats(ga_id)
+    if detail.get("n_tests", 0) == 0:
+        return fallback
+
+    s9b_val = detail.get("avg_s9b", 0)
+    s9c_val = detail.get("avg_s9c", 0)
+    glance_val = detail.get("avg_glance", 0)
+
+    if s9b_val < 0.5:
+        reco = "Le produit principal n'est pas identifie — simplifiez la hierarchie visuelle."
+    elif s9c_val < 0.3:
+        reco = "L'insight cle se perd — ajoutez un element de preuve visuel."
+    elif glance_val < 0.7:
+        reco = "Le message passe partiellement — reduisez la charge cognitive du design."
+    else:
+        reco = "Ce GA communique efficacement — bon equilibre entre clarte et densite."
+
+    return {
+        "has_real_data": True,
+        "ga_filename": example_ga.get("filename", ""),
+        "ga_title": example_ga.get("title", ""),
+        "ga_id": ga_id,
+        "ga_domain": example_ga.get("domain", "med"),
+        "n_tests": detail.get("n_tests", 0),
+        "s9a": round(detail.get("avg_s9a", 0), 2),
+        "s9b": round(detail.get("avg_s9b", 0), 2),
+        "s9c": round(detail.get("avg_s9c", 0), 2),
+        "fluency": round(detail.get("fluency_normalized", detail.get("avg_fluency", 0)), 2),
+        "s2_coverage": round(detail.get("avg_s2_coverage", 0), 2),
+        "glance": round(glance_val, 4),
+        "recommendation": reco,
+    }
 
 
 @app.get("/privacy", response_class=HTMLResponse)
@@ -731,6 +817,30 @@ def leaderboard_domain(request: Request, domain: str):
         "data": data,
         "og_title": og_title,
         "og_description": og_desc,
+    })
+
+
+# ── Player leaderboard routes ────────────────────────────────────────
+
+
+@app.get("/players", response_class=HTMLResponse)
+def players(request: Request):
+    lang = _lang(request)
+    smartest = get_user_leaderboard_smartest(min_tests=3)
+    active = get_user_leaderboard_active()
+
+    n_players = len(active)
+    n_qualified = len(smartest)
+
+    return templates.TemplateResponse("players.html", {
+        "request": request,
+        "lang": lang,
+        "smartest": smartest,
+        "active": active,
+        "n_players": n_players,
+        "n_qualified": n_qualified,
+        "og_title": "GLANCE Players — Classement des joueurs",
+        "og_description": f"{n_players} joueurs, {n_qualified} qualifiés. Les meilleurs yeux scientifiques.",
     })
 
 
