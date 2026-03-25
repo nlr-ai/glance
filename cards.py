@@ -454,19 +454,19 @@ def _score_badge_colors(score_pct: int) -> tuple[tuple, tuple]:
 
 
 def _score_verdict(score_pct: int) -> str:
-    """Return one-word French verdict for score."""
+    """Return descriptive French verdict for score."""
     if score_pct >= 90:
-        return "EXCELLENT"
+        return "LIMPIDE"
     elif score_pct >= 80:
-        return "SOLIDE"
+        return "FLUIDE"
     elif score_pct >= 70:
-        return "BON"
+        return "ACCESSIBLE"
     elif score_pct >= 60:
-        return "PASSABLE"
+        return "BRUMEUX"
     elif score_pct >= 40:
-        return "FAIBLE"
+        return "OPAQUE"
     else:
-        return "CRITIQUE"
+        return "ILLISIBLE"
 
 
 def _draw_score_badge(img: Image.Image, score_pct: int, cx: int, cy: int,
