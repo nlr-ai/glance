@@ -1410,7 +1410,8 @@ def ga_detail(request: Request, ga_id: str):
     is_user_upload = (image.get("domain") == "user_upload")
     is_locked = False
     # admin_pwd = os.environ.get("GLANCE_ADMIN_PWD", "gL4NC3")
-    # is_admin = (request.query_params.get("pwd", "") == admin_pwd)
+    admin_pwd = os.environ.get("GLANCE_ADMIN_PWD", "gL4NC3")
+    is_admin = (request.query_params.get("pwd", "") == admin_pwd)
     # if is_user_upload and not is_admin:
     #     unlock_cookie = request.cookies.get(f"glance_unlock_{ga_id}")
     #     is_locked = not bool(unlock_cookie)
@@ -1444,6 +1445,23 @@ def ga_detail(request: Request, ga_id: str):
         perceptual_warp = None
         perceptual_spin = None
 
+    # ── Graph overlay SVG ──
+    overlay_svg = None
+    try:
+        latest_graph = get_latest_graph(ga_id)
+        if latest_graph:
+            sims = get_reading_sims(graph_id=latest_graph["id"])
+            sim_s1 = next((s for s in sims if s["mode"] == "system1"), None)
+            if sim_s1:
+                from graph_renderer import render_overlay_svg
+                from reader_sim import simulate_reading
+                # Re-run sim from stored graph to get full result (DB only stores stats)
+                graph_dict = latest_graph["graph"]
+                sim_full = simulate_reading(graph_dict, total_ticks=50, mode="system1")
+                overlay_svg = render_overlay_svg(graph_dict, sim_full, 900, 600)
+    except Exception as e:
+        logger.warning(f"Overlay SVG failed for ga {ga_id}: {e}")
+
     return templates.TemplateResponse("ga_detail.html", {
         "request": request,
         "lang": lang,
@@ -1473,6 +1491,7 @@ def ga_detail(request: Request, ga_id: str):
         "share_slug": share_slug,
         "ga_id": ga_id,
         "is_admin": is_admin,
+        "overlay_svg": overlay_svg,
     })
 
 
