@@ -1267,13 +1267,303 @@ La justification des 5000ms tient pour les deux modes :
 
 ---
 
-## 9b. Visual Channel Scoring — The Explainability Layer
+## 9b. Graph Topology — The Structural Model
 
-The GLANCE score (S9b) tells you WHETHER a GA transfers comprehension. The channel scoring tells you WHY.
+### Node Types
+
+The GLANCE graph uses 3 node types to decompose a GA's information architecture:
+
+| Type | Role | Example |
+|------|------|---------|
+| `space` | Visual container — a bounded region of the GA | Background panel, sidebar, header zone |
+| `narrative` | Message — what the GA communicates | "OM-85 has strongest evidence", "4 products compared" |
+| `thing` | Visual element — carries the message, lives in a space | Bar, icon, label, arrow, illustration |
+
+### Bounding Boxes
+
+Each node has a `bbox` in normalized coordinates `[x, y, w, h]` where all values are in `[0, 1]`, extracted by Gemini Vision from the GA image. This enables position-based reasoning without pixel-level dependencies.
+
+### Auto-Linking (Containment)
+
+Nodes whose bbox center falls inside a space's bbox receive automatic containment links:
+
+```
+center(thing) = (thing.x + thing.w/2, thing.y + thing.h/2)
+inside(thing, space) = center(thing) ∈ rect(space.bbox)
+```
+
+If `inside(thing, space)`, a link `space → thing` is created automatically. This eliminates manual linking for spatial containment while preserving explicit semantic links (thing → narrative).
+
+### Transmission Chain
+
+The fundamental information path in the GLANCE graph is:
+
+```
+space → thing → narrative
+```
+
+A **thing** is the visual carrier — it lives in a **space** (visual container) and carries a **narrative** (message). The reader's eye enters a space, fixates on a thing, and through that thing, receives the narrative.
+
+A space with no things is dead. A thing with no narrative is decoration. A narrative with no thing is invisible. The graph health metric (§9c) detects all three pathologies.
+
+---
+
+## 9c. Graph Health — Structural Integrity
+
+### Overall Health Score
+
+```
+health = route_pct * 0.4 + avg_energy * 0.3 + min(avg_diversity/3, 1) * 0.3
+```
+
+Where:
+- `route_pct` = fraction of space→thing→narrative routes that exist (completeness)
+- `avg_energy` = mean energy across all nodes (vitality)
+- `avg_diversity` = mean number of distinct link types per node (connectivity richness)
+
+### Orphan Detection
+
+- **Orphan thing**: a thing not linked to any space (visually homeless — where does the reader find it?)
+- **Orphan space**: a space not linked to any thing (empty container — wastes visual real estate)
+- **Orphan narrative**: a narrative not linked to any thing (invisible message — no visual carrier)
+
+Orphans are flagged in the graph health report and surface as structured recommendations (§9e).
+
+### Route Verification
+
+For each narrative, the system verifies that at least one complete `space → thing → narrative` path exists. Missing routes indicate broken transmission chains — the message exists in the graph but has no visual path to the reader.
+
+```
+route_exists(narrative_n) = ∃ thing_t, space_s :
+    link(space_s, thing_t) ∧ link(thing_t, narrative_n)
+```
+
+```
+route_pct = Σ route_exists(n) / N_narratives
+```
+
+---
+
+## 9d. Reader Simulation Model — Attention Physics
+
+### Purpose
+
+The reader simulation models how a human eye would traverse the GA under time pressure. It produces per-node attention scores, narrative coverage, and budget pressure — enabling diagnosis of *which* information gets lost and *why*.
+
+### Two Processing Systems
+
+| System | Budget | Duration | Attention multiplier | Cognitive mode |
+|--------|--------|----------|---------------------|----------------|
+| **System 1** | 50 ticks | ~5 seconds | 1.0× | Rapid scan, pre-attentive, feed scroll |
+| **System 2** | 900 ticks | ~90 seconds | 1.5× | Deliberate inspection, focused reading |
+
+System 1 models the feed-scroll condition (the 5-second exposure of §8). System 2 models deliberate inspection — what happens when a reader stops and studies the GA. The 1.5× attention multiplier in System 2 reflects the deeper processing available under extended inspection.
+
+### Proportional Attention Allocation
+
+Within each system, the available tick budget is distributed across nodes proportionally to their weight:
+
+```
+ideal_ticks[n] = budget * weight[n] / Σ(weights)
+```
+
+Where `weight[n]` is the node's graph weight (reflecting perceptual importance, derived from encoding channel and visual prominence).
+
+### Z-Order Traversal
+
+The simulation traverses nodes in **Z-order** — position-based, top-to-bottom then left-to-right — mirroring the dominant Western reading pattern:
+
+```
+z_order(node) = node.bbox.y * 1000 + node.bbox.x
+sorted_nodes = sort(nodes, key=z_order)
+```
+
+This is a simplification of real saccadic behavior but captures the primary scanning pattern documented in eye-tracking studies on scientific figures (Holmqvist et al., 2011).
+
+### Saccade Cost
+
+Each transition between nodes costs **1 tick** (the saccade). This models the time lost during eye movements between fixation points. The total tick consumption is:
+
+```
+total_consumed = Σ fixation_ticks[n] + (N_transitions - 1) * 1
+```
+
+### Budget Pressure
+
+```
+budget_pressure = (saccades + fixation_alloc) / total_ticks
+```
+
+- `budget_pressure < 1.0` → the reader has time to spare; all nodes receive adequate attention
+- `budget_pressure = 1.0` → tight but feasible
+- `budget_pressure > 1.0` → **OVERLOADED** — the reader cannot attend to all nodes within the time budget; some information will be missed
+
+Budget pressure >1.0 in System 1 is the formal definition of "too much information for a 5-second glance."
+
+### Fixation Strength
+
+Each node receives a fixation strength that determines its effective attention:
+
+```
+fixation_strength[n] = actor_attention * node.weight * transmission_efficiency
+```
+
+Where:
+- `actor_attention` = the reader's available attention (1.0 in S1, 1.5 in S2)
+- `node.weight` = graph weight (encoding effectiveness)
+- `transmission_efficiency` = product of anti-pattern penalties along the path (see below)
+
+### Anti-Pattern Penalties on Transmission
+
+The channel analysis (§9b) identifies anti-patterns that degrade transmission. These are modeled as multiplicative penalties on `transmission_efficiency`:
+
+| Anti-pattern | Penalty | Definition |
+|-------------|---------|------------|
+| **Incongruent** | −50% (`× 0.5`) | Visual encoding contradicts the narrative (e.g., smallest bar for strongest evidence) |
+| **Fragile** | `channel_robustness = min(n_channels/3, 1.0)` | Too few redundant channels — if one fails (e.g., color for a colorblind reader), the message is lost |
+| **Inverse** | −75% (`× 0.25`) | Evidence hierarchy is visually inverted |
+| **Missing category** | −100% (`× 0.0`) | No visual encoding at all for a narrative — the message is invisible |
+
+For fragile channels: `n_channels` is the number of distinct visual channels encoding the same information. With 3+ channels (e.g., length + luminance + position), robustness is 1.0. With only 1 channel, robustness is 0.33 — a single point of failure.
+
+### Narrative Coverage
+
+The simulation propagates attention from things to narratives via thing→narrative links:
+
+```
+narrative_attention[n] = max(fixation_strength[t] for t in things_linked_to(n))
+```
+
+**Narrative coverage** is the percentage of narrative nodes that received non-zero attention:
+
+```
+narrative_coverage = |{n : narrative_attention[n] > 0}| / N_narratives
+```
+
+A narrative coverage of 60% means 40% of the GA's messages are invisible to the reader under that system's time budget. This is the most actionable diagnostic: it tells the designer exactly which messages are being lost.
+
+### Physics Validation
+
+The reader simulation model was validated against 13 known perceptual behaviors from the literature. Results (reference: `docs/reader_sim/PHYSICS_VALIDATION.md`):
+
+| Status | Count | Examples |
+|--------|-------|---------|
+| **VALID** | 9 | Z-order scanning, weight-proportional attention, saccade cost, budget pressure, S1/S2 depth difference |
+| **PARTIAL** | 2 | Peripheral vision (modeled via containment, not field-of-view), attention capture (modeled via weight, not pop-out) |
+| **NOT MODELED** | 2 | Return saccades (re-fixation on previously seen nodes), emotional salience (affective attention capture) |
+
+The 9/13 valid behaviors confirm that the simulation captures the dominant mechanisms. The 2 partial and 2 unmodeled behaviors are documented as limitations and targeted for future iterations.
+
+---
+
+## 9e. Structured Recommendations — From Diagnosis to Action
+
+### Recommendation Structure
+
+Each recommendation generated by GLANCE follows the **FACT → PROBLEM → QUESTION** pattern:
+
+```
+{
+    "source": "<diagnostic_source>",
+    "finding": "<FACT — what the simulation observed>",
+    "problem": "<PROBLEM — why this matters>",
+    "question": "<QUESTION — what the designer should consider>"
+}
+```
+
+### Diagnostic Sources
+
+| Source | Trigger | Example finding |
+|--------|---------|----------------|
+| `dead_space` | Space node with no things | "The left panel (bbox [0, 0, 0.3, 1.0]) contains no visual elements" |
+| `orphan_narrative` | Narrative with no thing link | "The message 'OM-85 has strongest evidence' has no visual carrier" |
+| `skipped_node` | Node receives 0 attention in S1 | "The methodology section (bottom-right) receives no attention in a 5-second scan" |
+| `weak_narrative` | Narrative coverage < 20% | "Only 1 of 5 narrative nodes received meaningful attention" |
+| `attention_monopoly` | One node captures >60% of total attention | "The central illustration captures 72% of attention, starving data elements" |
+| `budget_overload` | Budget pressure > 1.0 in S1 | "The GA has 14 nodes but only 50 ticks — reader cannot process all elements in 5 seconds" |
+
+### Integration with Auto-Improve Loop
+
+The recommendations feed the auto-improve loop (§9f):
+
+```
+ANALYZE → ENRICH → SIMULATE (S1 + S2) → DIAGNOSE → ADVISE → REPEAT
+```
+
+Each cycle:
+1. **ANALYZE**: Extract graph topology from the GA image (Gemini Vision → bbox + node types)
+2. **ENRICH**: Compute channel scores, detect anti-patterns, auto-link containment
+3. **SIMULATE**: Run reader simulation under both S1 (50 ticks) and S2 (900 ticks)
+4. **DIAGNOSE**: Identify dead spaces, orphans, skipped nodes, weak narratives, monopolies, overloads
+5. **ADVISE**: Generate structured recommendations (FACT → PROBLEM → QUESTION)
+6. **REPEAT**: After designer revision, re-run the loop to verify improvement
+
+### Automatic Triggers
+
+`save_graph()` auto-triggers three computations in a background thread (async, non-blocking):
+- Reader simulation (S1 + S2)
+- Graph health score
+- Overlay PNG (visual diagnostic with attention heatmap)
+
+This ensures that every graph modification immediately produces updated diagnostics without manual intervention.
+
+---
+
+## 9f. Visual Channel Analysis — Batch Processing
+
+### Scale
+
+The current ontology covers **70 visual channels** analyzed in batches of 25 (3 batches). The 70 channels span 7 categories: pre-attentive features, encoding channels, social context, typography, image-level properties, layout, and emotional resonance.
+
+### 4 Anti-Pattern Types
+
+| Type | Definition | Example |
+|------|-----------|---------|
+| `fragile` | Single-channel encoding with no redundancy | Evidence hierarchy encoded only by color — fails for 8% of male population (colorblind) |
+| `incongruent` | Visual encoding contradicts the semantic message | Strongest evidence shown with smallest bar |
+| `inverse` | Evidence hierarchy is visually reversed | Best product at bottom, worst at top |
+| `missing_category` | A narrative has no visual encoding at all | "4 products compared" but only 3 are visible |
+
+### Inter-Batch Self-Healing
+
+Between batches, the system performs a self-healing cycle:
+
+```
+Batch 1 (channels 1-25) → VALIDATE → partial ENRICH
+    ↓
+Batch 2 (channels 26-50) → VALIDATE → partial ENRICH
+    ↓
+Batch 3 (channels 51-70) → VALIDATE → final ENRICH
+```
+
+Each batch's output is validated for consistency, partially enriched (auto-fixing obvious gaps like missing containment links), and fed to the next batch. This prevents error accumulation across batches and ensures the final channel score reflects the complete analysis.
+
+---
+
+## 9g. Verdict Scale
+
+The GLANCE verdict translates the narrative coverage percentage into a human-readable label:
+
+| Verdict | Threshold | Meaning |
+|---------|-----------|---------|
+| **Limpide** | ≥ 80% | Crystal clear — the reader gets the full message |
+| **Clair** | ≥ 60% | Clear — most information transfers successfully |
+| **Ambigu** | ≥ 40% | Ambiguous — significant information is lost |
+| **Confus** | ≥ 20% | Confusing — most information fails to transfer |
+| **Obscur** | ≥ 10% | Obscure — the GA barely communicates |
+| **Incompréhensible** | < 10% | Incomprehensible — total communication failure |
+
+The verdict is computed from `narrative_coverage` (§9d), not from S9b (which requires participant data). It is the design-level prediction of how well the GA will perform under human testing.
+
+---
+
+## 9h. Visual Channel Scoring — The Explainability Layer (updated)
+
+The GLANCE score (S9b) tells you WHETHER a GA transfers comprehension. The channel scoring tells you WHY. The reader simulation (§9d) tells you WHERE attention goes. Together, they form a complete diagnostic chain.
 
 ### The Channel Ontology
 
-75 visual properties organized in 7 categories (pre-attentive, encoding, social, typography, image-level, layout, emotional). Each channel has:
+70 visual properties organized in 7 categories (pre-attentive, encoding, social, typography, image-level, layout, emotional). Each channel has:
 
 - **weight**: perceptual importance (Cleveland & McGill ranking)
 - **stability**: literature backing
