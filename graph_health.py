@@ -332,7 +332,7 @@ def check_transmission_health(graph):
         if received_energy < 0.3:
             prompt = (
                 f"L'effet '{name}' ne reçoit que {received_energy:.0%} de l'attention du lecteur. "
-                f"Le lecteur traverse le GA en {len(paths)} chemin(s) mais trop peu d'énergie arrive à ce message. "
+                f"Le visuel est parcouru en {len(paths)} chemin(s) mais trop peu d'attention arrive à ce message. "
                 f"Quels éléments visuels renforceraient la transmission vers cet effet ?")
         elif diversity < 2:
             prompt = (
