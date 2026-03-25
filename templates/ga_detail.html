@@ -157,9 +157,12 @@
                 {% set pct = (detail.avg_glance * 100) | round(0) | int %}
                 {% set circ = 251.2 %}
                 {% set offset = circ - (circ * pct / 100) %}
-                {% if pct >= 70 %}{% set gauge_color = "#10b981" %}{% set verdict = "Decodage reussi" %}
-                {% elif pct >= 50 %}{% set gauge_color = "#eab308" %}{% set verdict = "Partiellement decode" %}
-                {% else %}{% set gauge_color = "#ef4444" %}{% set verdict = "Le design n'a pas survecu au transfert" %}{% endif %}
+                {% if pct >= 90 %}{% set gauge_color = "#10b981" %}{% set verdict = "Limpide — compris instantanément" %}
+                {% elif pct >= 80 %}{% set gauge_color = "#10b981" %}{% set verdict = "Fluide — se lit sans effort" %}
+                {% elif pct >= 70 %}{% set gauge_color = "#84cc16" %}{% set verdict = "Accessible — le message passe" %}
+                {% elif pct >= 60 %}{% set gauge_color = "#eab308" %}{% set verdict = "Brumeux — on devine mais c'est flou" %}
+                {% elif pct >= 40 %}{% set gauge_color = "#f59e0b" %}{% set verdict = "Opaque — effort cognitif important" %}
+                {% else %}{% set gauge_color = "#ef4444" %}{% set verdict = "Illisible — le design ne communique pas" %}{% endif %}
                 <div class="gd-gauge-wrap">
                     <svg class="gd-gauge" width="130" height="130" viewBox="0 0 130 130">
                         <circle class="gd-gauge-ring-bg" cx="65" cy="65" r="52"/>
