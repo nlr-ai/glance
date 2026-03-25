@@ -884,6 +884,54 @@
                     spinner.style.display = 'none';
                 }
             }
+
+            // Poll for auto-improve updates (graph evolves in bg without refresh)
+            let lastGraphId = null;
+            let pollCount = 0;
+            const MAX_POLLS = 30; // 30 * 5s = 2.5 min
+            async function pollState() {
+                if (pollCount >= MAX_POLLS) return;
+                pollCount++;
+                try {
+                    const r = await fetch(`/analyze/poll/${SLUG}`);
+                    const d = await r.json();
+                    if (d.status !== 'ready') {
+                        setTimeout(pollState, 5000);
+                        return;
+                    }
+                    // New graph version available?
+                    if (d.graph_id && d.graph_id !== lastGraphId) {
+                        lastGraphId = d.graph_id;
+                        // Update overlay
+                        if (d.overlay_svg) {
+                            const wrap = document.getElementById('overlayWrap');
+                            if (wrap) wrap.innerHTML = d.overlay_svg;
+                        }
+                        // Update stats
+                        if (d.sim) {
+                            const results = document.getElementById('toolResults');
+                            const ts = new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+                            let html = `<div style="border:1px solid var(--an-border);border-radius:var(--an-radius-sm);padding:1rem;margin-bottom:0.75rem;background:var(--an-card);">`;
+                            html += `<div style="font-size:0.7rem;color:var(--an-teal);font-weight:600;text-transform:uppercase;margin-bottom:0.5rem;">Mise a jour auto — ${ts}</div>`;
+                            html += `<div style="font-size:0.85rem;color:var(--an-text);">`;
+                            html += `${d.sim.verdict} — ${Math.round((d.sim.coverage||0)*100)}% messages transmis — ${d.sim.visited}/${d.sim.total} elements`;
+                            html += `</div>`;
+                            if (d.sim.narrative_text) {
+                                html += `<details style="margin-top:0.5rem;"><summary style="cursor:pointer;font-size:0.75rem;color:var(--an-teal);">Lecture simulee</summary>`;
+                                html += `<p style="font-size:0.8rem;line-height:1.5;white-space:pre-wrap;margin-top:0.5rem;">${d.sim.narrative_text}</p></details>`;
+                            }
+                            html += '</div>';
+                            if (results) results.innerHTML = html + results.innerHTML;
+                        }
+                    }
+                    // Keep polling if bg improve may still be running
+                    if (pollCount < MAX_POLLS) setTimeout(pollState, 5000);
+                } catch(e) {
+                    if (pollCount < MAX_POLLS) setTimeout(pollState, 5000);
+                }
+            }
+            // Start polling after 3s
+            setTimeout(pollState, 3000);
             </script>
             {% else %}
             <form id="analyzeForm" action="/analyze/submit" method="post" enctype="multipart/form-data">

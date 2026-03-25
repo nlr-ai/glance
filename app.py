@@ -1735,13 +1735,65 @@ async def analyze_submit(request: Request, file: UploadFile = File(...)):
         logger.error(f"DB insert failed: {e}")
         raise HTTPException(status_code=500, detail="Erreur base de donnees")
 
-    # Persist graph in DB → triggers async reader sim S1+S2 + health
+    # Persist graph in DB → triggers async reader sim S1+S2 + health + overlay
     try:
-        save_graph(graph, ga_image_id=ga_id, graph_type="vision",
-                   source="analyze_upload", yaml_path=graph_path)
-        logger.info(f"Graph saved for GA {ga_id} — async sim launched")
+        graph_id = save_graph(graph, ga_image_id=ga_id, graph_type="vision",
+                              source="analyze_upload", yaml_path=graph_path)
+        logger.info(f"Graph saved for GA {ga_id} (graph {graph_id}) — async sim launched")
     except Exception as e:
         logger.warning(f"save_graph failed (non-blocking): {e}")
+        graph_id = None
+
+    # Launch auto-improve loop in background (channels + advise)
+    import threading
+    def _auto_improve_bg(ga_img_id, img_path, g_path):
+        """Background: run channel analysis + 1 improve turn after upload."""
+        try:
+            # Step 1: Channel analysis (enriches the graph)
+            time.sleep(5)  # wait for initial sim to complete
+            from channel_analyzer import analyze_ga_channels
+            enriched = analyze_ga_channels(img_path, g_path, prior_graph=True)
+            if enriched:
+                save_graph(enriched, ga_image_id=ga_img_id,
+                           graph_type="enriched", source="auto_post_upload")
+                logger.info(f"Auto-enriched GA {ga_img_id}")
+
+            # Step 2: One improve turn (advise based on sim + channels)
+            time.sleep(4)
+            from db import get_latest_graph as _glg, get_reading_sims as _grs
+            latest = _glg(ga_img_id)
+            if latest:
+                sims = _grs(graph_id=latest["id"])
+                s1 = next((s for s in sims if s["mode"] == "system1"), None)
+                intent = ""
+                if s1 and s1.get("narrative_text"):
+                    intent = s1["narrative_text"]
+                    prompts = json.loads(s1.get("prompts_json", "[]"))
+                    if prompts:
+                        intent += "\n\n" + "\n".join(f"- {p}" for p in prompts[:3])
+                if not intent:
+                    intent = "Proposer des ameliorations de clarte visuelle."
+
+                _tmp = os.path.join(BASE, "data", f"autoimp_{ga_img_id}_{int(time.time())}.yaml")
+                os.makedirs(os.path.dirname(_tmp), exist_ok=True)
+                with open(_tmp, "w", encoding="utf-8") as f:
+                    yaml.dump(latest["graph"], f, default_flow_style=False, allow_unicode=True)
+                try:
+                    from ga_advisor import advise
+                    advised = advise(img_path, _tmp, intent, prior_graph=True)
+                    if advised:
+                        save_graph(advised, ga_image_id=ga_img_id,
+                                   graph_type="advised", source="auto_post_upload")
+                        logger.info(f"Auto-advised GA {ga_img_id}")
+                finally:
+                    try: os.remove(_tmp)
+                    except: pass
+        except Exception as e:
+            logger.warning(f"Auto-improve bg failed for GA {ga_img_id}: {e}")
+
+    t = threading.Thread(target=_auto_improve_bg,
+                         args=(ga_id, upload_path, graph_path), daemon=True)
+    t.start()
 
     # Save sidecar JSON with analysis metadata (for ga_detail page)
     sidecar_path = os.path.join(
@@ -1787,6 +1839,59 @@ async def analyze_submit(request: Request, file: UploadFile = File(...)):
     # Redirect back to /analyze with the GA active (tools ready)
     redirect_key = ga_slug or ga_id
     return RedirectResponse(url=f"/analyze?ga={redirect_key}", status_code=303)
+
+
+@app.post("/analyze/improve/{ga_slug}")
+async def analyze_poll_state(ga_slug: str):
+    """Poll the current analysis state for a GA. Used by frontend to update without refresh."""
+    image = get_image_by_slug(ga_slug)
+    if not image:
+        return JSONResponse({"status": "not_found"}, status_code=404)
+
+    ga_id = image["id"]
+    latest = get_latest_graph(ga_id)
+    if not latest:
+        return JSONResponse({"status": "pending", "message": "Analyse en cours..."})
+
+    sims = get_reading_sims(graph_id=latest["id"])
+    s1 = next((s for s in sims if s["mode"] == "system1"), None)
+
+    state = {
+        "status": "ready",
+        "graph_id": latest["id"],
+        "graph_type": latest.get("graph_type", "vision"),
+        "node_count": latest.get("node_count"),
+        "link_count": latest.get("link_count"),
+    }
+
+    if s1:
+        state["sim"] = {
+            "verdict": s1.get("complexity_verdict"),
+            "pressure": s1.get("budget_pressure"),
+            "visited": s1.get("nodes_visited"),
+            "total": s1.get("nodes_total"),
+            "coverage": s1.get("narrative_coverage"),
+            "dead_spaces": s1.get("dead_space_count"),
+            "narrative_text": s1.get("narrative_text", ""),
+        }
+        # Overlay SVG
+        try:
+            from graph_renderer import render_overlay_svg
+            from reader_sim import simulate_reading
+            graph_dict = latest["graph"]
+            sim_full = simulate_reading(graph_dict, total_ticks=50, mode="system1")
+            state["overlay_svg"] = render_overlay_svg(graph_dict, sim_full, 900, 600)
+            state["scanpath"] = sim_full.get("scanpath", [])
+        except Exception:
+            pass
+
+    return JSONResponse(state)
+
+
+@app.get("/analyze/poll/{ga_slug}")
+async def analyze_poll_get(ga_slug: str):
+    """GET alias for poll."""
+    return await analyze_poll_state(ga_slug)
 
 
 @app.post("/analyze/improve/{ga_slug}")
