@@ -40,15 +40,31 @@ logger = logging.getLogger("reader_sim")
 # ── Layout estimation ────────────────────────────────────────────────
 
 def _estimate_positions(graph):
-    """Estimate 2D positions for nodes based on graph structure.
+    """Get positions for nodes — prefer bbox from Gemini, fallback to estimation.
 
-    Since we don't have actual pixel coordinates, we infer positions from:
-    1. Node order in the YAML (Gemini lists top→bottom, left→right)
-    2. Space containment (things inside spaces cluster together)
-    3. Node type (spaces = large regions, things = points within)
+    If nodes have a `bbox` field [x, y, w, h] (normalized 0-1), use the center
+    of the bbox as position. Otherwise, estimate from graph structure.
 
     Returns: dict of node_id → (x, y) normalized to [0, 1]
     """
+    # First pass: extract positions from bbox where available
+    bbox_positions = {}
+    for node in graph.get("nodes", []):
+        bbox = node.get("bbox")
+        if bbox and isinstance(bbox, list) and len(bbox) == 4:
+            try:
+                x, y, w, h = [float(v) for v in bbox]
+                # Center of bbox
+                cx = min(1, max(0, x + w / 2))
+                cy = min(1, max(0, y + h / 2))
+                bbox_positions[node["id"]] = (cx, cy)
+            except (ValueError, TypeError):
+                pass
+
+    # If all nodes have bbox, skip estimation entirely
+    all_ids = {n["id"] for n in graph.get("nodes", [])}
+    if all_ids and all_ids <= set(bbox_positions.keys()):
+        return bbox_positions
     nodes = graph.get("nodes", [])
     links = graph.get("links", [])
 
@@ -105,6 +121,9 @@ def _estimate_positions(graph):
             (i + 0.5) / max(len(orphans), 1),
             0.9,
         )
+
+    # Override estimated positions with bbox-derived positions where available
+    positions.update(bbox_positions)
 
     return positions
 

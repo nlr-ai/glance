@@ -71,6 +71,7 @@ nodes:
     weight: 0.0-1.0  # visual prominence of this zone
     stability: 1.0
     energy: 0.0-1.0
+    bbox: [x, y, w, h]  # normalized 0-1 bounding box (top-left origin)
 
   # NARRATIVE nodes = the MESSAGES the GA communicates (2-4 per GA)
   # Narratives LIVE INSIDE spaces. They are the meaning, not the container.
@@ -90,6 +91,7 @@ nodes:
     weight: 0.0-1.0
     stability: 0.0-1.0
     energy: 0.0-1.0
+    bbox: [x, y, w, h]  # normalized 0-1 bounding box (top-left origin)
 
 links:
   # thing → narrative links = "this element CARRIES this message"
@@ -137,6 +139,7 @@ STEP 1: Identify the ZONES (space nodes, 2-5)
 - What are the visual containers/regions of this GA?
 - E.g., "left panel", "bottom bar", "header", "evidence section"
 - Space = a bounded visual area, not a message
+- bbox: [x, y, w, h] normalized 0-1. x,y = top-left corner. Example: [0.0, 0.0, 0.5, 0.4] = left half, top 40%
 
 STEP 2: Identify the MESSAGES (narrative nodes, 2-4)
 - What are the key messages this GA communicates?
@@ -149,6 +152,7 @@ STEP 3: Identify the VISUAL ELEMENTS (thing nodes, 5-12)
 - weight = visual prominence, stability = clarity, energy = unresolved tension
 - Things LIVE IN spaces (link thing→space)
 - Things CARRY narratives (link thing→narrative)
+- bbox: [x, y, w, h] normalized 0-1. Estimate the bounding box of each element in the image.
 
 STEP 4: Link everything
 - thing → narrative = "this element carries this message" (weight = transmission quality)
