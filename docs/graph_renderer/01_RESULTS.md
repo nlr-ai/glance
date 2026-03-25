@@ -1,0 +1,25 @@
+# Results — Graph Renderer
+
+## R1: Overlay Image
+For any GA with a graph + reader sim, produce a PNG overlay showing the attention mechanism:
+- Elemental spheres on top of the GA image at bbox positions
+- Gold filaments between connected spheres
+- Color-coded by attention (gold→green→blue→grey)
+- Dead zones visually marked
+
+**Measurement:** overlay PNG exists for every GA that has a graph in DB.
+
+## R2: Overlay Available on ga-detail
+The overlay is displayed on the ga-detail page, toggleable by the user.
+
+**Measurement:** `/ga-detail/{slug}` shows an overlay toggle button. Clicking it renders the overlay on top of the GA image.
+
+## R3: Overlay Generated Automatically
+When `save_graph()` fires, the overlay is generated async alongside the reader sim.
+
+**Measurement:** `save_graph()` → async thread generates overlay PNG → stored in DB or filesystem. No manual trigger needed.
+
+## R4: Reader Sim Scanpath Playback
+The overlay can animate the reader's scanpath — spheres light up in sequence over 5 seconds (or accelerated).
+
+**Measurement:** a "Play" button on ga-detail triggers a JS animation that highlights spheres in scanpath order.
