@@ -292,6 +292,121 @@ The three buttons at the bottom:
 
 ---
 
+## Burst + Halo Effects
+
+### Burst (on saccade landing)
+When the eye lands on a new node — a **particle burst** radiates from the center:
+- 8-12 small circles (2px) explode outward from node center
+- Color: same as the node's attention color (gold for high, blue for low)
+- Duration: 400ms
+- Scale: from 0 → node radius * 2, opacity: 1 → 0
+- CSS: `@keyframes burst { from { transform: scale(0); opacity: 1; } to { transform: scale(2); opacity: 0; } }`
+- Feels like an impact — the eye HIT this element
+
+### Halo (during fixation)
+While the eye fixates on a node — **concentric ripple rings** pulse outward:
+- One new ring every 200ms of fixation
+- Each ring: circle that scales from node radius → radius * 3, opacity 0.6 → 0
+- Duration: 800ms per ring
+- Color: node attention color at 30% opacity
+- CSS: `@keyframes halo { from { r: {nodeRadius}; opacity: 0.6; } to { r: {nodeRadius*3}; opacity: 0; } }`
+- Rings accumulate — longer fixation = more overlapping rings = stronger visual impression
+- Feels like sonar — the element is being PROBED
+
+### After fixation (residue)
+When the eye leaves:
+- Burst dissipates (already gone after 400ms)
+- Last 2 halo rings remain visible at 15% opacity (permanent residue)
+- The node keeps its attention color + soft glow
+- The residue halos show "this was read" even after the eye moved on
+
+### Implementation
+All SVG — no Canvas needed:
+```html
+<!-- Burst: 8 particles -->
+<g class="burst" style="animation: burst-fade 400ms ease-out forwards;">
+  <circle cx="..." cy="..." r="2" fill="{color}" style="animation: burst-particle 400ms ease-out forwards; --angle: 0deg;"/>
+  <circle cx="..." cy="..." r="2" fill="{color}" style="animation: burst-particle 400ms ease-out forwards; --angle: 45deg;"/>
+  ...
+</g>
+
+<!-- Halo ring -->
+<circle class="halo-ring" cx="..." cy="..." r="{nodeRadius}" fill="none"
+        stroke="{color}" stroke-width="1.5" opacity="0.6"
+        style="animation: halo-expand 800ms ease-out forwards;"/>
+```
+
+## Electric Link Particles
+
+When a thing→narrative link transmits attention, the filament **comes alive** with streaming particles:
+
+### Activation trigger
+A link lights up when BOTH conditions are met:
+1. The source thing node has been fixated (has attention)
+2. The link weight > 0 (transmission exists)
+
+### Particle stream
+- Small bright dots (3px) spawn at the source node and travel along the link path toward the narrative
+- Speed: `100 + link_weight * 200` px/s (faster = stronger transmission)
+- Density: one particle every `200 / link_weight` ms
+- Color: gold `#fbbf24` for successful transmission, fading to red `#ef4444` for penalized links (anti-pattern)
+- Trail: each particle leaves a 50ms afterglow (opacity decay)
+- CSS: `offset-path: path(...)` on `<circle>` elements, animated with `offset-distance: 0% → 100%`
+
+### Electric tension
+The filament itself vibrates — a subtle oscillation perpendicular to the path:
+- SVG filter: `feTurbulence` + `feDisplacementMap` on the link `<line>`
+- Intensity proportional to current flow (more particles = more vibration)
+- Frequency: 3-5Hz
+- Amplitude: 1-3px
+- This makes the links feel ALIVE — like cables under high voltage
+
+### Dead links
+Links that never activate (dead nodes, orphan narratives):
+- Stay dark grey, no particles, no vibration
+- Slight transparency (0.3 opacity)
+- At the end of the animation, these dead links become the diagnostic — "these connections never fired"
+
+### Convergence glow
+Where 3+ active links converge on the same narrative (via different carrier things):
+- The convergence point glows bright white-gold `#fff7ed`
+- Particles accelerate as they approach the convergence
+- A soft pulsing halo at the junction point
+- This shows REDUNDANCY — the message is well-transmitted through multiple carriers
+
+---
+
+## Space Zones — Transmission Fields
+
+Spaces (visual zones) are not just outlines — they are **energy fields** that light up as their children receive attention.
+
+### Zone activation
+- When the first thing inside a space gets fixated → the space border starts glowing teal
+- As more things inside the space are fixated → the interior fills with a faint teal wash, intensity proportional to total attention inside
+- `zone_intensity = sum(child_attention) / sum(child_weight)` → 0-1
+
+### Transmission zone
+When attention inside a space successfully transmits to a narrative:
+- A pulse of gold light floods the space interior (200ms, fade out over 500ms)
+- This is the "transmission event" — the MOMENT the message gets through
+- Multiple transmissions = multiple pulses = the space VIBRATES with successful communication
+
+### Dead zone reveal
+Spaces where NO thing was fixated:
+- Stay dark — no border glow, no fill, no pulse
+- At the end of the animation, a slow RED wash fades in (1s transition)
+- A subtle `×` marker appears in the center
+- This is the gut-punch moment — "this entire zone was invisible"
+
+### Partial zone
+Spaces where SOME things were fixated but the narrative wasn't fully transmitted:
+- Amber border (not teal, not red)
+- Faint amber interior
+- At the end: an amber `⚠` marker
+- "The reader SAW elements here but didn't GET the message"
+
+---
+
 ## Key Decisions
 
 1. **Client-side only** — the sim data is already computed. No streaming needed.
