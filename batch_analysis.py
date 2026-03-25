@@ -462,6 +462,10 @@ def extended_analysis(analysis, sidecar, is_control):
         key=lambda r: priority_order.get(r.get("priority", "LOW"), 99)
     )
 
+    # Enrich all recommendations with plain-text translations
+    from recommender import enrich_recommendations_with_plain_text
+    enrich_recommendations_with_plain_text(analysis["recommendations"])
+
     # Add enriched metrics
     analysis["semantic_richness"] = sem_richness
     analysis["hierarchy_clarity"] = hier_clarity
