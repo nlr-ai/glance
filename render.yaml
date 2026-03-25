@@ -26,3 +26,31 @@ services:
       name: glance-data
       mountPath: /var/data
       sizeGB: 1
+
+  # Cron: Reddit ingest every 6 hours
+  - type: cron
+    name: glance-reddit-ingest
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    schedule: "0 */6 * * *"
+    buildCommand: ""
+    startCommand: >
+      python -c "
+      import sys; sys.path.insert(0, '/app');
+      from ingestion.run_ingest import ingest_subreddit;
+      for sub in ['dataisugly', 'dataisbeautiful', 'academicpublishing']:
+          print(ingest_subreddit(sub, limit=10))
+      "
+    envVars:
+      - key: GLANCE_DB_PATH
+        value: /var/data/glance.db
+      - key: GLANCE_DATA_DIR
+        value: /var/data
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: "gemini-2.5-pro"
+      - key: TG_BOT_TOKEN
+        sync: false
+      - key: TG_ADMIN_CHAT_ID
+        sync: false
