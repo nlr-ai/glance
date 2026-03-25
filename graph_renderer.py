@@ -430,8 +430,8 @@ def render_overlay_svg(graph, sim_result, width, height):
     parts.append('    </filter>')
     # Dark halo behind nodes for contrast on any background
     parts.append('    <filter id="dark-halo" x="-100%" y="-100%" width="300%" height="300%">')
-    parts.append('      <feGaussianBlur in="SourceAlpha" stdDeviation="4" result="shadow"/>')
-    parts.append('      <feFlood flood-color="#000000" flood-opacity="0.6" result="dark"/>')
+    parts.append('      <feGaussianBlur in="SourceAlpha" stdDeviation="6" result="shadow"/>')
+    parts.append('      <feFlood flood-color="#000000" flood-opacity="0.8" result="dark"/>')
     parts.append('      <feComposite in="dark" in2="shadow" operator="in" result="halo"/>')
     parts.append('      <feMerge><feMergeNode in="halo"/><feMergeNode in="SourceGraphic"/></feMerge>')
     parts.append('    </filter>')
