@@ -135,7 +135,10 @@
             <span class="q-step">4/4</span>
         </div>
         <p class="question-text">Remarques, impressions, ce qui vous a frappé ou manqué ?</p>
-        <textarea id="q4-input" rows="3" placeholder="Optionnel..."></textarea>
+        <div class="comment-input-wrap">
+            <textarea id="q4-input" rows="3" placeholder="Optionnel..."></textarea>
+            <button type="button" class="btn-comment-mic" id="btn-q4-mic" title="Dicter votre commentaire">&#127908;</button>
+        </div>
         <button class="btn btn-primary" id="btn-q4">Terminer</button>
         <button class="btn btn-secondary" id="btn-q4-skip">Passer</button>
     </div>
@@ -409,13 +412,101 @@
 
     // Q4: free comment (optional)
     document.getElementById('btn-q4').addEventListener('click', () => {
+        if (window._q4Recognition && window._q4IsRecording) {
+            window._q4Recognition.stop();
+        }
         responses.q4_text = document.getElementById('q4-input').value;
         submitTest();
     });
     document.getElementById('btn-q4-skip').addEventListener('click', () => {
+        if (window._q4Recognition && window._q4IsRecording) {
+            window._q4Recognition.stop();
+        }
         responses.q4_text = '';
         submitTest();
     });
+
+    // ── Q4: voice input for comment ──
+    (function() {
+        const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const micBtn = document.getElementById('btn-q4-mic');
+        if (!SpeechRec || !micBtn) {
+            if (micBtn) micBtn.style.display = 'none';
+            return;
+        }
+
+        const q4Input = document.getElementById('q4-input');
+        const rec = new SpeechRec();
+        rec.lang = 'fr-FR';
+        rec.continuous = true;
+        rec.interimResults = true;
+
+        let isRecording = false;
+        let silenceTimer = null;
+        let finalTranscript = '';
+
+        window._q4Recognition = rec;
+        window._q4IsRecording = false;
+
+        function stopRecording() {
+            if (silenceTimer) { clearTimeout(silenceTimer); silenceTimer = null; }
+            rec.stop();
+        }
+
+        function resetSilenceTimer() {
+            if (silenceTimer) clearTimeout(silenceTimer);
+            silenceTimer = setTimeout(() => { stopRecording(); }, 5000);
+        }
+
+        micBtn.addEventListener('click', () => {
+            if (isRecording) {
+                stopRecording();
+            } else {
+                finalTranscript = q4Input.value;
+                rec.start();
+                resetSilenceTimer();
+            }
+        });
+
+        rec.addEventListener('start', () => {
+            isRecording = true;
+            window._q4IsRecording = true;
+            micBtn.classList.add('recording');
+        });
+
+        rec.onresult = (event) => {
+            let interim = '';
+            let newFinal = '';
+            for (let i = 0; i < event.results.length; i++) {
+                if (event.results[i].isFinal) {
+                    newFinal += event.results[i][0].transcript;
+                } else {
+                    interim += event.results[i][0].transcript;
+                }
+            }
+            const prefix = finalTranscript ? finalTranscript + ' ' : '';
+            q4Input.value = prefix + newFinal + (interim ? interim : '');
+            resetSilenceTimer();
+        };
+
+        rec.addEventListener('end', () => {
+            isRecording = false;
+            window._q4IsRecording = false;
+            micBtn.classList.remove('recording');
+            if (silenceTimer) { clearTimeout(silenceTimer); silenceTimer = null; }
+        });
+
+        rec.onerror = (event) => {
+            isRecording = false;
+            window._q4IsRecording = false;
+            micBtn.classList.remove('recording');
+            if (silenceTimer) { clearTimeout(silenceTimer); silenceTimer = null; }
+            if (event.error === 'not-allowed') {
+                q4Input.placeholder = 'Acces micro refuse — tapez votre commentaire';
+                micBtn.style.display = 'none';
+            }
+        };
+    })();
 
     function submitTest() {
         showPanel('submitting');

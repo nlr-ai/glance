@@ -958,6 +958,51 @@ textarea::placeholder {
     font-size: var(--text-sm);
     margin-bottom: var(--sp-4);
 }
+/* ─── Comment Mic Button ─── */
+.comment-input-wrap {
+    position: relative;
+    display: block;
+}
+.comment-input-wrap textarea {
+    width: 100%;
+    padding-right: 3rem;
+    box-sizing: border-box;
+}
+.btn-comment-mic {
+    position: absolute;
+    right: 8px;
+    top: 8px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(20, 184, 166, 0.4);
+    background: rgba(20, 184, 166, 0.08);
+    color: #14b8a6;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    padding: 0;
+    line-height: 1;
+    z-index: 2;
+}
+.btn-comment-mic:hover {
+    background: rgba(20, 184, 166, 0.18);
+    border-color: #14b8a6;
+}
+.btn-comment-mic.recording {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: #ef4444;
+    color: #ef4444;
+    animation: comment-mic-pulse 1.2s ease-in-out infinite;
+}
+@keyframes comment-mic-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.12); }
+}
+
 /* Input mode tag in reveal results */
 .input-mode-tag {
     display: inline-block;
