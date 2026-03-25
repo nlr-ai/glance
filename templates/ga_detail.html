@@ -739,6 +739,10 @@ new Chart(document.getElementById('evolutionChart'), {
                 style="padding:0.5rem 1rem;border-radius:var(--gd-radius-sm);border:1px solid var(--gd-pass);background:var(--gd-pass-bg);color:var(--gd-pass);cursor:pointer;font-size:0.8rem;font-weight:600;">
             ⚡ Auto-fix
         </button>
+        <button class="tool-btn" onclick="runTool('deepen')" data-tool="deepen" title="Analyse chaque zone en detail — augmente la resolution du graphe"
+                style="padding:0.5rem 1rem;border-radius:var(--gd-radius-sm);border:1px solid #8b5cf6;background:rgba(139,92,246,0.08);color:#8b5cf6;cursor:pointer;font-size:0.8rem;font-weight:600;">
+            🔬 Approfondir
+        </button>
     </div>
 
     <!-- Text input (shows for advise + rubber_duck) -->
@@ -829,6 +833,7 @@ async function runTool(toolName, textInput) {
         health: {title: '🔗 Verification des routes', desc: 'Verifie que chaque message scientifique est porte par un element visuel concret'},
         reader_sim: {title: '👀 Simulation de lecture (5s)', desc: 'Un lecteur virtuel scanne votre figure — montre ce qui est vu, ce qui est rate, et pourquoi'},
         reader_sim_s2: {title: '🔍 Lecture approfondie (90s)', desc: 'Le lecteur prend son temps, explore chaque zone deliberement — attention renforcee'},
+        deepen: {title: '🔬 Approfondissement', desc: 'Chaque zone est recadree et re-analysee par Gemini — augmente la resolution du graphe (plusieurs appels API)'},
     };
     const info = toolInfo[toolName] || {title: toolName, desc: ''};
     document.getElementById('toolSpinnerTitle').textContent = info.title;
@@ -907,6 +912,7 @@ function renderToolResult(tool, data) {
         reader_sim: {color: '#a855f7', label: '👀 Lecture 5s'},
         reader_sim_s2: {color: '#a855f7', label: '🔍 Lecture 90s'},
         improve: {color: 'var(--gd-pass)', label: '⚡ Auto-fix'},
+        deepen: {color: '#8b5cf6', label: '🔬 Approfondir'},
     };
     const meta = toolMeta[tool] || {color: 'var(--gd-text)', label: tool};
     const color = meta.color;
@@ -1039,6 +1045,11 @@ function renderToolResult(tool, data) {
         }
         if (data.message) inner += `<br>${data.message}`;
         inner += '</div>';
+    } else if (tool === 'deepen') {
+        inner = `<div style="font-size:0.8rem;color:var(--gd-text);">
+            Graph #${data.graph_id} — <strong>${data.root_nodes} → ${data.total_nodes}</strong> nodes, ${data.total_links} links<br>
+            ${data.spaces_deepened} zones approfondies — Resolution: <strong>${data.resolution}</strong>
+        </div>`;
     }
 
     return `<div style="border:1px solid var(--gd-border);border-radius:var(--gd-radius-sm);padding:1rem;margin-bottom:0.75rem;background:var(--gd-card);">

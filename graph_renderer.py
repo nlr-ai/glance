@@ -190,9 +190,10 @@ def assemble_render_data(graph, sim_result, image_width, image_height):
         att_ratio = attention / max_attention if max_attention > 0 else 0
 
         color_rgb = attention_to_color(att_ratio)
-        radius = 3 + weight * 7  # small marble spheres
+        res_depth = thing.get("resolution_depth", 0)
+        radius = (3 + weight * 7) / (1 + res_depth)  # smaller for deeper nodes
         glow = 4 + energy * 16
-        opacity = 0.4 + stability * 0.6
+        opacity = (0.4 + stability * 0.6) * (0.8 ** res_depth)  # more transparent for deeper
 
         # Border: check anti-patterns
         anti_types = anti_patterns_by_node.get(tid, [])
