@@ -27,15 +27,18 @@ Average effectiveness across all used channels — the GA's "visual transmission
 
 ## R6: Anti-Pattern Detection
 
-Each node is checked for 3 structural anti-patterns in its channel usage:
+Each node is checked for 3 node-level anti-patterns, plus 1 GA-level anti-pattern:
 
-| Type | Detection | Meaning | Example |
-|------|-----------|---------|---------|
-| **fragile** | Important node (w>=0.6) with < 2 visual channels | No redundancy — if the single channel fails (colorblind, thumbnail, fast scan), message is lost | "Immature Immune System" encoded only as text |
-| **incongruent** | Channels on same node point to OPPOSING semantic meanings | Brain receives contradictory signals — confusion, not hierarchy | Color says "danger" (red) but position says "positive result" (top-right, prominent) |
-| **inverse** | Important node (w>=0.8) but avg channel effectiveness < 0.5 | GA visually demotes something that should be prominent | Key finding buried in small gray text at bottom |
+| Type | Scope | Detection | Meaning | Example |
+|------|-------|-----------|---------|---------|
+| **fragile** | Node | Important node (w>=0.6) with < 2 visual channels | No redundancy — if the single channel fails (colorblind, thumbnail, fast scan), message is lost | "Immature Immune System" encoded only as text |
+| **incongruent** | Node | Channels on same node point to OPPOSING semantic meanings | Brain receives contradictory signals — confusion, not hierarchy | Color says "danger" (red) but position says "positive result" (top-right, prominent) |
+| **inverse** | Node | Important node (w>=0.8) but avg channel effectiveness < 0.5 | GA visually demotes something that should be prominent | Key finding buried in small gray text at bottom |
+| **missing_category** | GA | An entire channel family (color, form, grouping, depth) has zero channels used | GA ignores a full perceptual dimension — reduces communicative bandwidth | All rectangles same size = missing "form" family |
 
-**Measurement:** `metadata.channel_analysis.anti_patterns[]` — list of `{node_id, type, detail}`.
+**Severity for missing_category:** HIGH for color, form, grouping. MEDIUM for depth.
+
+**Measurement:** `metadata.channel_analysis.anti_patterns[]` — list of `{node_id, type, detail}` for node-level, `{type: "missing_category", family, severity, detail}` for GA-level.
 
 ### Critical distinction: incongruent != warped
 
@@ -50,4 +53,5 @@ Warp is about between-node imbalance. Incongruence is about within-node conflict
 R1 (channel map) → SENSE (channel_analyzer.py output) → HEALTH (non-zero channels per node) → CARRIER (Silas/designer)
 R5 (avg effectiveness) → SENSE (metadata.channel_analysis) → HEALTH (avg > 0.5) → CARRIER (iteration loop)
 R6 (anti-patterns) → SENSE (anti_patterns[]) → HEALTH (0 inverse on w>=0.8 nodes) → CARRIER (Silas/designer)
+R6 (missing_category) → SENSE (anti_patterns[type=missing_category]) → HEALTH (0 HIGH-severity missing families) → CARRIER (iteration loop)
 ```

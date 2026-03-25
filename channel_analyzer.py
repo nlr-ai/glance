@@ -395,12 +395,38 @@ def enrich_graph(graph, all_channel_results):
                     "fix": "Increase visual prominence — larger size, stronger color, better position",
                 })
 
+    # 4. MISSING_CATEGORY: GA-level anti-pattern
+    # The GA doesn't use entire FAMILIES of visual channels.
+    # Each family should have at least 1 channel used for a well-rounded GA.
+    CHANNEL_FAMILIES = {
+        "color": ["color_hue", "color_saturation", "color_luminance"],
+        "form": ["orientation", "size", "shape", "curvature", "line_termination"],
+        "grouping": ["closure", "spatial_position", "proximity", "similarity",
+                      "continuity", "common_region", "connectedness"],
+        "depth": ["figure-ground_segregation", "stereo_depth"],
+    }
+
+    used_channel_ids = {c.get("channel", "") for c in all_analyzed if c.get("used")}
+    for family_name, family_channels in CHANNEL_FAMILIES.items():
+        family_used = [ch for ch in family_channels if ch in used_channel_ids]
+        if not family_used:
+            anti_patterns.append({
+                "type": "missing_category",
+                "scope": "ga",
+                "category": family_name,
+                "severity": "MEDIUM" if family_name == "depth" else "HIGH",
+                "issue": f"Entire '{family_name}' channel family unused — {len(family_channels)} channels available but none exploited",
+                "fix": f"Add at least one {family_name} channel: {', '.join(family_channels[:3])}",
+                "available": family_channels,
+            })
+
     if anti_patterns:
         graph["metadata"]["anti_patterns"] = anti_patterns
         n_frag = sum(1 for a in anti_patterns if a["type"] == "fragile")
         n_inc = sum(1 for a in anti_patterns if a["type"] == "incongruent")
         n_inv = sum(1 for a in anti_patterns if a["type"] == "inverse")
-        logger.warning(f"Anti-patterns: {n_frag} fragile, {n_inc} incongruent, {n_inv} inverse")
+        n_miss = sum(1 for a in anti_patterns if a["type"] == "missing_category")
+        logger.warning(f"Anti-patterns: {n_frag} fragile, {n_inc} incongruent, {n_inv} inverse, {n_miss} missing_category")
 
     return graph
 
@@ -441,7 +467,37 @@ def analyze_ga_channels(image_path, graph_path, output_path=None):
         try:
             result = analyze_batch(image_bytes, mime_type, graph_yaml, batch, model)
             all_results.append(result)
-            logger.info(f"  Got {len(result.get('channels', []))} channel results")
+            n_ch = len(result.get('channels', []))
+            logger.info(f"  Got {n_ch} channel results")
+
+            # ── Inter-batch self-healing ──
+            # After each batch, do a partial enrichment to validate + heal
+            if n_ch > 0:
+                # Validate: clamp effectiveness to [0, 1]
+                for ch in result.get("channels", []):
+                    eff = ch.get("effectiveness", 0)
+                    if not isinstance(eff, (int, float)):
+                        ch["effectiveness"] = 0
+                    else:
+                        ch["effectiveness"] = max(0, min(1, eff))
+
+                # Heal: fill missing fields with defaults
+                for ch in result.get("channels", []):
+                    ch.setdefault("used", False)
+                    ch.setdefault("effectiveness", 0)
+                    ch.setdefault("nodes_affected", [])
+                    ch.setdefault("issues", "")
+                    ch.setdefault("recommendation", "")
+
+                # Feed partial results back into graph_yaml for next batch
+                # so Gemini sees what channels were already detected
+                partial = enrich_graph(
+                    yaml.safe_load(yaml.dump(graph)),  # deep copy
+                    all_results,
+                )
+                graph_yaml = yaml.dump(partial, default_flow_style=False, allow_unicode=True)
+                logger.info(f"  Graph updated with {n_ch} channels for next batch context")
+
         except Exception as e:
             logger.error(f"  Batch {i+1} failed: {e}")
             all_results.append({"channels": []})
@@ -450,7 +506,7 @@ def analyze_ga_channels(image_path, graph_path, output_path=None):
         if i < len(batches) - 1:
             time.sleep(4)
 
-    # Enrich
+    # Final enrichment with all results
     enriched = enrich_graph(graph, all_results)
 
     # Save
