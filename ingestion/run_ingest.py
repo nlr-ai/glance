@@ -186,52 +186,33 @@ def ingest_subreddit(subreddit: str, limit: int = 10, dry_run: bool = False) -> 
     }
 
     # ── 1. Connect to Reddit via PRAW ────────────────────────────────
-    client_id = os.environ.get("REDDIT_CLIENT_ID", "")
-    client_secret = os.environ.get("REDDIT_CLIENT_SECRET", "")
-    user_agent = os.environ.get("REDDIT_USER_AGENT", "GLANCE/1.0 by /u/scisense_bot")
+    import requests as req
 
-    if not client_id or not client_secret:
-        logger.warning("REDDIT_CLIENT_ID / REDDIT_CLIENT_SECRET not set — cannot poll Reddit")
-        return stats
-
-    try:
-        import praw
-    except ImportError:
-        logger.error("praw not installed. Run: pip install praw")
-        return stats
-
-    try:
-        reddit = praw.Reddit(
-            client_id=client_id,
-            client_secret=client_secret,
-            user_agent=user_agent,
-        )
-        # Read-only mode (no username/password needed for public subreddits)
-        reddit.read_only = True
-    except Exception as e:
-        logger.error(f"Reddit connection failed: {e}")
-        return stats
+    user_agent = os.environ.get("REDDIT_USER_AGENT", "GLANCE/1.0")
 
     sub_cfg = SUBREDDIT_DEFAULTS.get(subreddit, {"domain": "misc", "is_control": False, "min_score": 0})
     ga_dir = GLANCE_ROOT / "ga_library" / "reddit"
     ga_dir.mkdir(parents=True, exist_ok=True)
 
-    logger.info(f"Polling r/{subreddit} (limit={limit})...")
+    logger.info(f"Polling r/{subreddit} (limit={limit}) via public JSON API...")
 
-    # ── 2. Fetch posts ───────────────────────────────────────────────
+    # ── 2. Fetch posts via public JSON (no credentials needed) ───────
     try:
-        sub = reddit.subreddit(subreddit)
-        posts = list(sub.new(limit=limit))
+        api_url = f"https://old.reddit.com/r/{subreddit}/new.json?limit={limit}"
+        resp = req.get(api_url, headers={"User-Agent": user_agent}, timeout=15)
+        resp.raise_for_status()
+        data = resp.json()
+        posts = [child["data"] for child in data.get("data", {}).get("children", [])]
     except Exception as e:
         logger.error(f"Failed to fetch r/{subreddit}: {e}")
         return stats
 
     for post in posts:
         stats["checked"] += 1
-        post_id = post.id
-        title = post.title or ""
-        url = post.url or ""
-        score = post.score or 0
+        post_id = post.get("id", "")
+        title = post.get("title", "")
+        url = post.get("url", "")
+        score = post.get("score", 0)
 
         # Rate limit between Reddit API interactions
         time.sleep(REDDIT_DELAY)
