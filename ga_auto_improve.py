@@ -134,11 +134,11 @@ def _build_intent_from_diagnosis(turn_data):
             prompts.append(
                 f"'{channel}' ne transmet que {eff:.0%} de son signal. "
                 f"{issue} "
-                f"Quelle modification concrète le ferait passer au-dessus de 70% ?")
+                f"Comment exploiter ce canal différemment ?")
         else:
             prompts.append(
-                f"'{channel}' ne transmet que {eff:.0%} de son signal — sous le seuil fonctionnel. "
-                f"Quelle modification concrète le rendrait efficace ?")
+                f"'{channel}' ne transmet que {eff:.0%} de son signal. "
+                f"Comment exploiter ce canal différemment ?")
 
     # Archetype-specific — dynamic problem description
     archetype = turn_data.get("archetype", "")
