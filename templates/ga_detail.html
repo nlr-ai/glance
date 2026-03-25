@@ -412,6 +412,81 @@
             setTimeout(function() { g.remove(); }, 500);
         }
 
+        // ── Link particle system ──
+        // Collect all link <line> elements with data-source/data-target
+        var linkEls = [];
+        svg.querySelectorAll('line[data-source]').forEach(function(el) {
+            linkEls.push({
+                el: el,
+                source: el.dataset.source,
+                target: el.dataset.target,
+                isGold: el.dataset.isGold === '1',
+                x1: parseFloat(el.getAttribute('x1')),
+                y1: parseFloat(el.getAttribute('y1')),
+                x2: parseFloat(el.getAttribute('x2')),
+                y2: parseFloat(el.getAttribute('y2'))
+            });
+        });
+
+        function spawnLinkParticle(x1, y1, x2, y2, color) {
+            var p = document.createElementNS(SVG_NS, 'circle');
+            p.setAttribute('r', '2');
+            p.setAttribute('fill', color || '#f59e0b');
+            p.setAttribute('opacity', '0.8');
+            var startT = performance.now();
+            var dur = 800;
+            function moveP(ts) {
+                var t = Math.min(1, (ts - startT) / dur);
+                p.setAttribute('cx', (x1 + (x2 - x1) * t).toFixed(1));
+                p.setAttribute('cy', (y1 + (y2 - y1) * t).toFixed(1));
+                p.setAttribute('opacity', (0.8 * (1 - t * 0.5)).toFixed(2));
+                if (t < 1) requestAnimationFrame(moveP);
+                else p.remove();
+            }
+            var layer = svg.querySelector('.layer-particles') || svg;
+            layer.appendChild(p);
+            requestAnimationFrame(moveP);
+        }
+
+        function checkLinkParticles(justVisitedId) {
+            linkEls.forEach(function(lk) {
+                if (!lk.isGold) return;
+                var srcVisited = !!visited[lk.source];
+                var tgtVisited = !!visited[lk.target];
+                if (srcVisited && tgtVisited) {
+                    spawnLinkParticle(lk.x1, lk.y1, lk.x2, lk.y2, '#f59e0b');
+                }
+            });
+        }
+
+        // ── Space zone fill system ──
+        var spaceRects = {};
+        svg.querySelectorAll('rect[data-space-id]').forEach(function(el) {
+            var sid = el.dataset.spaceId;
+            if (sid) spaceRects[sid] = el;
+        });
+        var spaceActivated = {};
+
+        function activateSpace(spaceId) {
+            if (!spaceId || spaceActivated[spaceId]) return;
+            var rect = spaceRects[spaceId];
+            if (!rect) return;
+            spaceActivated[spaceId] = true;
+            // Gradually fill with teal wash
+            rect.style.transition = 'fill-opacity 800ms ease, stroke-opacity 800ms ease';
+            rect.setAttribute('fill', 'rgba(45,212,191,0.08)');
+            rect.setAttribute('stroke-opacity', '1');
+        }
+
+        function resetSpaces() {
+            spaceActivated = {};
+            for (var sid in spaceRects) {
+                var rect = spaceRects[sid];
+                rect.style.transition = '';
+                rect.setAttribute('stroke-opacity', '');
+            }
+        }
+
         // Reset all nodes to grey (pre-animation state)
         function resetNodes() {
             Object.keys(nodeEls).forEach(function(nid) {
@@ -423,6 +498,7 @@
                 el.style.transform = '';
                 el.style.transformOrigin = '';
             });
+            resetSpaces();
         }
 
         // Animation state
@@ -467,7 +543,7 @@
                 maxAtt = Math.max(maxAtt, cumulativeAtt[step.node_id]);
             }
 
-            // Burst on NEW node landing
+            // Burst on NEW node landing + link particles + space fills
             if (step && stepIdx !== lastStepIdx) {
                 var px = step.x * vbW;
                 var py = step.y * vbH;
@@ -478,6 +554,17 @@
                 trailPoints.push(px.toFixed(1) + ',' + py.toFixed(1));
                 trail.setAttribute('points', trailPoints.join(' '));
                 visited[step.node_id] = true;
+                // Link particles: check if both endpoints of gold links visited
+                checkLinkParticles(step.node_id);
+                // Space zone fill: activate space when its child is visited
+                var nodeG = nodeEls[step.node_id];
+                if (nodeG && nodeG.closest) {
+                    var parentG = nodeG.closest('[data-space-id]');
+                    if (parentG) activateSpace(parentG.dataset.spaceId);
+                } else if (nodeG) {
+                    var spId = nodeG.dataset && nodeG.dataset.spaceId;
+                    if (spId) activateSpace(spId);
+                }
             }
             lastStepIdx = stepIdx;
 

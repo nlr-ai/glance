@@ -166,6 +166,14 @@ def assemble_render_data(graph, sim_result, image_width, image_height):
     # Skipped nodes from sim
     skipped_raw = sim_result.get("skipped_nodes", [])
 
+    # Build thing→space mapping (find parent space for each thing via adjacency)
+    thing_space_map = {}
+    for space in spaces:
+        sid = space["id"]
+        for neighbor_id, _w, _l in adj.get(sid, []):
+            if neighbor_id.startswith("thing:"):
+                thing_space_map[neighbor_id] = sid
+
     # ── Assemble THING nodes ──
     render_nodes = []
     for thing in things:
@@ -236,6 +244,7 @@ def assemble_render_data(graph, sim_result, image_width, image_height):
             "weight": weight,
             "attention": attention,
             "att_ratio": att_ratio,
+            "space_id": thing_space_map.get(tid, ""),
         })
 
     # ── Assemble LINKS ──
@@ -269,6 +278,8 @@ def assemble_render_data(graph, sim_result, image_width, image_height):
         color = "#fbbf24" if is_gold else "#64748b"
 
         render_links.append({
+            "source": src,
+            "target": tgt,
             "x1": pos_src[0] * image_width,
             "y1": pos_src[1] * image_height,
             "x2": pos_tgt[0] * image_width,
@@ -319,6 +330,7 @@ def assemble_render_data(graph, sim_result, image_width, image_height):
         border_color = "#ef4444" if is_dead else "#2dd4bf"
 
         render_spaces.append({
+            "id": sid,
             "x": px_x,
             "y": px_y,
             "w": max(20, px_w),
@@ -476,6 +488,7 @@ def render_overlay_svg(graph, sim_result, width, height):
             f'width="{space["w"]:.1f}" height="{space["h"]:.1f}" rx="6" '
             f'stroke="{space["border_color"]}" stroke-width="{sw}" '
             f'fill="{_rgba_str(fill_rgb, fill_alpha)}"{dash} '
+            f'data-space-id="{_svg_escape(space.get("id", ""))}" '
             f'filter="url(#zone-texture)" '
             f'style="filter:drop-shadow(0 0 4px {glow_color});"/>'
         )
@@ -487,7 +500,10 @@ def render_overlay_svg(graph, sim_result, width, height):
             f'    <line x1="{link["x1"]:.1f}" y1="{link["y1"]:.1f}" '
             f'x2="{link["x2"]:.1f}" y2="{link["y2"]:.1f}" '
             f'stroke="{link["color"]}" stroke-width="{link["width"]:.1f}" '
-            f'opacity="{opacity}"/>'
+            f'opacity="{opacity}" '
+            f'data-source="{_svg_escape(link.get("source", ""))}" '
+            f'data-target="{_svg_escape(link.get("target", ""))}" '
+            f'data-is-gold="{1 if link["is_gold"] else 0}"/>'
         )
 
     # Thing spheres
@@ -505,7 +521,8 @@ def render_overlay_svg(graph, sim_result, width, height):
             f'data-weight="{node["weight"]:.3f}" '
             f'data-attention-ratio="{node["att_ratio"]:.3f}" '
             f'data-energy="{node.get("glow", 0):.1f}" '
-            f'data-color="{node["color"]}">')
+            f'data-color="{node["color"]}" '
+            f'data-space-id="{_svg_escape(node.get("space_id", ""))}">')
         # Base sphere with marble texture
         parts.append(
             f'      <circle cx="{cx:.1f}" cy="{cy:.1f}" r="{r:.1f}" '

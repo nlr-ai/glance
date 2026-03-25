@@ -1275,6 +1275,48 @@ def generate_ga_og_card(image: dict, avg_glance: float | None,
             if has_score:
                 ga_img = _apply_ga_treatment(ga_img, tier)
 
+            # ── Diagonal split: if overlay PNG exists, composite top-left=original, bottom-right=overlay ──
+            overlay_path = None
+            fn = image.get("filename", "")
+            if fn:
+                stem = fn.rsplit(".", 1)[0]
+                candidate = os.path.join(BASE, "ga_library", stem + "_overlay.png")
+                if os.path.exists(candidate):
+                    overlay_path = candidate
+
+            if overlay_path:
+                try:
+                    ov_img = Image.open(overlay_path).convert("RGBA")
+                    # Cover-fit overlay to same card dimensions
+                    ov_scale = max(CARD_W / ov_img.width, CARD_H / ov_img.height)
+                    ov_w = int(ov_img.width * ov_scale)
+                    ov_h = int(ov_img.height * ov_scale)
+                    ov_img = ov_img.resize((ov_w, ov_h), Image.LANCZOS)
+                    ov_cx = (ov_w - CARD_W) // 2
+                    ov_cy = (ov_h - CARD_H) // 2
+                    ov_img = ov_img.crop((ov_cx, ov_cy, ov_cx + CARD_W, ov_cy + CARD_H))
+
+                    # Diagonal mask: top-left triangle = original GA, bottom-right = overlay
+                    diag_mask = Image.new("L", (CARD_W, CARD_H), 0)
+                    diag_draw = ImageDraw.Draw(diag_mask)
+                    # Bottom-right triangle (white = overlay visible)
+                    diag_draw.polygon(
+                        [(CARD_W, 0), (CARD_W, CARD_H), (0, CARD_H)],
+                        fill=255,
+                    )
+                    # Composite: paste GA first, then overlay through mask
+                    composite = ga_img.copy()
+                    composite.paste(ov_img, (0, 0), diag_mask)
+                    # Diagonal divider line (subtle white)
+                    comp_draw = ImageDraw.Draw(composite)
+                    comp_draw.line(
+                        [(CARD_W, 0), (0, CARD_H)],
+                        fill=(255, 255, 255, 120), width=2,
+                    )
+                    ga_img = composite
+                except Exception:
+                    pass  # fallback: use GA image without overlay
+
             img.paste(ga_img, (0, 0))
             ga_loaded = True
         except Exception:

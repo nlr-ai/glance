@@ -22,6 +22,8 @@ services:
         sync: false
       - key: GLANCE_ADMIN_PWD
         sync: false
+      - key: TG_ADMIN_CHAT_ID
+        value: "1864364329"
     disk:
       name: glance-data
       mountPath: /var/data

@@ -1710,7 +1710,7 @@ def analyze_page(request: Request, ga: str = ""):
 
 
 @app.post("/analyze/submit")
-async def analyze_submit(request: Request, file: UploadFile = File(...)):
+async def analyze_submit(request: Request, file: UploadFile = File(...), public: str = Form("")):
     """Process uploaded GA image through the vision pipeline.
 
     1. Save uploaded image to ga_library/user_uploads/
@@ -1720,6 +1720,8 @@ async def analyze_submit(request: Request, file: UploadFile = File(...)):
     5. Create a ga_images entry in DB
     6. Redirect to /ga-detail/{new_id}
     """
+    is_public = 1 if public else 0
+
     # Validate file type
     if not file.filename:
         raise HTTPException(status_code=400, detail="No file uploaded")
@@ -1850,7 +1852,7 @@ async def analyze_submit(request: Request, file: UploadFile = File(...)):
                 description,
                 slug,
                 img_hash,
-                0,  # private by default — user can make public later
+                is_public,  # from checkbox — 0=private, 1=public
             ),
         )
         db.commit()
@@ -2781,4 +2783,54 @@ def og_ga_image(ga_id: int):
     png_bytes = generate_ga_og_card(image, avg_glance, n_tests, domain_label)
     _ga_og_cache[ga_id] = (png_bytes, n_tests)
     return Response(content=png_bytes, media_type="image/png",
+                    headers={"Cache-Control": "public, max-age=3600"})
+
+
+# ── Scanpath video (animated GIF) ────────────────────────────────────
+
+_gif_cache: dict[str, bytes] = {}
+
+
+@app.get("/video/ga/{ga_slug}.gif")
+def ga_video(ga_slug: str):
+    """Generate or serve cached animated GIF of the scanpath simulation."""
+    # Check cache
+    if ga_slug in _gif_cache:
+        return Response(content=_gif_cache[ga_slug], media_type="image/gif",
+                        headers={"Cache-Control": "public, max-age=3600"})
+
+    image = get_image_by_slug(ga_slug)
+    if not image:
+        return Response(status_code=404, content=b"GA not found")
+
+    ga_id = image["id"]
+    ga_path = os.path.join(BASE, "ga_library", image.get("filename", ""))
+    if not os.path.exists(ga_path):
+        return Response(status_code=404, content=b"GA image not found")
+
+    # Get latest graph and sim
+    latest = get_latest_graph(ga_id)
+    if not latest:
+        return Response(status_code=404, content=b"No graph available")
+
+    graph_dict = latest.get("graph") or {}
+    sims = get_reading_sims(graph_id=latest["id"])
+    sim_s1 = next((s for s in sims if s.get("mode") == "system1"), None)
+    if not sim_s1:
+        return Response(status_code=404, content=b"No simulation available")
+
+    sim_full = sim_s1.get("full_result") or {}
+
+    try:
+        from video_generator import generate_scanpath_gif
+        gif_bytes = generate_scanpath_gif(graph_dict, sim_full, ga_path)
+    except Exception as e:
+        logger.error(f"Video generation failed: {e}")
+        return Response(status_code=500, content=b"Video generation failed")
+
+    if not gif_bytes:
+        return Response(status_code=404, content=b"Could not generate video")
+
+    _gif_cache[ga_slug] = gif_bytes
+    return Response(content=gif_bytes, media_type="image/gif",
                     headers={"Cache-Control": "public, max-age=3600"})
