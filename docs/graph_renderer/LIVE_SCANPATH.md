@@ -406,21 +406,32 @@ When attention inside a space successfully transmits to a narrative:
 - This is the "transmission event" — the MOMENT the message gets through
 - Multiple transmissions = multiple pulses = the space VIBRATES with successful communication
 
-### Space hue displacement
-Each space has its own **hue identity** derived from its position:
-- `space_hue = cos(space_index / n_spaces * PI) * 30` → range -30° to +30° from base teal
-- This means spaces that are far apart in the layout have different hue tints
-- Relative to the main teal (#0d9488 = hue 174°):
-  - First space: 174° + 30° = 204° (cooler blue-teal)
-  - Middle space: 174° + 0° = 174° (pure teal)
-  - Last space: 174° - 30° = 144° (warmer green-teal)
-- Applied via `filter: hue-rotate({offset}deg)` on the space's border + fill
-- When a space activates, its hue SHIFTS toward gold (hue 45°) proportional to transmission success:
-  `active_hue = lerp(space_hue, 45, transmission_ratio)`
-- Dead spaces shift toward red (hue 0°):
-  `dead_hue = lerp(space_hue, 0, 1.0)` over 1s at end of animation
+### Space hue displacement — narrative distance
+Each space has its own **hue identity** derived from its **narrative distance** to other spaces — NOT spatial position.
 
-The hue displacement creates **spatial identity** — each zone has its own color signature. The viewer unconsciously maps zones by color even before reading the content.
+Two spaces carrying similar messages → similar hue. Two spaces with unrelated messages → distant hues.
+
+Computation:
+1. For each space, collect the `synthesis` text of linked narratives
+2. Embed with sentence-transformers (already loaded at startup)
+3. Compute pairwise cosine similarity between all space embeddings
+4. Project to 1D via first principal component → `narrative_position` ∈ [0, 1]
+5. Map to hue: `space_hue = 144 + narrative_position * 60` → range 144° (green-teal) to 204° (blue-teal)
+
+Fallback (if embeddings unavailable): use space index order as proxy.
+
+Relative to the main teal (#0d9488 = hue 174°):
+- Narratively similar spaces cluster near 174° (same teal)
+- Distant narratives diverge to 144° (warm green) or 204° (cool blue)
+
+Applied via `filter: hue-rotate({offset}deg)` on the space's border + fill.
+
+State transitions:
+- Activating → hue SHIFTS toward gold (45°): `active_hue = lerp(space_hue, 45, transmission_ratio)`
+- Dead → shifts toward red (0°): `dead_hue = lerp(space_hue, 0, 1.0)` over 1s
+- Partial → stays at base hue but desaturated
+
+The hue displacement creates **narrative identity** — zones carrying related messages feel similar, zones with different messages feel distinct. The viewer maps meaning by color before reading the words.
 
 ### Dead zone reveal
 Spaces where NO thing was fixated:
