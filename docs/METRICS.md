@@ -4,16 +4,26 @@ All metrics computed by the GLANCE platform, in one place. For mathematical deri
 
 ---
 
-## Metric Chain
+## Metric Chain — WHAT / WHO / HOW MUCH Sequential Gates
+
+The brain processes a GA in three sequential gates (P0 Context Anchor insight, 2026-03-26):
+
+1. **WHAT** — Domain identification (<1s). Needs title + illustration. Measured by **S9a** + **S9context**.
+2. **WHO** — Agent/product identification (1-3s). Needs labeled elements. Measured by **S9b**.
+3. **HOW MUCH** — Evidence hierarchy (3-5s). Needs proportional encoding. Measured by **S9b** (rank order) + **S9c** (actionability).
+
+Each gate is prerequisite: if WHAT fails, WHO is noise; if WHO fails, HOW MUCH is random.
 
 ```
-S10 ---------> S9a ---------> S9b ---------> S9c
-(saillance)    (recall)       (hierarchy)    (actionability)
-"I saw it"     "I know what   "I know which  "I would change
-                it is"         is best"       my practice"
+S10 ---------> S9a ---------> S9context ---------> S9b ---------> S9c
+(saillance)    (recall)       (narrative           (hierarchy)    (actionability)
+"I saw it"     "I know what    anchoring)          "I know which  "I would change
+                it is"         "I know WHY          is best"       my practice"
+                                it matters"
+               ╰─── WHAT ───╯                     ╰── WHO+HOW MUCH ──╯
 ```
 
-S10 is measured only in stream mode. S9a/S9b/S9c are measured in both modes. The full chain must hold for a GA to produce clinical impact.
+S10 is measured only in stream mode. S9a/S9context/S9b/S9c are measured in both modes. The full chain must hold for a GA to produce clinical impact. S9context is the bridge between domain recognition (WHAT) and hierarchy decoding (WHO/HOW MUCH) — without narrative anchoring, hierarchy is perceived without meaning.
 
 ---
 
@@ -35,6 +45,27 @@ S10 is measured only in stream mode. S9a/S9b/S9c are measured in both modes. The
 | **Math ref** | S2b_Mathematics.md section 2 |
 
 The continuous `s9a_score` is preserved for post-hoc threshold tuning. The model is `paraphrase-multilingual-mpnet-base-v2` (278M params, 768-dim embeddings). References are multi-level (L1 broad, L2 specific, L3 detailed) and cached in memory per GA version.
+
+### S9context -- Ancrage Narratif (Narrative Context Anchoring)
+
+| Property | Value |
+|----------|-------|
+| **Question** | Q1b: "Pourquoi cette information est-elle importante ?" (free recall, follows Q1) |
+| **Formula** | `S9context = 1 if max(cos_sim(embed(q1b_text), embed(narrative_ref_i))) >= 0.35, else 0` |
+| **Range** | Binary: 0 or 1 |
+| **Continuous score** | `s9context_score`: float in [0.0, 1.0] (max cosine similarity) |
+| **Threshold** | 0.35 (config: `s9context_pass_threshold`) — lower than S9a because narrative anchoring is more abstract |
+| **Computed in** | `semantic.py:score_s9context()` (planned) |
+| **Stored in DB** | `tests.s9context_pass` (int), `tests.s9context_score` (real) |
+| **Aggregate** | `Taux_S9context = sum(S9context) / N` |
+| **Target** | Taux_S9context >= 0.50 |
+| **Source** | P0 Context Anchor insight (2026-03-26) |
+
+**Rationale:** S9a measures WHAT domain ("immunology", "oncology") but not WHY the data matters. A participant who says "I saw a cancer study" (S9a pass) but cannot articulate why it matters (S9context fail) has identified the domain without anchoring. Narrative anchoring bridges WHAT and WHO — it provides the contextual frame that makes hierarchy meaningful. References are narrative nodes linked to the GA's thing nodes in the L3 graph.
+
+**Gate dependency:** S9context is only meaningful when S9a passes. If S9a = 0, S9context is recorded but excluded from aggregate calculations (the reader didn't even identify the domain).
+
+---
 
 ### S9b -- Hierarchie Perceptive (Hierarchy Perception)
 
@@ -74,7 +105,7 @@ The 0.5 for "need more data" reflects that in evidence-based medicine, asking fo
 
 | Property | Value |
 |----------|-------|
-| **Formula** | `GLANCE = 0.2 * S9a + 0.5 * S9b + 0.3 * S9c` |
+| **Formula** | `GLANCE = 0.15 * S9a + 0.10 * S9context + 0.45 * S9b + 0.30 * S9c` |
 | **Range** | [0.0, 1.0] |
 | **Computed in** | `scoring.py:score_glance_composite()` |
 | **Stored in DB** | `tests.glance_score` (real) |
@@ -83,7 +114,10 @@ The 0.5 for "need more data" reflects that in evidence-based medicine, asking fo
 | **Fail label** | "Le design n'a pas survecu au transfert" |
 | **Math ref** | S2b_Mathematics.md section 7 |
 
-Weights rationale: S9b at 0.5 because it is the primary validation metric. S9c at 0.3 because actionability is the end goal. S9a at 0.2 because free-recall is inherently noisy. This is an operational convenience for the dashboard, not a primary analysis variable.
+Weights rationale aligned with WHAT/WHO/HOW MUCH gates:
+- **WHAT gate (0.25 total):** S9a at 0.15 (domain recall, noisy) + S9context at 0.10 (narrative anchoring, new). Split from original S9a=0.20, with 0.05 redistributed from S9b.
+- **WHO + HOW MUCH gate (0.75 total):** S9b at 0.45 (hierarchy, primary metric, down from 0.50 to fund S9context) + S9c at 0.30 (actionability, unchanged).
+- The total still sums to 1.00. S9b remains dominant. S9context captures the WHAT/WHO bridge that was previously unmeasured. This is an operational convenience for the dashboard, not a primary analysis variable.
 
 ---
 
@@ -206,6 +240,38 @@ If Delta_spoiler is large (> +0.10), the title is carrying the information -- th
 
 ---
 
+## Structural Coverage Metrics (Graph-Derived)
+
+These metrics are computed from the L3 graph structure, not from participant responses. They measure whether the GA's design provides sufficient narrative scaffolding for the WHAT/WHO/HOW MUCH gates to function.
+
+### narrative_coverage -- Couverture Narrative
+
+| Property | Value |
+|----------|-------|
+| **Question** | For each visual element (thing node), is it linked to at least one narrative? |
+| **Formula** | `narrative_coverage = count(things with >= 1 narrative link) / count(all things)` |
+| **Range** | [0.0, 1.0] |
+| **Target** | >= 0.90 |
+| **Computed from** | L3 graph: thing nodes linked to narrative nodes via `link` edges |
+| **Source** | P0 Context Anchor insight (2026-03-26) |
+
+**Rationale:** A thing node (product, molecule, data point) without a narrative link is an orphan — the viewer sees it but has no frame for WHY it matters. Low narrative_coverage predicts low S9context scores. A GA with narrative_coverage < 0.90 has visual elements that exist outside any story, making the WHAT gate fragile.
+
+### channel_diversity_per_narrative -- Diversite de Canal par Narratif
+
+| Property | Value |
+|----------|-------|
+| **Question** | How many distinct visual channels encode each key narrative? |
+| **Formula** | `channel_diversity_per_narrative = mean(count(distinct channels per narrative))` |
+| **Range** | [1.0, N_channels] |
+| **Target** | >= 2.0 (a narrative on 1 channel is fragile) |
+| **Computed from** | L3 graph: narrative nodes, their linked thing nodes, and each thing's visual channel assignments |
+| **Source** | P0 Context Anchor insight (2026-03-26) |
+
+**Rationale:** If a narrative is carried by only one visual channel (e.g., color alone), any perceptual failure on that channel (color blindness, low contrast, screen calibration) eliminates the narrative. Redundancy across channels (color + position, size + label) makes the WHO and HOW MUCH gates robust. Target >= 2.0 means each narrative is, on average, encoded in at least two independent channels.
+
+---
+
 ## Integrity Metrics
 
 ### Tab-Switch Invalidation
@@ -247,10 +313,11 @@ H1 (universality) predicts Taux_S9b should be similar across all 4 quadrants. A 
 
 | Section | Function | Metrics shown |
 |---------|----------|---------------|
-| Global stats | `compute_aggregate_stats()` | Taux_S9a, Taux_S9b, Score_S9c, Mediane_RT2, RT2_class, Score_GLANCE, N |
+| Global stats | `compute_aggregate_stats()` | Taux_S9a, Taux_S9context, Taux_S9b, Score_S9c, Mediane_RT2, RT2_class, Score_GLANCE, N |
 | Speed-accuracy | `compute_speed_accuracy_distribution()` | Counts per quadrant: fast_right, slow_right, fast_wrong, slow_wrong |
 | Profile quadrants | `compute_stats_by_quadrant()` | Same as global, per quadrant |
 | A/B delta | `compute_ab_delta()` | delta_s9b, taux_s9b per group, mcnemar_chi2, mcnemar_significant |
 | Invalidation | (inline in `app.py`) | Taux_invalidation as percentage |
 | Stream vs Spotlight | `compute_aggregate_stats()` per mode | Separate stats for each exposure_mode |
 | S10 saillance | `compute_s10_rate()` | s10_rate, n_stream, n_hits, s10_label, s10_x_s9b |
+| Structural coverage | (graph-derived, planned) | narrative_coverage, channel_diversity_per_narrative |
