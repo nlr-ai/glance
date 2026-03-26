@@ -19,20 +19,45 @@ Every scientific GA encodes data from these families. The extraction step must i
 | Semi-quantitative | Density | density, saturation | Viral load decreasing |
 | Categorical | Binary/nominal | icon, shape | Symptomatic vs Protected |
 
+## P2b: Narrative Structure Family
+
+Every paper organizes its claims into a narrative structure. The GA must encode this structure visually, not just the individual claims. Structure types:
+
+| Structure | Pattern | Example |
+|-----------|---------|---------|
+| **Linear** | Problem → Solution | "Disease X is untreatable → Our compound reverses it" |
+| **Hierarchical** | Main finding + supporting evidence | "LNPs reactivate T cells" (central) + 3 mechanism sub-findings |
+| **Causal** | Cause → Mechanism → Effect | "Exhaustion marker ↑ → checkpoint blockade → tumor regression" |
+| **Comparative** | A vs B (with or without winner) | "Standard chemo vs immunotherapy: survival curves diverge at month 6" |
+
+Channels that encode narrative structure:
+
+- **Spatial layout** — left-to-right = temporal/causal flow; center = main finding, periphery = supporting
+- **Temporal order** — reading order (Z-pattern, F-pattern) maps to argument order
+- **Visual emphasis** — size, contrast, color saturation encode narrative importance
+- **Arrows/connectors** — encode causal, temporal, or logical relationships between claims
+
+A GA that encodes all claims correctly but loses the narrative structure has failed. The structure IS the argument.
+
 ## P3: Channel Delta, Not Pixel Delta
 
 Convergence is measured per information channel:
 
 ```
-delta(channel_i) = |AI_channel_i - SVG_channel_i|
+channel_technical_delta(i) = |AI_channel_i - SVG_channel_i|
+narrative_semantic_delta(i) = |AI_narrative_role_i - SVG_narrative_role_i|
 
 Where channel properties are:
   - used: bool (is this channel active?)
   - effectiveness: 0-1 (how well does it transmit?)
   - semantic_direction: what does it communicate?
+  - narrative_role: what role does this channel play in the paper's argument?
+    (e.g., "evidence_for:main_claim", "mechanism_step:2", "comparison:control")
 ```
 
-If the AI uses "texture=granular" to encode "bacterial" and the SVG uses "pattern=dots" to encode "bacterial", the semantic direction matches even though the rendering differs. Delta = low.
+If the AI uses "texture=granular" to encode "bacterial" and the SVG uses "pattern=dots" to encode "bacterial", the semantic direction matches even though the rendering differs. Technical delta = low.
+
+But if the AI positions "bacterial" centrally (main finding) and the SVG positions it peripherally (supporting detail), the narrative_semantic_delta is HIGH — the claim is present but its argumentative role is wrong. Both deltas must converge.
 
 ## P4: Object Learning Cycle
 
@@ -40,7 +65,9 @@ If the AI uses "texture=granular" to encode "bacterial" and the SVG uses "patter
 10 AI variants → extract channel vectors → PCA → parameter space
     → code SVG object with sliders on principal axes
     → optimize sliders via reader sim
-    → object joins library
+    → VALIDATE: reader_sim(object) → narrative_transmission score
+        → if narrative_transmission < 0.60: iterate (adjust params or recode)
+        → if narrative_transmission ≥ 0.60: object joins library
 ```
 
 Each object has:
