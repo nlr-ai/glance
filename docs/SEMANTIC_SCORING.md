@@ -109,7 +109,7 @@ S9a is a PASS/FAIL gate, not a graded score. But using multi-level references me
 ### Reference text guidelines
 
 When writing reference texts for a new GA:
-- **L1:** 2-5 short phrases. Use broad domain terms. Include French, English, and abbreviations.
+- **L1:** 2-5 short phrases. Use broad domain terms. Include French, English, and abbreviations. **Include at least one problem statement** (e.g., "children with recurrent respiratory infections", "enfants souffrant d'infections respiratoires recurrentes") — not just domain nouns. Domain terms alone ("immunologie") let participants pass without understanding what question the paper addresses.
 - **L2:** 2-4 sentences. Describe what the GA shows without naming the conclusion.
 - **L3:** 1-3 sentences. State the main finding/hierarchy explicitly.
 - **No accents required.** The model handles accented and unaccented French equivalently.
@@ -173,6 +173,22 @@ def score_s9a_semantic(user_text: str, ga_metadata: dict) -> tuple[float, bool]:
 ```
 
 The float score is preserved in the database for analysis even though S9a is binary pass/fail. This allows post-hoc threshold tuning without re-running tests.
+
+### Narrative awareness flag
+
+S9a measures domain identification, not comprehension depth. A participant saying "un truc d'immunologie" correctly identifies the domain (L1 match, high similarity) but demonstrates zero understanding of WHY the data matters — no problem-solution framing, no evidence hierarchy, no mechanism.
+
+**After S9a passes on semantic similarity, the system should flag responses that lack narrative structure markers:**
+
+| Marker | What it detects | Example present | Example absent |
+|--------|----------------|-----------------|----------------|
+| **Problem statement** | Participant frames a problem or need | "infections chez les enfants" | "immunologie" |
+| **Evidence/comparison** | Participant references data or comparison | "comparaison de traitements" | "un graphique" |
+| **Mechanism/hierarchy** | Participant identifies a finding or ordering | "OM-85 est le mieux documente" | "des barres" |
+
+**Rule:** Participants who pass S9a by identifying only the domain without narrative context (0 of 3 markers) should be flagged as `low_comprehension_depth`. This flag does NOT change the S9a pass/fail result — it is an analytical annotation stored alongside `s9a_score` for post-hoc analysis of GA effectiveness.
+
+A GA where most participants pass S9a but trigger `low_comprehension_depth` is communicating its domain but failing to transmit its argument. This is a generation quality signal, not a participant failure.
 
 ---
 
