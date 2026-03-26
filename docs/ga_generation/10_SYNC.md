@@ -21,10 +21,11 @@ Version: 0.0 — Full spec. No code.
 
 ## What Needs Building
 
-### Phase 1: Paper → Claims (A1)
-- [ ] `claim_extractor.py` — Gemini reads abstract → structured claims YAML
-- [ ] Each claim: value, data family, priority, source sentence
-- [ ] Link claims to narrative nodes
+### Phase 1: Paper → Claims (A1) — INCOMPLETE
+- [x] `claim_extractor.py` — Gemini reads abstract → structured claims YAML
+- [x] Each claim: value, data family, priority, source sentence
+- [x] Link claims to narrative nodes
+- [ ] **Argument structure extraction** (problem → evidence → conclusion) — NOT yet implemented. Addressed by A1.5 in 05_ALGORITHM.md
 
 ### Phase 2: Multi-Resolution Analysis (A2)
 - [x] deepen() exists — recursively analyzes spaces
@@ -61,11 +62,12 @@ Version: 0.0 — Full spec. No code.
 ## Priority for Aurore's GA (this week)
 
 1. **A1**: Extract claims from the immunomod manuscript → YAML spec
-2. **A2**: Run multi-res analysis on V15 wireframe (deepen)
-3. Skip A3-A4 for now — use existing compositor objects
-4. **A5**: Optimize V15 layout via reader sim hill climb
-5. **A6**: Validate + audit chain
-6. Manual polish by Aurore in Illustrator
+2. **A1.5**: Analyze narrative structure of immunomod manuscript (problem → evidence → conclusion)
+3. **A2**: Run multi-res analysis on V15 wireframe (deepen)
+4. Skip A3-A4 for now — use existing compositor objects
+5. **A5**: Optimize V15 layout via reader sim hill climb
+6. **A6**: Validate + audit chain
+7. Manual polish by Aurore in Illustrator
 
 ## Single-Graph Architecture
 
@@ -99,6 +101,8 @@ Upload → vision (fresh) → deepen → channels → reader_sim → advise
 ### Key Invariant
 
 Vision is only called in fresh mode ONCE per GA (at first upload or first analysis). Every subsequent vision call receives the existing graph and operates in enrichment mode — producing deltas, not full rebuilds.
+
+Vision enrichment mode validates NARRATIVE STRUCTURE as well as nodes — verifying that the argument flow (problem → evidence → conclusion) is preserved and correctly carried by visual elements, not just that individual nodes exist.
 
 ## Changes Log
 
