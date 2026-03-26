@@ -24,6 +24,58 @@ STEPS:
 
 2. Parse Gemini YAML response → validated claim list
 3. Link claims to narrative nodes (claim_id → narrative_id)
+4. Extract argument_structure from the paper's logical flow:
+   "Identify the argument chain: Problem → Evidence → Conclusion.
+    For each argument node, specify:
+    - id (arg_1, arg_2, ...)
+    - type: problem | solution | evidence | mechanism | conclusion
+    - claim_ids: which claims belong to this argument
+    - description: one-sentence summary of this argument step
+    - depends_on: list of arg_ids this step requires (upstream logic)
+    - supports: list of arg_ids this step provides evidence for"
+
+   → OUTPUT additions:
+     claims_list: [...]          # (existing)
+     argument_structure: [
+       {id: "arg_1", type: "problem", claim_ids: [...], description: "...", depends_on: [], supports: []},
+       {id: "arg_2", type: "solution", claim_ids: [...], description: "...", depends_on: ["arg_1"], supports: []},
+       {id: "arg_3", type: "evidence", claim_ids: [...], description: "...", depends_on: [], supports: ["arg_2"]}
+     ]
+```
+
+## A1.5: Validate Argument Chain
+
+```
+INPUT: argument_structure from A1
+OUTPUT: validated argument chain (or FAIL with diagnostics)
+
+PURPOSE: Narrative structure must be validated BEFORE visual design.
+  A GA that encodes claims without argument coherence is a list, not a story.
+
+STEPS:
+1. Graph integrity check:
+   - Every claim_id in claims_list must appear in at least one argument node
+   - Every argument node must have at least one claim_id
+   - No orphan arguments (every node except the root "problem" must have
+     depends_on or supports linking it to the chain)
+
+2. Chain completeness check:
+   - There must be at least one "problem" type node (the anchor)
+   - There must be at least one "conclusion" or "solution" type node
+   - Every "evidence" node must support at least one other node
+   - The chain must be traversable from problem → conclusion
+
+3. Narrative extraction:
+   - Walk the argument graph to produce intended_narratives:
+     Each path from problem → conclusion = one intended narrative
+   - Tag each narrative with its constituent claim_ids
+   - Store as intended_narratives list for A2 comparison
+
+4. If any check fails → RAISE with diagnostics:
+   - Which claims are orphaned
+   - Which argument nodes are disconnected
+   - What paths are broken
+   → Return to A1 for re-extraction (max 2 retries, then flag for human review)
 ```
 
 ## A2: Multi-Resolution Analysis (Image → Per-Space)
@@ -54,9 +106,26 @@ PASS 3 — Channel analysis on each level:
 
   → channel coverage at both macro and micro level
   → anti-patterns detected at BOTH resolutions
+
+PASS 4 — Narrative validation (match report):
+  Compare intended_narratives (from A1.5) vs extracted_narratives (from vision analysis):
+    For each intended_narrative:
+      - Find best-matching extracted_narrative (by claim overlap)
+      - Score: |matched_claims| / |intended_claims|
+      - Status: FOUND (≥80%), PARTIAL (50-79%), WEAK (<50%), MISSING (0%)
+
+  → Output: MATCH REPORT
+    intended_narrative | matched_extracted | claim_overlap | status
+    -------------------|-------------------|---------------|-------
+    "problem→evidence" | "left_panel_flow"  | 4/5 (80%)     | FOUND
+    "mechanism_chain"  | —                  | 0/3 (0%)      | MISSING
+
+  → FAIL GATE: if >20% of intended_narratives have status MISSING,
+    the GA cannot encode the paper's argument. Abort with diagnostics.
+    → Return to A3/A4 to redesign visual carriers for missing narratives.
 ```
 
-This is the key insight: the analysis must be HIERARCHICAL. The full image gives the structure. The per-space crops give the detail. The channels are analyzed at both levels.
+This is the key insight: the analysis must be HIERARCHICAL. The full image gives the structure. The per-space crops give the detail. The channels are analyzed at both levels. And the narrative validation ensures the argument chain is visually encoded.
 
 ## A3: AI Reference Generation
 
@@ -159,6 +228,22 @@ OUTPUT: final GA (SVG + PNG)
    c. reader_sim(graph) → coverage must be ≥ target
    d. analyze_channels(final_png, graph) → no critical anti-patterns
    e. Check: each paper claim has a narrative with coverage > 50%
+   f. Argument chain traversal:
+      For each relationship in argument_structure (depends_on, supports):
+        - Identify the visual carriers for both the source and target argument
+        - Verify a visual link exists between them (arrow, proximity, flow,
+          shared color, containment, or other spatial/channel encoding)
+        - Score: has_visual_carrier (yes/no)
+
+      → FAIL GATE: if >20% of argument relationships have no visual carrier,
+        the GA fails to encode the paper's logical flow.
+        → Return to A5 (layout) or A4 (object design) to add missing links.
+
+      → Output: ARGUMENT TRAVERSAL REPORT
+        arg_source | arg_target | relationship | visual_carrier | status
+        -----------|------------|-------------|----------------|-------
+        arg_1      | arg_2      | depends_on  | arrow_panel_1  | OK
+        arg_2      | arg_3      | supports    | —              | MISSING
 5. If validation fails → identify weakest link → iterate (back to A5 or A4)
 ```
 
