@@ -170,6 +170,72 @@ Return ONLY the YAML. No markdown fences. No explanation before or after.
 """
 
 
+ENRICHMENT_PROMPT = """You are reviewing an existing L3 graph for a scientific Graphical Abstract (GA) in the GLANCE benchmark.
+GLANCE measures whether a GA communicates its key message in 5 seconds of scrolling.
+
+The current graph has {node_count} nodes and {link_count} links. It was built from a previous analysis pass.
+
+## Current Graph
+```yaml
+{prior_yaml}
+```
+
+## Your Task: ENRICH, do not recreate
+
+Compare the current graph against the image. Look for:
+
+1. **MISSING nodes** — visual elements, spaces, or narratives present in the image but absent from the graph
+2. **INCORRECT properties** — wrong bbox, wrong weight, wrong name, wrong synthesis on existing nodes
+3. **MISSING links** — relationships between existing nodes that aren't captured
+4. **INCOMPLETE narratives** — messages that are partially described or missing nuance
+
+Rules:
+- DO NOT recreate nodes that already exist and are correct. Only output ADDITIONS and CORRECTIONS.
+- For corrections to existing nodes, use the SAME id and include only the changed fields.
+- For new nodes, use the same id schema: "space:{{zone_id}}", "narrative:{{message_id}}", "thing:{{short_id}}"
+- For new links, use the same schema: source, target, link_type, weight
+- If the graph is already complete and accurate, return an empty nodes/links list with a metadata note.
+
+Return ONLY valid YAML with this structure:
+
+nodes:
+  # Only NEW nodes or CORRECTIONS to existing nodes (same id, updated fields)
+  - id: "thing:new_element"
+    name: "..."
+    node_type: "thing"
+    synthesis: "..."
+    weight: 0.0-1.0
+    stability: 0.0-1.0
+    energy: 0.0-1.0
+    bbox: [x, y, w, h]
+
+links:
+  # Only NEW links not in the current graph
+  - source: "thing:source_id"
+    target: "narrative:message_id"
+    link_type: "link"
+    weight: 0.0-1.0
+
+metadata:
+  chart_type: bar|pie|scatter|line|heatmap|infographic|mixed|other
+  word_count: <estimated number of visible words>
+  visual_channels_used:
+    - <list of channels>
+  dominant_encoding: "<primary data encoding method>"
+  hierarchy_clear: true|false
+  accessibility_issues:
+    - "<issue description>"
+  executive_summary_fr: "<2-3 sentence summary in French>"
+  main_finding: "<the key takeaway>"
+  color_count: <number of distinct colors>
+  has_legend: true|false
+  figure_text_ratio: <0.0-1.0>
+  enrichment_notes: "<what was added/corrected vs the prior graph>"
+
+Return ONLY the YAML. No markdown fences. No explanation before or after.
+"""
+
+
 def _parse_gemini_yaml(raw_text: str) -> dict:
     """Parse YAML from Gemini response, handling common LLM quirks."""
     text = raw_text.strip()
@@ -553,17 +619,21 @@ def analyze_ga_image(image_bytes: bytes, filename: str = "", abstract: str = Non
     }
     mime_type = mime_map.get(ext, "image/png")
 
-    # Build prompt with optional prior graph context
-    prompt = VISION_PROMPT
-    if isinstance(prior_graph, dict):
-        prior_yaml = yaml.dump(prior_graph, default_flow_style=False, allow_unicode=True)
-        prompt += (
-            "\n\n## Current Graph (starting point)\n"
-            "Use this as your base. Modify/extend it rather than starting from scratch.\n"
-            "```yaml\n"
-            f"{prior_yaml}"
-            "```\n"
+    # Build prompt: enrichment mode when prior graph has nodes, fresh otherwise
+    has_prior_nodes = (isinstance(prior_graph, dict)
+                       and len(prior_graph.get("nodes", [])) > 0)
+    if has_prior_nodes:
+        prior_yaml = yaml.dump(prior_graph, default_flow_style=False,
+                               allow_unicode=True)
+        node_count = len(prior_graph.get("nodes", []))
+        link_count = len(prior_graph.get("links", []))
+        prompt = ENRICHMENT_PROMPT.format(
+            node_count=node_count,
+            link_count=link_count,
+            prior_yaml=prior_yaml,
         )
+    else:
+        prompt = VISION_PROMPT
     if abstract:
         prompt += (
             f"\n\nPAPER ABSTRACT: {abstract}\n\n"
