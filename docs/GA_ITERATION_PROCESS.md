@@ -79,8 +79,10 @@ Read the graph like a diagnostic:
 
 ### 6. Re-render and Re-analyze
 Compare V(n) vs V(n+1):
-- Track: hierarchy_clear, word_count, narrative received_attention, diversity, route_exists, archetype shift
-- Target: Cristallin archetype, S9b >= 0.80, all narratives reachable, min narrative attention > 0.20
+- Track: hierarchy_clear, word_count, narrative received_attention, diversity, route_exists, archetype shift, narrative_drift, context_preservation
+- Target: Cristallin archetype, S9b >= 0.80, all narratives reachable, min narrative attention > 0.20, narrative_drift <= 0.10, context_preservation >= 0.90
+- **narrative_drift** = `sum(|narrative_i_version_n - narrative_i_version_n-1|) / n_narratives` — measures how much narrative meaning shifts between versions. Target: drift <= 0.10 (changes should improve without distorting meaning).
+- **context_preservation** = `count(narratives with >= 2 distinct channels in version N) / count(narratives)` — measures whether narratives retain multi-channel support across iterations. Target: >= 0.90.
 
 ## Auto-Improve Prompts
 
@@ -88,7 +90,7 @@ When generating improvement prompts for Gemini, follow the FACT → PROBLEM → 
 
 1. **FACT** — Specific diagnosis with node names and values from the graph (e.g., "narrative:key_finding has received_attention=0.12, carried by only 1 thing node")
 2. **PROBLEM** — Dynamic problem description using actual graph data (e.g., "The key finding is invisible because it lives in space:bottom_zone which the Z-pattern reaches last, and its single carrier has weight=0.2")
-3. **QUESTION** — Open question for Gemini to explore (e.g., "How can we increase the key finding's visibility without adding clutter?")
+3. **QUESTION** — Instead of asking "why is this narrative weak?", ask **"is the narrative's meaning preserved across the change?"** — Open question for Gemini that prioritizes semantic preservation (e.g., "How can we increase the key finding's visibility without distorting its meaning or losing its multi-channel support?")
 
 ## Metrics to Track Per Version
 
@@ -107,6 +109,8 @@ When generating improvement prompts for Gemini, follow the FACT → PROBLEM → 
 | Node count (narratives) | 3-7 | graph (narrative nodes) |
 | Node count (things) | 5-15 | graph (thing nodes) |
 | Link count | >= nodes-2 | graph |
+| context_preservation | >= 0.90 | reader sim (narratives with >= 2 channels / total) |
+| narrative_drift | <= 0.10 | reader sim (mean absolute narrative delta across versions) |
 
 ## Blog Display Format
 
