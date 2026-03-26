@@ -3716,15 +3716,22 @@ def ga_video(ga_slug: str):
 # ── Graph API ─────────────────────────────────────────────────────────
 
 @app.get("/api/graph/{slug}")
-def api_graph(slug: str):
-    """Return the latest graph YAML for a GA as JSON."""
+def api_graph(slug: str, version: int = None):
+    """Return a graph for a GA as JSON. ?version=ID for specific, else richest."""
     image = get_image_by_slug(slug)
     if not image:
         return JSONResponse({"error": "not_found"}, status_code=404)
-    graph = get_latest_graph(image["id"])
-    if not graph:
+    db = get_db()
+    if version:
+        row = db.execute("SELECT * FROM ga_graphs WHERE id = ? AND ga_image_id = ?", (version, image["id"])).fetchone()
+    else:
+        row = db.execute("SELECT * FROM ga_graphs WHERE ga_image_id = ? ORDER BY node_count DESC LIMIT 1", (image["id"],)).fetchone()
+    db.close()
+    if not row:
         return JSONResponse({"error": "no_graph"}, status_code=404)
-    return JSONResponse(graph["graph"])
+    result = dict(row)
+    graph = yaml.safe_load(result["graph_yaml"])
+    return JSONResponse(graph)
 
 
 # ── Changelog ──────────────────────────────────────────────────────────
