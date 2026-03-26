@@ -329,17 +329,24 @@ def auth_login(request: Request):
 
 @app.post("/auth/send-link")
 async def auth_send_link(request: Request, email: str = Form(...)):
-    """Generate a magic link token and send it via Telegram + console."""
+    """Instant login — create token and set cookie directly (no email verification)."""
     email = email.strip().lower()
     if not email or "@" not in email:
         return RedirectResponse(url="/auth/login?error=email", status_code=303)
 
     token = create_auth_token(email)
-    base_url = os.environ.get("GLANCE_BASE_URL", "https://glance.scisense.fr")
-    magic_link = f"{base_url}/auth/verify?token={token}"
 
     logger = logging.getLogger("auth")
-    logger.info(f"[AUTH] Magic link for {email}: {magic_link}")
+    logger.info(f"[AUTH] Instant login for {email}")
+
+    # Instant login — set cookie and redirect to profile
+    response = RedirectResponse(url="/profile", status_code=303)
+    response.set_cookie("glance_token", token, max_age=86400 * 30, httponly=True, samesite="lax")
+    return response
+
+    # ── Below: email sending (kept for future use, unreachable for now) ──
+    base_url = os.environ.get("GLANCE_BASE_URL", "https://glance.scisense.fr")
+    magic_link = f"{base_url}/auth/verify?token={token}"
 
     email_sent = False
 
@@ -2293,20 +2300,28 @@ async def analyze_activity(ga_slug: str):
         return JSONResponse({"error": "not_found"}, status_code=404)
     ga_id = image["id"]
     db = get_db()
-    graphs = [dict(r) for r in db.execute(
-        "SELECT id, graph_type, source, created_at, node_count, link_count, avg_effectiveness, anti_pattern_count FROM ga_graphs WHERE ga_image_id = ? ORDER BY id", (ga_id,)
-    ).fetchall()]
+    graph_row = db.execute(
+        "SELECT id, graph_type, source, created_at, node_count, link_count, avg_effectiveness, anti_pattern_count, graph_version, mutations FROM ga_graphs WHERE ga_image_id = ?", (ga_id,)
+    ).fetchone()
     sims = [dict(r) for r in db.execute(
         "SELECT id, graph_id, mode, created_at, complexity_verdict, budget_pressure, nodes_visited, nodes_total, narrative_coverage, dead_space_count FROM reading_simulations WHERE ga_image_id = ? ORDER BY id", (ga_id,)
     ).fetchall()]
     db.close()
     events = []
-    for g in graphs:
-        events.append({"type": "graph", "time": g["created_at"], "icon": "📊",
-            "title": f"Graph {g['graph_type']} ({g['source']})", "detail": f"{g['node_count']} nodes, {g['link_count']} links"})
+    if graph_row:
+        g = dict(graph_row)
+        # Show graph creation event
+        events.append({"type": "graph", "time": g["created_at"], "icon": "\U0001f4ca",
+            "title": f"Graph {g['graph_type']} ({g['source']})", "detail": f"{g['node_count']} nodes, {g['link_count']} links, v{g.get('graph_version', 1)}"})
+        # Show each mutation as a separate event
+        mutations = json.loads(g["mutations"]) if g.get("mutations") else []
+        for m in mutations:
+            events.append({"type": "mutation", "time": m.get("timestamp", g["created_at"]), "icon": "\U0001f504",
+                "title": f"Mutation: {m.get('tool', '?')} ({m.get('source', '?')})",
+                "detail": f"{m.get('nodes_before', '?')} \u2192 {m.get('nodes_after', '?')} nodes (+{m.get('nodes_added', '?')})"})
     for s in sims:
-        events.append({"type": "sim", "time": s["created_at"], "icon": "👀" if s["mode"] == "system1" else "🔍",
-            "title": f"Lecture {'5s' if s['mode'] == 'system1' else '90s'} — {s['complexity_verdict']}",
+        events.append({"type": "sim", "time": s["created_at"], "icon": "\U0001f440" if s["mode"] == "system1" else "\U0001f50d",
+            "title": f"Lecture {'5s' if s['mode'] == 'system1' else '90s'} \u2014 {s['complexity_verdict']}",
             "detail": f"{s['nodes_visited']}/{s['nodes_total']} lus, {round((s['narrative_coverage'] or 0)*100)}% messages"})
     events.sort(key=lambda e: e.get("time", ""))
     return JSONResponse({"ga_id": ga_id, "total_events": len(events), "timeline": events})
@@ -2636,17 +2651,20 @@ async def analyze_tool(tool_name: str, ga_slug: str, request: Request, pwd: str 
                 raise HTTPException(status_code=400, detail="No graph yet — run vision first")
             from reader_sim import simulate_reading, generate_reading_narrative
             sim = simulate_reading(graph, total_ticks=50, mode="system1")
+            if "error" in sim:
+                return JSONResponse({"tool": "reader_sim", "error": sim["error"]}, status_code=400)
+            stats = sim.get("stats", {})
             narrative = generate_reading_narrative(sim, graph)
             return JSONResponse({
                 "tool": "reader_sim",
-                "verdict": sim["stats"]["complexity_verdict"],
-                "pressure": sim["stats"]["budget_pressure"],
-                "visited": sim["stats"]["unique_nodes_visited"],
-                "total": sim["stats"]["total_things"],
-                "skipped": sim["stats"]["nodes_skipped"],
-                "narrative_coverage": sim["stats"]["narrative_coverage"],
-                "dead_spaces": sim["stats"]["dead_space_count"],
-                "orphan_narratives": sim["stats"]["orphan_narrative_count"],
+                "verdict": stats.get("complexity_verdict", "unknown"),
+                "pressure": stats.get("budget_pressure", 0),
+                "visited": stats.get("unique_nodes_visited", 0),
+                "total": stats.get("total_things", 0),
+                "skipped": stats.get("nodes_skipped", 0),
+                "narrative_coverage": stats.get("narrative_coverage", 0),
+                "dead_spaces": stats.get("dead_space_count", 0),
+                "orphan_narratives": stats.get("orphan_narrative_count", 0),
                 "narrative_text": narrative,
                 "recommendations": sim.get("recommendations", []),
             })
@@ -2656,17 +2674,20 @@ async def analyze_tool(tool_name: str, ga_slug: str, request: Request, pwd: str 
                 raise HTTPException(status_code=400, detail="No graph yet — run vision first")
             from reader_sim import simulate_reading, generate_reading_narrative
             sim = simulate_reading(graph, total_ticks=900, mode="system2")
+            if "error" in sim:
+                return JSONResponse({"tool": "reader_sim_s2", "error": sim["error"]}, status_code=400)
+            stats = sim.get("stats", {})
             narrative = generate_reading_narrative(sim, graph)
             return JSONResponse({
                 "tool": "reader_sim_s2",
-                "verdict": sim["stats"]["complexity_verdict"],
-                "pressure": sim["stats"]["budget_pressure"],
-                "visited": sim["stats"]["unique_nodes_visited"],
-                "total": sim["stats"]["total_things"],
-                "skipped": sim["stats"]["nodes_skipped"],
-                "narrative_coverage": sim["stats"]["narrative_coverage"],
-                "dead_spaces": sim["stats"]["dead_space_count"],
-                "orphan_narratives": sim["stats"]["orphan_narrative_count"],
+                "verdict": stats.get("complexity_verdict", "unknown"),
+                "pressure": stats.get("budget_pressure", 0),
+                "visited": stats.get("unique_nodes_visited", 0),
+                "total": stats.get("total_things", 0),
+                "skipped": stats.get("nodes_skipped", 0),
+                "narrative_coverage": stats.get("narrative_coverage", 0),
+                "dead_spaces": stats.get("dead_space_count", 0),
+                "orphan_narratives": stats.get("orphan_narrative_count", 0),
                 "narrative_text": narrative,
                 "recommendations": sim.get("recommendations", []),
             })
@@ -3690,6 +3711,20 @@ def ga_video(ga_slug: str):
     _gif_cache[ga_slug] = gif_bytes
     return Response(content=gif_bytes, media_type="image/gif",
                     headers={"Cache-Control": "public, max-age=3600"})
+
+
+# ── Graph API ─────────────────────────────────────────────────────────
+
+@app.get("/api/graph/{slug}")
+def api_graph(slug: str):
+    """Return the latest graph YAML for a GA as JSON."""
+    image = get_image_by_slug(slug)
+    if not image:
+        return JSONResponse({"error": "not_found"}, status_code=404)
+    graph = get_latest_graph(image["id"])
+    if not graph:
+        return JSONResponse({"error": "no_graph"}, status_code=404)
+    return JSONResponse(graph["graph"])
 
 
 # ── Changelog ──────────────────────────────────────────────────────────
