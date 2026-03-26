@@ -4,21 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}GLANCE — SciSense{% endblock %}</title>
-    <meta name="description" content="{{ og_description | default('GLANCE — Benchmark de compréhension des Graphical Abstracts scientifiques.') }}">
+    <meta name="description" content="{{ og_description | default('GLANCE analyse la clarté visuelle de vos Graphical Abstracts scientifiques. Score, diagnostic, recommandations — en 30 secondes.') }}">
+    <meta name="keywords" content="graphical abstract, scientific figure, visual communication, GLANCE, analysis, score">
     <meta name="theme-color" content="#0f172a">
-    <link rel="canonical" href="{{ request.url }}">
+    <link rel="canonical" href="https://glance.scisense.fr{{ request.url.path }}">
     <!-- Open Graph -->
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="GLANCE — SciSense">
-    <meta property="og:title" content="{{ og_title | default('GLANCE — Testez votre œil scientifique') }}">
-    <meta property="og:description" content="{{ og_description | default('Le premier benchmark de compréhension des Graphical Abstracts scientifiques. Gratuit, 2 minutes.') }}">
-    <meta property="og:url" content="{{ og_url | default(request.url) }}">
+    <meta property="og:title" content="{{ og_title | default('GLANCE — Analyse de Graphical Abstracts') }}">
+    <meta property="og:description" content="{{ og_description | default('Votre Graphical Abstract est-il lisible ? Analyse IA en 30 secondes.') }}">
+    <meta property="og:url" content="https://glance.scisense.fr{{ request.url.path }}">
     <meta property="og:image" content="{{ og_image | default('https://glance.scisense.fr/static/og-default.png') }}">
     <meta property="og:locale" content="{{ 'en_US' if lang == 'en' else 'fr_FR' }}">
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="{{ og_title | default('GLANCE — Testez votre œil scientifique') }}">
-    <meta name="twitter:description" content="{{ og_description | default('Benchmark de compréhension des Graphical Abstracts scientifiques.') }}">
+    <meta name="twitter:title" content="{{ og_title | default('GLANCE') }}">
+    <meta name="twitter:description" content="{{ og_description | default('Analyse de Graphical Abstracts') }}">
     <meta name="twitter:image" content="{{ og_image | default('https://glance.scisense.fr/static/og-default.png') }}">
     <link rel="stylesheet" href="/static/style.css">
     <style>
@@ -87,15 +88,16 @@
     .glance-nav-center {
         display: flex;
         align-items: center;
-        gap: 0.15rem;
-        position: absolute;
-        left: 50%;
-        transform: translateX(-50%);
+        gap: 0.25rem;
+        flex: 1;
+        justify-content: center;
+        min-width: 0;
+        overflow: hidden;
     }
     .glance-nav-links {
         display: flex;
         align-items: center;
-        gap: 0.15rem;
+        gap: 0.25rem;
         list-style: none;
         margin: 0;
         padding: 0;
@@ -125,8 +127,9 @@
     .glance-nav-right {
         display: flex;
         align-items: center;
-        gap: 0.75rem;
+        gap: 0.6rem;
         flex-shrink: 0;
+        margin-left: 0.5rem;
     }
     /* CTA button */
     .nav-cta {
@@ -211,6 +214,31 @@
         background: rgba(255, 255, 255, 0.08);
     }
     .glance-nav-right a.nav-external svg {
+        width: 14px;
+        height: 14px;
+        flex-shrink: 0;
+    }
+    /* Auth link (login / profile) */
+    .glance-nav-right .nav-auth-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.4rem 0.75rem;
+        color: rgba(255, 255, 255, 0.85);
+        text-decoration: none;
+        font-size: 0.8rem;
+        font-weight: 600;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        transition: color 0.2s, background 0.2s, border-color 0.2s;
+        white-space: nowrap;
+    }
+    .glance-nav-right .nav-auth-link:hover {
+        color: #ffffff;
+        background: rgba(42, 157, 143, 0.15);
+        border-color: rgba(42, 157, 143, 0.4);
+    }
+    .glance-nav-right .nav-auth-link svg {
         width: 14px;
         height: 14px;
         flex-shrink: 0;
@@ -417,9 +445,9 @@
             <a href="https://github.com/nlr-ai/glance" target="_blank" rel="noopener" class="nav-external nav-hide-narrow" title="GitHub"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>GitHub</a>
             <a href="?lang={{ 'en' if lang != 'en' else 'fr' }}" style="font-size:0.7rem;color:rgba(255,255,255,0.35);text-decoration:none;padding:0 0.5rem;" title="Switch language">{{ 'EN' if lang != 'en' else 'FR' }}</a>
             {% if request.cookies.get('glance_user') %}
-            <a href="/profile" class="nav-external" title="Mon profil" style="color:rgba(255,255,255,0.7);"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Mon profil</a>
+            <a href="/profile" class="nav-auth-link" title="Mon profil"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Mon profil</a>
             {% else %}
-            <a href="/auth/login" class="nav-external" title="Connexion" style="color:rgba(255,255,255,0.5);"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>Connexion</a>
+            <a href="/auth/login" class="nav-auth-link" title="Connexion"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>Connexion</a>
             {% endif %}
             <a href="/onboard" class="nav-cta"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg><span class="cta-label">Commencer</span></a>
         </div>

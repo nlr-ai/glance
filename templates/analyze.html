@@ -1360,6 +1360,14 @@ function renderToolResult(tool, data) {
                         <label for="publicCheck" style="font-size:0.8rem;color:var(--an-text-dim);cursor:pointer;">Rendre visible dans les leaderboards</label>
                     </div>
 
+                    {% if not request.cookies.get('glance_user') %}
+                    <!-- Login hint -->
+                    <div style="margin:0.5rem 1.5rem 0.75rem;padding:0.65rem 1rem;background:rgba(42,157,143,0.06);border:1px solid rgba(42,157,143,0.15);border-radius:var(--an-radius-sm);display:flex;align-items:center;gap:0.6rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="var(--an-teal)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;flex-shrink:0;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        <span style="font-size:0.78rem;color:var(--an-text-dim);line-height:1.4;"><a href="/auth/login" style="color:var(--an-teal);font-weight:600;text-decoration:none;">Connectez-vous</a> pour retrouver tous vos GAs dans <a href="/profile" style="color:var(--an-teal);text-decoration:none;">Mon profil</a>.</span>
+                    </div>
+                    {% endif %}
+
                     <!-- Submit -->
                     <div class="an-submit-wrap" id="submitWrap">
                         <button type="submit" class="an-submit" id="submitBtn" disabled>
