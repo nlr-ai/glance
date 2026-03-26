@@ -77,12 +77,21 @@ fixation_strength = actor_attention * weight  # no penalty
 **Proposed fix**:
 ```python
 # On a node with incongruent anti-pattern:
-incongruent_penalty = 0.5  # halve transmission efficiency
+# Full penalty if incongruent TO the narrative (channels contradict the message)
+# Half penalty if incongruent visually but still supporting the narrative
+if incongruent_to_narrative:
+    incongruent_penalty = 0.5   # full penalty — channels fight the message
+    flag = f"incongruent BECAUSE: {explain_conflict(thing, narrative)}"
+else:
+    incongruent_penalty = 0.75  # half penalty — visual clash, narrative intact
+    flag = f"incongruent BECAUSE: visual conflict only — {explain_conflict(thing)}"
 fixation_strength = actor_attention * weight * incongruent_penalty
 # But the node still consumes its full allocated ticks (hesitation = wasted time)
+# Flag is attached to the result for diagnostic traceability
+thing_result["incongruent_flag"] = flag
 ```
 
-Effect: the node ABSORBS attention (ticks used) but TRANSMITS less to narratives. Time is wasted on confusion. This matches the real behavior: the reader stares at the element but doesn't understand it.
+Effect: the node ABSORBS attention (ticks used) but TRANSMITS less to narratives. Time is wasted on confusion. This matches the real behavior: the reader stares at the element but doesn't understand it. The flag explains WHY the incongruence was detected, making diagnostic review actionable. The two-tier penalty distinguishes between visual-only clashes (reader hesitates but still gets the message) and narrative-level contradictions (reader is actively confused about the meaning).
 
 **Verdict**: NOT MODELED → TO ADJUST
 
@@ -101,17 +110,23 @@ Effect: the node ABSORBS attention (ticks used) but TRANSMITS less to narratives
 transmitted = fixation_strength * link_weight  # no discount
 ```
 
-**Expected**: Fragile nodes should transmit LESS to narratives (single channel = less robust signal = lower probability of message reception).
+**Expected**: Fragile nodes should transmit LESS to narratives (single channel = less robust signal = lower probability of message reception). However, fragility is narrative-dependent: a single channel that is semantically appropriate for the narrative's role is NOT fragile. E.g., encoding "anatomy location" by color alone is robust (part of reader's domain knowledge), but encoding "evidence strength" by color alone is fragile (arbitrary mapping).
 
 **Proposed fix**:
 ```python
-# Fragile discount on narrative transmission
+# Fragile discount on narrative transmission — narrative-context-aware
 n_channels = len(thing.get("visual_channels", []))
 channel_robustness = min(n_channels / 3, 1.0)  # 1 channel=0.33, 2=0.67, 3+=1.0
+
+# Narrative context override: if the single channel is semantically native
+# to the narrative's domain, fragility is reduced
+if n_channels == 1 and is_domain_native(thing, linked_narrative):
+    channel_robustness = 0.8  # override: domain knowledge compensates fragility
+
 transmitted = fixation_strength * link_weight * channel_robustness
 ```
 
-Effect: a fragile element (1 channel) only transmits 33% of its fixation to narratives. The reader SAW it, but the message didn't fully register because it was encoded on a single fragile channel.
+Effect: a fragile element (1 channel) only transmits 33% of its fixation to narratives by default. But if the channel is semantically appropriate for the narrative's role (e.g., spatial color in anatomy, size for quantity), the penalty is softened to 80%. The reader SAW it, and domain knowledge fills in the gaps. Without that domain match, the message didn't fully register because it was encoded on a single fragile channel with no semantic anchor.
 
 **Verdict**: NOT MODELED → TO ADJUST
 
@@ -338,6 +353,54 @@ child_y = cy + spread * math.sin(angle)
 
 ---
 
+## B14: Narrative Coherence
+
+**Behavior**: The reader follows a logical sequence matching the paper's argument. A well-structured GA guides the eye through Problem → Solution → Evidence → Implications. Broken chains (skipped steps) reduce comprehension; complete chains produce a coherent mental model.
+
+**Graph**: `narrative` nodes linked by directed edges (`narrative → narrative` links) representing argumentative flow. Each link carries `relation_kind` or semantic direction indicating the argument step (e.g., problem→solution, solution→evidence, evidence→implications). Orphan narratives have no incoming or outgoing argument-flow links.
+
+**Physics**: Currently NONE.
+
+```python
+# Current: narratives receive attention independently from their carriers
+# No concept of argument chains or traversal order
+narrative_attention[narrative_id] += transmitted  # no chain awareness
+```
+
+**Expected**: Full chains traversed (all links in a Problem→Solution→Evidence→Implications sequence visited) should produce higher `narrative_attention` than orphan narratives or broken chains. Narrative coherence emerges from sequential traversal — the reader builds understanding step by step.
+
+**Proposed fix**:
+```python
+# Compute argument coverage: % of narrative chains fully traversed
+chains = extract_argument_chains(narratives, narrative_links)
+# e.g., chains = [[n_problem, n_solution, n_evidence, n_implications], ...]
+
+chains_completed = 0
+for chain in chains:
+    visited = [n for n in chain if narrative_attention.get(n, 0) > 0]
+    if len(visited) == len(chain):
+        chains_completed += 1
+        # Bonus: chain completion reinforces all members
+        for n in chain:
+            narrative_attention[n] *= 1.2  # coherence bonus
+
+sequence_fidelity = chains_completed / max(len(chains), 1)
+argument_coverage = len(all_chain_nodes_visited) / max(len(all_chain_nodes), 1)
+
+# Penalize skipped links: if a chain has gaps, downstream nodes lose attention
+for chain in chains:
+    for i, node in enumerate(chain):
+        if i > 0 and narrative_attention.get(chain[i-1], 0) == 0:
+            # Previous link was skipped — penalize this node
+            narrative_attention[node] *= 0.5  # broken chain penalty
+```
+
+Effect: narratives that belong to complete argument chains get a coherence bonus (1.2x). Narratives downstream of a skipped step are penalized (0.5x) — the reader can't understand the evidence if they missed the problem statement. `sequence_fidelity` measures what fraction of the paper's argument was fully conveyed. `argument_coverage` measures raw traversal.
+
+**Verdict**: NOT MODELED → TO ADJUST (P0)
+
+---
+
 ## Summary Table
 
 | # | Behavior | Graph Math | Physics | Verdict |
@@ -355,26 +418,42 @@ child_y = cy + spread * math.sin(angle)
 | B11 | Redundancy protects | Multiple `thing→narrative` links | Cumulative attention | VALID |
 | B12 | Proximity = grouping | Space-based clustering | Position estimation | VALID |
 | B13 | Title seen first | YAML order, position | Z-order priority | VALID |
+| B14 | Narrative coherence | Directed `narrative→narrative` chains | `argument_coverage`, `sequence_fidelity` | NOT MODELED |
 
-**Score: 9/13 VALID, 2/13 PARTIAL, 3/13 NOT MODELED (but 1 is V2-only)**
+**Score: 9/14 VALID, 2/14 PARTIAL, 4/14 NOT MODELED (but 1 is V2-only)**
 
 ---
 
 ## Priority Adjustments
 
+### P0: Narrative coherence (B14) — CRITICAL
+Argument chains must be modeled to measure whether the GA communicates its scientific story, not just individual data points.
+```python
+chains = extract_argument_chains(narratives, narrative_links)
+sequence_fidelity = chains_completed / total_chains
+# Weight narratives by position in argument chain
+# Penalize skipped links (broken chain penalty = 0.5x downstream)
+```
+
 ### P1: Incongruent penalty (B3) — HIGH
-Anti-patterns already detected by channel_analyzer. Just need to read them in reader_sim and apply penalty.
+Anti-patterns already detected by channel_analyzer. Just need to read them in reader_sim and apply penalty. Two-tier: full penalty (0.5x) if incongruent to narrative, half penalty (0.75x) if visual-only conflict.
 ```python
 if "incongruent" in thing_anti_patterns:
-    transmission_efficiency *= 0.5  # halve narrative transmission
+    if incongruent_to_narrative:
+        transmission_efficiency *= 0.5   # full — channels fight the message
+    else:
+        transmission_efficiency *= 0.75  # half — visual clash, narrative intact
+    flag = f"incongruent BECAUSE: {explain_conflict(thing, narrative)}"
     # ticks still consumed (hesitation)
 ```
 
 ### P2: Fragile discount (B4) — HIGH
-Channel count already available on enriched graphs.
+Channel count already available on enriched graphs. Narrative-context-aware: single channels that are domain-native get reduced penalty (0.8 instead of 0.33).
 ```python
 n_channels = len(thing.get("visual_channels", []))
 channel_robustness = min(n_channels / 3, 1.0)
+if n_channels == 1 and is_domain_native(thing, linked_narrative):
+    channel_robustness = 0.8  # domain knowledge compensates
 transmission_efficiency *= channel_robustness
 ```
 
@@ -410,6 +489,9 @@ saccade_ticks = max(1, round(dist * 3))
 | `fragile_discount` | 1.0 (none) | `min(n_channels/3, 1)` | Single-channel vulnerability |
 | `revisit_penalty` | N/A (no revisits) | 0.5x | Diminishing returns on re-fixation |
 | `z_row_quantization` | 3 rows | 3 rows | Z-pattern scan line resolution |
+| `narrative_weight_factor` | 1.0 (flat) | 1.5x primary / 1.0x secondary / 0.8x orphan | Multiplier on thing weight based on narrative role |
+
+`narrative_weight_factor` governs how much a thing's narrative role amplifies its effective weight in the simulation. A thing carrying a primary narrative (first in argument chain, or sole carrier of a key message) gets 1.5x weight. Secondary narrative carriers get 1.0x (no change). Orphan things (no narrative link) get 0.8x — they exist visually but carry no message, so they should attract less simulated attention than message-bearing elements.
 
 All constants are testable: compare sim predictions vs human verbal recall (S2 test).
 Match = sim calibrated. Mismatch = adjust constant.
