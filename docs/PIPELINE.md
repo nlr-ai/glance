@@ -43,27 +43,29 @@ This produces 36 PNG images + 36 sidecar JSON files in a single run. Each JSON i
 
 ## Pipeline Steps
 
-### SELECT -> EXTRACT -> RENDER -> CONTROL -> TAG -> DROP -> SEED -> RECOMMEND
+### SELECT -> NARRATIVE -> DATA_EXTRACT -> RENDER -> CONTROL -> TAG -> DROP -> SEED -> RECOMMEND
 
 ```
-1. SELECT      Choose a paper with a clear evidence hierarchy
-                |
-2. EXTRACT      Identify the key finding, products/methods, correct answer
-                |
-3. RENDER       Generate the GA image (VEC bar chart or reference)
-                |
-4. CONTROL      Create A/B control variant (area-encoded version of same data)
-                |
-5. TAG          Write sidecar JSON with metadata + semantic_references
-                |
-6. DROP         Place PNG + JSON in ga_library/
-                |
-7. SEED         Restart server (or fresh DB) to auto-seed
-                |
-8. RECOMMEND    Run recommender.py on the GA graph → prioritized fixes report
+1. SELECT        Choose a paper with a clear evidence hierarchy
+                  |
+2. NARRATIVE      Extract the paper's ARGUMENT STRUCTURE (P0 Context Anchor)
+                  |
+3. DATA_EXTRACT   Identify quantitative data that supports the narrative claim
+                  |
+4. RENDER         Generate the GA image (VEC bar chart or reference)
+                  |
+5. CONTROL        Create A/B control variant (area-encoded version of same data)
+                  |
+6. TAG            Write sidecar JSON with metadata + semantic_references + narrative_anchors
+                  |
+7. DROP           Place PNG + JSON in ga_library/
+                  |
+8. SEED           Restart server (or fresh DB) to auto-seed
+                  |
+9. RECOMMEND      Run recommender.py on the GA graph → prioritized fixes report
 ```
 
-For batch generation, steps 2-6 are automated by `generate_library.py`.
+For batch generation, steps 2-7 are automated by `generate_library.py`.
 
 ---
 
@@ -107,20 +109,66 @@ Each domain has tailored Q1/Q2/Q3 questions in `config.yaml` under `domains:`.
 
 ---
 
-## Step 2: EXTRACT -- Identify Key Data
+## Step 2: NARRATIVE -- Extract Argument Structure (P0 Context Anchor)
+
+> **P0 insight (2026-03-26):** Data without narrative context is noise. A live user test
+> showed that a VEC-compliant GA with perfect proportional bars scored S9a=0, S9b=0
+> because the reader couldn't identify WHAT they were looking at. The version with a
+> prominent title and narrative illustration scored S9a=1, S9b=1.
+
+Before extracting any data, extract the paper's **argument structure**. This is the context anchor that makes the data meaningful.
+
+### What to extract
+
+1. **One-sentence scientific claim**: What is the paper asserting? This becomes the GA's narrative backbone.
+   - Example: "OM-85 has the strongest clinical evidence among immunomodulators for preventing recurrent respiratory infections in children."
+
+2. **Problem-Evidence-Conclusion chain**:
+   - **Problem**: What question does the paper address? (e.g., "Which immunomodulator has the best evidence for pediatric RTIs?")
+   - **Evidence**: What type of evidence supports the claim? (e.g., "Meta-analysis of 8 RCTs, N=4,012")
+   - **Conclusion**: What does the evidence prove? (e.g., "OM-85 shows 35.9% reduction in RTI episodes vs placebo")
+
+3. **Narrative anchors** (visual requirements):
+   - **Title claim**: The one phrase a reader must see within 5 seconds to orient themselves
+   - **Hierarchy signal**: Which visual element communicates the winner/ranking?
+   - **Evidence type marker**: What tells the reader this is scientific evidence (source, N, study type)?
+
+### Why this comes before data
+
+Data extraction (step 3) becomes subordinate to narrative: instead of "what numbers does this paper contain?", the question becomes "what data supports this specific claim?". This prevents the common failure mode of a GA that encodes data perfectly but communicates nothing.
+
+### In `generate_library.py`
+
+Each `PAPERS` entry should include a `narrative` dict:
+
+```python
+"narrative": {
+    "claim": "OM-85 has the strongest evidence for pediatric RTI prevention",
+    "problem": "Which immunomodulator best prevents recurrent RTIs in children?",
+    "evidence_type": "Meta-analysis, 8 RCTs, N=4012",
+    "conclusion": "OM-85: 35.9% reduction vs placebo (p<0.001)"
+}
+```
+
+---
+
+## Step 3: DATA_EXTRACT -- Identify Supporting Data
+
+> Subordinate to NARRATIVE (step 2). The question is not "what data exists?" but
+> "what data supports the narrative claim identified above?"
 
 From the paper, extract:
 
 - **Products/methods** (3-6 named items): these become Q2 answer options
 - **Correct answer**: the item with the strongest evidence/highest score
-- **Quantitative values**: the numbers that the GA will encode
+- **Quantitative values**: the numbers that the GA will encode -- selected because they support the narrative claim
 - **Domain**: which `config.yaml` domain this falls under (determines Q1/Q2/Q3 wording)
 
-In `generate_library.py`, this is the `PAPERS` list: each entry has `slug`, `domain`, `version`, `title`, `description`, `source`, `labels`, `values`, `unit`, `correct`, and `semantic_references`.
+In `generate_library.py`, this is the `PAPERS` list: each entry has `slug`, `domain`, `version`, `title`, `description`, `source`, `labels`, `values`, `unit`, `correct`, `narrative`, and `semantic_references`.
 
 ---
 
-## Step 3: RENDER -- Generate the GA Image
+## Step 4: RENDER -- Generate the GA Image
 
 Produce a PNG of the Graphical Abstract. This can be:
 
@@ -135,7 +183,7 @@ Image requirements:
 
 ---
 
-## Step 4: CONTROL -- Create A/B Control Variant
+## Step 5: CONTROL -- Create A/B Control Variant
 
 For A/B testing, create a control version of the same data using **area encoding** (circles, pie charts, bubble charts) instead of the VEC's length encoding (bars).
 
@@ -151,7 +199,7 @@ Naming convention: `{short_name}_control.png` or `{short_name}_pie_control.png` 
 
 ---
 
-## Step 5: TAG -- Write Sidecar JSON
+## Step 6: TAG -- Write Sidecar JSON
 
 Every image needs a sidecar JSON file with the same base name: `{short_name}.json`.
 
@@ -200,9 +248,34 @@ This field drives the entire S9a scoring pipeline via `semantic.py`. Without it,
 - Avoid standalone product names in L1/L2 -- they belong in L3 context.
 - Write what a correct participant would say, not the paper title.
 
+### Narrative anchors (P0 Context Anchor -- critical for visual encoding)
+
+> Added 2026-03-26 after the P0 Context Anchor discovery. These define the claim
+> components that MUST have a visual carrier in the GA image.
+
+```json
+{
+    "narrative_anchors": {
+        "title_claim": "OM-85: strongest evidence for pediatric RTI prevention",
+        "hierarchy_signal": "bar_length",
+        "evidence_marker": "Meta-analysis, 8 RCTs, N=4012",
+        "problem_context": "Immunomodulators for recurrent respiratory infections in children"
+    }
+}
+```
+
+| Field | Purpose | Visual requirement |
+|-------|---------|-------------------|
+| `title_claim` | The one-sentence claim the reader must grasp in <5 seconds | Must be rendered as a prominent title or headline in the GA |
+| `hierarchy_signal` | Which visual channel encodes the ranking | Must be the dominant perceptual channel (length > area > color) |
+| `evidence_marker` | Study type, N, source -- what makes this science, not opinion | Must appear as a visible annotation (source line, subtitle) |
+| `problem_context` | The question the paper answers | Must be inferable from the GA's title + axis labels |
+
+**Every narrative anchor must have a visual carrier.** A narrative anchor without a visual carrier means the GA will fail the P0 check: the reader sees data but cannot identify what they are looking at.
+
 ---
 
-## Step 6: DROP -- Place Files
+## Step 7: DROP -- Place Files
 
 Drop the PNG and JSON files into `ga_library/`:
 
@@ -218,7 +291,7 @@ The filenames must share the same base name (everything before the extension).
 
 ---
 
-## Step 7: SEED -- Load into Database
+## Step 8: SEED -- Load into Database
 
 Images are seeded into the `ga_images` table by `_seed_images()` in `app.py`. This function runs on server startup and **only seeds if the table is empty** (`get_image_count() > 0` short-circuits).
 
@@ -231,7 +304,7 @@ After adding or editing semantic_references in JSON files, call `semantic.clear_
 
 ---
 
-## Step 8: RECOMMEND -- Generate Actionable Fixes
+## Step 9: RECOMMEND -- Generate Actionable Fixes
 
 After the GA is tested (or before, as a design-time audit), run the recommendation engine on the GA's information graph to get prioritized, actionable design changes.
 
@@ -254,9 +327,24 @@ The engine scans every node in the GA graph for tension signals:
 
 | Signal | Condition | Priority | Meaning |
 |--------|-----------|----------|---------|
+| **P0 narrative missing** | No `narrative_anchors` or `title_claim` absent from rendered image | CRITICAL | The GA encodes data but communicates nothing (P0 failure) |
+| **P0 anchor orphan** | A `narrative_anchor` has no visual carrier in the GA | CRITICAL | A claim component exists in metadata but is invisible to the reader |
 | Unvalidated claim | `weight > 0.7 AND stability < 0.5` | CRITICAL | The GA asserts something it hasn't proven |
 | Unresolved design | `energy > 0.6` | HIGH | The visual encoding for this element is not finalized |
 | Established | `weight > 0.6 AND stability > 0.8` | (strength) | Solid -- backed by data or settled design |
+
+### P0 Context Anchor checks
+
+These checks were added after the 2026-03-26 user test that demonstrated data without narrative context scores zero. They run before all other checks because P0 failure makes all other scores meaningless.
+
+| Check | Question | Pass condition |
+|-------|----------|---------------|
+| **Narrative visibility** | Is the narrative claim visible within 5 seconds? | `title_claim` is rendered as the GA's title or dominant text element |
+| **Anchor coverage** | Does every narrative component have a visual carrier? | All 4 `narrative_anchors` fields map to a visible element in the GA |
+| **Problem legibility** | Can the reader identify the domain/question? | `problem_context` is inferable from title + axis labels without reading data values |
+| **Evidence provenance** | Can the reader distinguish science from opinion? | `evidence_marker` appears as source citation, subtitle, or annotation |
+
+A GA that fails any P0 check should be flagged CRITICAL regardless of its VEC compliance, Stevens beta, or channel encoding quality.
 
 Channel upgrade paths are derived from Cleveland & McGill (1984) and Stevens (1957). The key substitution: **area -> length** gains +20-30% on S9b because Stevens beta goes from 0.7 to 1.0.
 
